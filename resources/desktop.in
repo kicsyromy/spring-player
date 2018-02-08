@@ -1,0 +1,6 @@
+[Desktop Entry]
+Type=Application
+Name=Simple Application
+Icon=@PROJECT_NAME@.png
+StartupNotify=true
+Exec=@CMAKE_INSTALL_PREFIX@/bin/@PROJECT_NAME@
