@@ -2,6 +2,7 @@
 
 #include <memory>
 
+#include "application_settings.h"
 #include "async_queue.h"
 #include "main_window.h"
 #include "utility.h"
@@ -87,8 +88,15 @@ static void spring_player_class_init(SpringPlayerClass *klass)
 
 SpringPlayer *spring_player_new()
 {
-    std::int32_t r = spring::player::levenshtein_distance("Saturday", "Sunday");
-    fprintf(stderr, "****************************** %d", r);
+    g_warning("****** home: %s",
+              spring::player::settings::home_directory().c_str());
+    g_warning("****** data: %s",
+              spring::player::settings::data_directory().c_str());
+    g_warning("****** config: %s",
+              spring::player::settings::config_directory().c_str());
+    g_warning("****** cache: %s",
+              spring::player::settings::cache_directory().c_str());
+
     return static_cast<SpringPlayer *>(
         g_object_new(SPRING_PLAYER_TYPE, "application-id", APPLICATION_ID,
                      "flags", G_APPLICATION_HANDLES_OPEN, nullptr));
