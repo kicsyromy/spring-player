@@ -2,8 +2,8 @@
 
 #include <fmt/format.h>
 
-#include "common.h"
 #include "now_playing_list.h"
+#include "utility.h"
 
 using namespace spring;
 using namespace spring::player;

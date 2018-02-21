@@ -1,7 +1,7 @@
 #include "albums_page.h"
 
 #include "async_queue.h"
-#include "common.h"
+#include "utility.h"
 
 using namespace spring;
 using namespace spring::player;
@@ -63,13 +63,23 @@ void AlbumsPage::activated() noexcept
 gboolean AlbumsPage::filter(GtkFlowBoxChild *element, void *instance) noexcept
 {
     auto self = static_cast<AlbumsPage *>(instance);
-    auto searched_text = std::string{ gtk_entry_get_text(
+    const auto searched_text = std::string{ gtk_entry_get_text(
         gtk_cast<GtkEntry>(self->search_entry_)) };
-    return searched_text.empty() ||
-           self->albums_
-                   .at(static_cast<std::size_t>(
-                       gtk_flow_box_child_get_index(element)))
-                   ->title() == searched_text;
+    const auto &album_title =
+        self->albums_
+            .at(static_cast<std::size_t>(gtk_flow_box_child_get_index(element)))
+            ->title();
+    const auto &artist_name =
+        self->albums_
+            .at(static_cast<std::size_t>(gtk_flow_box_child_get_index(element)))
+            ->artist();
+
+    const bool is_near_title_match{ fuzzy_match(searched_text, album_title,
+                                                2) };
+    const bool is_near_artist_match{ fuzzy_match(searched_text, artist_name,
+                                                 2) };
+
+    return searched_text.empty() || is_near_title_match || is_near_artist_match;
 }
 
 void AlbumsPage::destroy_function(void *) noexcept

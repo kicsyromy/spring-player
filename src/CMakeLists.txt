@@ -4,6 +4,7 @@ cmake_minimum_required(VERSION 3.5)
 find_package (PkgConfig REQUIRED QUIET)
 pkg_check_modules (GTK REQUIRED gtk+-3.0)
 pkg_check_modules (GSTREAMER REQUIRED gstreamer-1.0)
+pkg_check_modules (LIBICU REQUIRED icu-i18n)
 
 file (GLOB HEADERS "${PROJECT_SOURCE_DIR}/include/*.h")
 source_group ("Headers" FILES ${HEADERS})
@@ -21,6 +22,8 @@ target_include_directories (
     "${PROJECT_SOURCE_DIR}/include"
     ${GTK_INCLUDE_DIRS}
     ${GSTREAMER_INCLUDE_DIRS}
+    ${LIBICU_INCLUDE_DIRS}
+    ${3RDPARTY_INCLUDE_DIRS}
 )
 
 add_subdirectory (libspring)
@@ -30,6 +33,7 @@ target_link_libraries (
     ${APPLICATION_ID}.ui
     ${GTK_LIBRARIES}
     ${GSTREAMER_LIBRARIES}
+    ${LIBICU_LIBRARIES}
     spring
     pthread
 )

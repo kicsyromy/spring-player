@@ -7,7 +7,7 @@
 #include <libspring_music_album.h>
 #include <libspring_music_track.h>
 
-#include "common.h"
+#include "utility.h"
 
 struct TrackListUpdateRequest;
 struct TrackListUpdateResponse;
@@ -24,6 +24,7 @@ namespace spring
 
         public:
             const std::string &title() const noexcept;
+            const std::string &artist() const noexcept;
             void activated() noexcept;
 
         public:

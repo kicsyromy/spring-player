@@ -8,10 +8,10 @@
 #include <libspring_global.h>
 #include <libspring_plex_media_server.h>
 
-#include "common.h"
 #include "now_playing_sidebar.h"
 #include "page_stack.h"
 #include "playback_footer.h"
+#include "utility.h"
 
 using SpringPlayer = struct _SpringPlayer;
 

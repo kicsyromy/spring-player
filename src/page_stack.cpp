@@ -1,6 +1,6 @@
 #include "page_stack.h"
 
-#include "common.h"
+#include "utility.h"
 
 using namespace spring;
 using namespace spring::player;

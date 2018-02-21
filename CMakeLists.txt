@@ -4,10 +4,15 @@ cmake_minimum_required(VERSION 3.5)
 list (APPEND CMAKE_MODULE_PATH 0 "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 include (ClangFormat)
 
-set (CMAKE_CXX_STANDARD 14)
+set (CMAKE_CXX_STANDARD 17)
 set (APPLICATION_ID ${PROJECT_NAME})
 set (APPLICATION_PREFIX "/${PROJECT_NAME}")
 string (REPLACE "." "/" APPLICATION_PREFIX ${APPLICATION_PREFIX})
+
+set (
+    3RDPARTY_INCLUDE_DIRS
+    "${PROJECT_SOURCE_DIR}/3rdparty/utfcpp/"
+)
 
 add_executable (${APPLICATION_ID} "")
 

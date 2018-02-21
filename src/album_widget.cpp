@@ -3,8 +3,8 @@
 #include <fmt/format.h>
 
 #include "async_queue.h"
-#include "common.h"
 #include "now_playing_list.h"
+#include "utility.h"
 
 using namespace spring;
 using namespace spring::player;
@@ -33,12 +33,17 @@ AlbumWidget::AlbumWidget(music::Album &&album) noexcept
     gtk_label_set_text(artist_, album_.artist().c_str());
     gtk_label_set_text(title_, album_.title().c_str());
 
-    load_image_from_data_scaled<200, 200>(album_.artwork(), cover_);
+    //    load_image_from_data_scaled<200, 200>(album_.artwork(), cover_);
 }
 
 const std::string &AlbumWidget::title() const noexcept
 {
     return album_.title();
+}
+
+const std::string &AlbumWidget::artist() const noexcept
+{
+    return album_.artist();
 }
 
 void AlbumWidget::activated() noexcept

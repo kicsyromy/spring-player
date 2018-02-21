@@ -1,6 +1,6 @@
 #include "genres_page.h"
 
-#include "common.h"
+#include "utility.h"
 
 using namespace spring;
 using namespace spring::player;
