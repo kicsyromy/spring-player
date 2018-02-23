@@ -127,26 +127,26 @@ namespace spring
                 Unknown = 999
             };
 
-            explicit Status(std::int32_t code);
-            explicit Status(Status::Code value)
+            explicit Status(std::int32_t code) noexcept;
+            explicit Status(Status::Code value) noexcept
               : Status(static_cast<std::int32_t>(value))
             {
             }
-            inline Status::Code code() const { return statusCode_; }
-            inline const char *const name() const { return name_; }
-            inline bool operator==(std::int32_t code)
+            inline Status::Code code() const noexcept { return statusCode_; }
+            inline const char *name() const noexcept { return name_; }
+            inline bool operator==(std::int32_t code) const noexcept
             {
                 return code == static_cast<std::int32_t>(statusCode_);
             }
-            inline bool operator==(Status::Code code)
+            inline bool operator==(Status::Code code) const noexcept
             {
                 return code == statusCode_;
             }
-            inline operator std::int32_t()
+            inline operator std::int32_t() const noexcept
             {
                 return static_cast<std::int32_t>(statusCode_);
             }
-            inline operator std::string()
+            inline operator std::string() const noexcept
             {
                 return fmt::format("'{} {}'", static_cast<int>(statusCode_),
                                    name_);
@@ -188,8 +188,11 @@ namespace spring
             };
             Error::Code errorCode;
             const char *message;
-            inline operator bool() { return errorCode != Error::Code::NoError; }
-            inline operator std::string()
+            inline operator bool() const noexcept
+            {
+                return errorCode != Error::Code::NoError;
+            }
+            inline operator std::string() const noexcept
             {
                 return fmt::format("'{} {}'", static_cast<int>(errorCode),
                                    message);
@@ -216,61 +219,61 @@ namespace spring
         using http_request_result_t = RequestResult;
 
     public:
-        explicit HttpClient(const std::string &userAgent);
-        HttpClient(HttpClient &&) noexcept(true);
-        HttpClient &operator=(HttpClient &&) noexcept(true);
-        ~HttpClient();
+        explicit HttpClient(const std::string &userAgent) noexcept;
+        HttpClient(HttpClient &&) noexcept;
+        HttpClient &operator=(HttpClient &&) noexcept;
+        ~HttpClient() noexcept;
 
     public:
-        const std::string &host() const;
-        void setHost(const std::string &hostname);
-        void setHost(std::string &&hostname);
+        const std::string &host() const noexcept;
+        void setHost(const std::string &hostname) noexcept;
+        void setHost(std::string &&hostname) noexcept;
 
-        http_port_t port() const;
-        void setPort(http_port_t port);
+        http_port_t port() const noexcept;
+        void setPort(http_port_t port) noexcept;
 
         std::string url() const noexcept;
 
-        bool authenticationRequired() const;
-        void enableAuthentication();
-        void disableAuthentication();
-        const std::string &username() const;
-        void setUsername(const std::string &username);
-        void setUsername(std::string &&username);
+        bool authenticationRequired() const noexcept;
+        void enableAuthentication() noexcept;
+        void disableAuthentication() noexcept;
+        const std::string &username() const noexcept;
+        void setUsername(const std::string &username) noexcept;
+        void setUsername(std::string &&username) noexcept;
 
-        const std::string &password() const;
-        void setPassword(const std::string &password);
-        void setPassword(std::string &&password);
+        const std::string &password() const noexcept;
+        void setPassword(const std::string &password) noexcept;
+        void setPassword(std::string &&password) noexcept;
 
-        void setSSLErrorHandling(http_ssl_error_handling_t value);
+        void setSSLErrorHandling(http_ssl_error_handling_t value) noexcept;
 
-        const milliseconds_t &timeout() const;
-        void setTimeout(milliseconds_t value);
+        const milliseconds_t &timeout() const noexcept;
+        void setTimeout(milliseconds_t value) noexcept;
 
     public:
         class Request
         {
         public:
-            Request(CURL *handle, std::string &&url);
-            Request(Request &&other) noexcept(true);
-            Request &operator=(Request &&) noexcept(true);
-            ~Request();
+            Request(CURL *handle, std::string &&url) noexcept;
+            Request(Request &&other) noexcept;
+            Request &operator=(Request &&) noexcept;
+            ~Request() noexcept;
 
         public:
-            void setPath(const std::string &path);
-            void setPath(std::string &&path);
+            void setPath(const std::string &path) noexcept;
+            void setPath(std::string &&path) noexcept;
 
-            void setBody(const std::string &data);
-            void setBody(std::string &&data);
+            void setBody(const std::string &data) noexcept;
+            void setBody(std::string &&data) noexcept;
 
-            void setHeaders(const http_header_array_t &headers);
-            void setHeaders(http_header_array_t &&headers);
+            void setHeaders(const http_header_array_t &headers) noexcept;
+            void setHeaders(http_header_array_t &&headers) noexcept;
 
-            void setHeader(const http_header_t &header);
-            void setHeader(http_header_t &&header);
+            void setHeader(const http_header_t &header) noexcept;
+            void setHeader(http_header_t &&header) noexcept;
 
         public:
-            http_request_result_t send();
+            http_request_result_t send() noexcept;
 
         private:
             CURL *handle_{ nullptr };

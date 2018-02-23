@@ -176,7 +176,7 @@ namespace
     }
 }
 
-HttpClient::Status::Status(std::int32_t code)
+HttpClient::Status::Status(std::int32_t code) noexcept
   : statusCode_(Unknown)
   , name_(nullptr)
 {
@@ -388,7 +388,7 @@ HttpClient::Status::Status(std::int32_t code)
     }
 }
 
-HttpClient::HttpClient(const std::string &userAgent)
+HttpClient::HttpClient(const std::string &userAgent) noexcept
 {
     handle_ = curl_easy_init();
     if (handle_ != nullptr)
@@ -404,15 +404,15 @@ HttpClient::HttpClient(const std::string &userAgent)
     }
     else
     {
-        LOG_FATAL("Error {} while initiation connection.",
-                  static_cast<std::string>(fromCUrlError(-1)));
+        LOG_FATAL("Error %s while initiation connection.",
+                  static_cast<std::string>(fromCUrlError(-1)).c_str());
     }
 }
 
-HttpClient::HttpClient(HttpClient &&) noexcept(true) = default;
-HttpClient &HttpClient::operator=(HttpClient &&) noexcept(true) = default;
+HttpClient::HttpClient(HttpClient &&) noexcept = default;
+HttpClient &HttpClient::operator=(HttpClient &&) noexcept = default;
 
-HttpClient::~HttpClient()
+HttpClient::~HttpClient() noexcept
 {
     if (handle_ != nullptr)
     {
@@ -420,27 +420,27 @@ HttpClient::~HttpClient()
     }
 }
 
-const std::string &HttpClient::host() const
+const std::string &HttpClient::host() const noexcept
 {
     return hostname_;
 }
 
-void HttpClient::setHost(const std::string &hostname)
+void HttpClient::setHost(const std::string &hostname) noexcept
 {
     hostname_ = hostname;
 }
 
-void HttpClient::setHost(std::string &&hostname)
+void HttpClient::setHost(std::string &&hostname) noexcept
 {
     hostname_ = std::move(hostname);
 }
 
-HttpClient::http_port_t HttpClient::port() const
+HttpClient::http_port_t HttpClient::port() const noexcept
 {
     return port_;
 }
 
-void HttpClient::setPort(http_port_t port)
+void HttpClient::setPort(http_port_t port) noexcept
 {
     port_ = port;
 }
@@ -451,56 +451,56 @@ std::string HttpClient::url() const noexcept
                        port_ > 0 ? fmt::format(":{}", port_) : "");
 }
 
-bool HttpClient::authenticationRequired() const
+bool HttpClient::authenticationRequired() const noexcept
 {
     return authenticationEnabled_;
 }
 
-void HttpClient::enableAuthentication()
+void HttpClient::enableAuthentication() noexcept
 {
     authenticationEnabled_ = true;
 }
 
-void HttpClient::disableAuthentication()
+void HttpClient::disableAuthentication() noexcept
 {
     authenticationEnabled_ = false;
 }
 
-const std::string &HttpClient::username() const
+const std::string &HttpClient::username() const noexcept
 {
     return authentication_.username;
 }
 
-void HttpClient::setUsername(const std::string &username)
+void HttpClient::setUsername(const std::string &username) noexcept
 {
     authenticationEnabled_ = true;
     authentication_.username = username;
 }
 
-void HttpClient::setUsername(std::string &&username)
+void HttpClient::setUsername(std::string &&username) noexcept
 {
     authenticationEnabled_ = true;
     authentication_.username = std::move(username);
 }
 
-const std::string &HttpClient::password() const
+const std::string &HttpClient::password() const noexcept
 {
     return authentication_.password;
 }
 
-void HttpClient::setPassword(const std::string &password)
+void HttpClient::setPassword(const std::string &password) noexcept
 {
     authenticationEnabled_ = true;
     authentication_.password = password;
 }
 
-void HttpClient::setPassword(std::string &&password)
+void HttpClient::setPassword(std::string &&password) noexcept
 {
     authenticationEnabled_ = true;
     authentication_.password = std::move(password);
 }
 
-void HttpClient::setSSLErrorHandling(http_ssl_error_handling_t value)
+void HttpClient::setSSLErrorHandling(http_ssl_error_handling_t value) noexcept
 {
     sslErrorHandlingEnabled_ = (value == http_ssl_error_handling_t::Aknowledge);
     if (!sslErrorHandlingEnabled_)
@@ -515,18 +515,18 @@ void HttpClient::setSSLErrorHandling(http_ssl_error_handling_t value)
     }
 }
 
-const HttpClient::milliseconds_t &HttpClient::timeout() const
+const HttpClient::milliseconds_t &HttpClient::timeout() const noexcept
 {
     return timeout_;
 }
 
-void HttpClient::setTimeout(milliseconds_t value)
+void HttpClient::setTimeout(milliseconds_t value) noexcept
 {
     timeout_ = value;
     curl_easy_setopt(handle_, CURLOPT_TIMEOUT_MS, timeout_.count());
 }
 
-HttpClient::Request::Request(CURL *handle, std::string &&url)
+HttpClient::Request::Request(CURL *handle, std::string &&url) noexcept
   : handle_(handle)
   , url_(std::move(url))
 {
@@ -540,8 +540,7 @@ HttpClient::Request::Request(Request &&other) noexcept
 {
 }
 
-HttpClient::Request &HttpClient::Request::operator=(Request &&other) noexcept(
-    true)
+HttpClient::Request &HttpClient::Request::operator=(Request &&other) noexcept
 {
     handle_ = other.handle_;
     other.handle_ = nullptr;
@@ -550,7 +549,7 @@ HttpClient::Request &HttpClient::Request::operator=(Request &&other) noexcept(
     headers_ = std::move(other.headers_);
 }
 
-HttpClient::Request::~Request()
+HttpClient::Request::~Request() noexcept
 {
     if (handle_ != nullptr)
     {
@@ -558,28 +557,28 @@ HttpClient::Request::~Request()
     }
 }
 
-void HttpClient::Request::setPath(const std::string &path)
+void HttpClient::Request::setPath(const std::string &path) noexcept
 {
     path_ = path;
 }
-void HttpClient::Request::setPath(std::string &&path)
+void HttpClient::Request::setPath(std::string &&path) noexcept
 {
     path_ = std::move(path);
 }
 
-void spring::HttpClient::Request::setBody(const std::string &data)
+void spring::HttpClient::Request::setBody(const std::string &data) noexcept
 {
     curl_easy_setopt(handle_, CURLOPT_POSTFIELDSIZE, data.size());
     curl_easy_setopt(handle_, CURLOPT_COPYPOSTFIELDS, data.c_str());
 }
 
-void HttpClient::Request::setBody(std::string &&data)
+void HttpClient::Request::setBody(std::string &&data) noexcept
 {
     setBody(static_cast<const std::string &>(data));
 }
 
 void spring::HttpClient::Request::setHeaders(
-    const HttpClient::http_header_array_t &headers)
+    const HttpClient::http_header_array_t &headers) noexcept
 {
     for (const auto &header : headers)
     {
@@ -587,7 +586,8 @@ void spring::HttpClient::Request::setHeaders(
     }
 }
 
-void HttpClient::Request::setHeaders(HttpClient::http_header_array_t &&headers)
+void HttpClient::Request::setHeaders(
+    HttpClient::http_header_array_t &&headers) noexcept
 {
     for (auto &header : headers)
     {
@@ -596,17 +596,17 @@ void HttpClient::Request::setHeaders(HttpClient::http_header_array_t &&headers)
 }
 
 void spring::HttpClient::Request::setHeader(
-    const HttpClient::http_header_t &header)
+    const HttpClient::http_header_t &header) noexcept
 {
     headers_[header.first] = header.second;
 }
 
-void HttpClient::Request::setHeader(HttpClient::http_header_t &&header)
+void HttpClient::Request::setHeader(HttpClient::http_header_t &&header) noexcept
 {
     headers_[std::move(header.first)] = std::move(header.second);
 }
 
-HttpClient::http_request_result_t HttpClient::Request::send()
+HttpClient::http_request_result_t HttpClient::Request::send() noexcept
 {
     std::int32_t httpStatus{ HttpClient::Status::Unknown };
     http_header_array_t responseHeaders{};
@@ -669,5 +669,5 @@ HttpClient::Request HttpClient::createRequest() const noexcept
                              .c_str());
     }
 
-    return { curl, std::move(url()) };
+    return { curl, url() };
 }
