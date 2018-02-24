@@ -30,10 +30,20 @@ GStreamerPipeline::GStreamerPipeline() noexcept
     connect_g_signal(bus_, "message::state-changed",
                      &gst_playback_state_changed, this);
     connect_g_signal(bus_, "message::error", &gst_playback_error, this);
+
+    playback_buffer_.on_precaching_finished(
+        [](void *instance) {
+            auto self = static_cast<GStreamerPipeline *>(instance);
+            gst_element_set_state(self->playbin_, GST_STATE_PLAYING);
+        },
+        this);
 }
 
 GStreamerPipeline::~GStreamerPipeline() noexcept
 {
+    g_warning("******************* destroying gstreamer pipeline");
+    g_signal_handlers_disconnect_by_data(bus_, this);
+    g_signal_handlers_disconnect_by_data(playbin_, this);
     gst_object_unref(bus_);
     gst_element_set_state(playbin_, GST_STATE_NULL);
     gst_object_unref(playbin_);
@@ -42,31 +52,8 @@ GStreamerPipeline::~GStreamerPipeline() noexcept
 void GStreamerPipeline::play(const music::Track &track) noexcept
 {
     current_track_ = &track;
-
+    playback_buffer_.cache(track);
     gst_element_set_state(playbin_, GST_STATE_NULL);
-
-    playback_buffer_.clear();
-    playback_buffer_.reserve(track.fileSize());
-    playback_buffer_bytes_read_ = 0;
-
-    playback_buffer_producer_ = std::thread([this] {
-        current_track_->trackData(
-            [](std::uint8_t *data, std::size_t size, void *instance) {
-                auto self = static_cast<GStreamerPipeline *>(instance);
-
-                self->playback_buffer_.append(
-                    reinterpret_cast<const char *>(data), size);
-                ++self->playback_buffer_fill_count_;
-
-                if (self->playback_buffer_fill_count_.count() > 5)
-                {
-                    gst_element_set_state(self->playbin_, GST_STATE_PLAYING);
-                }
-
-                return size;
-            },
-            this);
-    });
 }
 
 void GStreamerPipeline::pause_resume() noexcept
@@ -210,28 +197,19 @@ void GStreamerPipeline::gst_appsrc_need_data(GstAppSrc *src,
     static constexpr std::size_t BUFFER_SIZE{ 16 * 1024 };
     auto self = static_cast<GStreamerPipeline *>(instance);
 
-    auto new_buffer_index = self->playback_buffer_bytes_read_ + BUFFER_SIZE;
-    auto copy_amount = new_buffer_index >= self->current_track_->fileSize() ?
-                           self->current_track_->fileSize() -
-                               self->playback_buffer_bytes_read_ :
-                           BUFFER_SIZE;
+    auto range = self->playback_buffer_.consume(BUFFER_SIZE);
 
-    auto gst_buffer = gst_buffer_new_allocate(nullptr, copy_amount, nullptr);
+    auto gst_buffer = gst_buffer_new_allocate(nullptr, range.size(), nullptr);
     GstMapInfo buffer_info;
     gst_buffer_map(gst_buffer, &buffer_info, GST_MAP_WRITE);
 
-    --self->playback_buffer_fill_count_;
-    const char *buffer_data =
-        self->playback_buffer_.data() + self->playback_buffer_bytes_read_;
-    memcpy(buffer_info.data, buffer_data, copy_amount);
+    memcpy(buffer_info.data, range.data(), range.size());
 
     gst_buffer_unmap(gst_buffer, &buffer_info);
 
     gst_app_src_push_buffer(self->appsrc_, gst_buffer);
 
-    self->playback_buffer_bytes_read_ += copy_amount;
-
-    if (copy_amount < BUFFER_SIZE)
+    if (range.size() < BUFFER_SIZE)
     {
         gst_app_src_end_of_stream(self->appsrc_);
     }

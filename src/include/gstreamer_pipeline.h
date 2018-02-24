@@ -10,6 +10,7 @@
 #include <libspring_global.h>
 #include <libspring_music_track.h>
 
+#include "playback_buffer.h"
 #include "utility.h"
 
 namespace spring
@@ -91,10 +92,7 @@ namespace spring
             std::uint32_t position_update_callback_tag_{ 0 };
             PlaybackState current_state_{ PlaybackState::Stopped };
 
-            std::string playback_buffer_{};
-            Semaphore playback_buffer_fill_count_{ 0 };
-            std::size_t playback_buffer_bytes_read_{ std::string::npos };
-            std::thread playback_buffer_producer_{};
+            PlaybackBuffer playback_buffer_{};
 
             GstAppSrcCallbacks gst_appsrc_callbacks_{
                 &GStreamerPipeline::gst_appsrc_need_data,

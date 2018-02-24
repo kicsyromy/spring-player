@@ -33,6 +33,58 @@
 #define get_widget_from_builder(widget_type, widget_name)                      \
     gtk_cast<widget_type>(gtk_builder_get_object(builder, #widget_name))
 
+#define signal_simple(name)                                                    \
+private:                                                                       \
+    struct                                                                     \
+    {                                                                          \
+        void (*notify)(void *){ nullptr };                                     \
+        void *user_data{ nullptr };                                            \
+    } signal_##name##_{};                                                      \
+                                                                               \
+    inline void emit_##name() const noexcept                                   \
+    {                                                                          \
+        if (signal_##name##_.notify != nullptr)                                \
+        {                                                                      \
+            signal_##name##_.notify(signal_##name##_.user_data);               \
+        }                                                                      \
+    }                                                                          \
+                                                                               \
+    inline void emit_queued_##name() const noexcept                            \
+    {                                                                          \
+        using this_t = decltype(this);                                         \
+        g_idle_add(                                                            \
+            [](gpointer i) -> int {                                            \
+                auto self = static_cast<this_t>(i);                            \
+                if (self->signal_##name##_.notify != nullptr)                  \
+                {                                                              \
+                    self->signal_##name##_.notify(                             \
+                        self->signal_##name##_.user_data);                     \
+                }                                                              \
+                return false;                                                  \
+            },                                                                 \
+            (void *)this);                                                     \
+    }                                                                          \
+                                                                               \
+public:                                                                        \
+    using signal_##name##_t = decltype(signal_##name##_.notify);               \
+    inline void on_##name(signal_##name##_t handler, void *user_data) noexcept \
+    {                                                                          \
+        signal_##name##_.notify = handler;                                     \
+        signal_##name##_.user_data = user_data;                                \
+    }
+
+template <typename Function, typename Tuple, size_t... I>
+auto call(Function f, Tuple t, std::index_sequence<I...>)
+{
+    return f(std::get<I>(t)...);
+}
+
+template <typename Function, typename Tuple> auto call(Function f, Tuple t)
+{
+    static constexpr auto size = std::tuple_size<Tuple>::value;
+    return call(f, t, std::make_index_sequence<size>{});
+}
+
 #define signal(name, ...)                                                      \
 private:                                                                       \
     struct                                                                     \
@@ -44,8 +96,35 @@ private:                                                                       \
     template <typename... Args>                                                \
     inline void emit_##name(Args &&... args) const noexcept                    \
     {                                                                          \
-        signal_##name##_.notify(std::forward<Args>(args)...,                   \
-                                signal_##name##_.user_data);                   \
+        if (signal_##name##_.notify != nullptr)                                \
+        {                                                                      \
+            signal_##name##_.notify(std::forward<Args>(args)...,               \
+                                    signal_##name##_.user_data);               \
+        }                                                                      \
+    }                                                                          \
+                                                                               \
+    template <typename... Args>                                                \
+    inline void emit_queued_##name(Args &&... args) const noexcept             \
+    {                                                                          \
+        using this_t = decltype(this);                                         \
+        struct Data                                                            \
+        {                                                                      \
+            std::tuple<Args..., void *> args;                                  \
+            this_t self;                                                       \
+        };                                                                     \
+        auto data = new Data{ { std::forward_as_tuple(args)...,                \
+                                signal_##name##_.user_data },                  \
+                              this };                                          \
+        g_idle_add(                                                            \
+            [](gpointer i) -> int {                                            \
+                auto data = std::make_unique(static_cast<Data *>(i));          \
+                if (data->self->signal_##name##_.notify != nullptr)            \
+                {                                                              \
+                    call(data->self->signal_##name##_.notify, data->args);     \
+                }                                                              \
+                return false;                                                  \
+            },                                                                 \
+            data);                                                             \
     }                                                                          \
                                                                                \
 public:                                                                        \
@@ -319,25 +398,20 @@ namespace spring
             }
 
         public:
-            inline void operator++(int)noexcept
+            inline void increment(std::size_t amount) noexcept
             {
                 std::unique_lock<std::mutex> lock(mtx_);
-                ++count_;
+                count_ += amount;
                 cv_.notify_one();
             }
-            inline void operator++() noexcept { this->operator++(0); }
 
-            inline void operator--(int)noexcept
+            inline void decrement(std::size_t amount) noexcept
             {
                 std::unique_lock<std::mutex> lock(mtx_);
 
-                while (count_ == 0)
-                {
-                    cv_.wait(lock);
-                }
-                --count_;
+                cv_.wait(lock, [amount, this] { return count_ > amount; });
+                count_ -= amount;
             }
-            inline void operator--() noexcept { this->operator--(0); }
 
         private:
             mutable std::mutex mtx_{};
