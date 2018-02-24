@@ -27,8 +27,9 @@ PlaybackFooter::PlaybackFooter(GtkBuilder *builder) noexcept
             gtk_adjustment_set_upper(playback_progress_adjustment_, duration);
             gtk_adjustment_set_value(playback_progress_adjustment_, 0);
 
-            const auto minutes = duration / (1000 * 60);
-            const auto seconds = duration % (1000 * 60);
+            auto duration_seconds_total = duration / 1000;
+            const auto minutes = duration_seconds_total / 60;
+            const auto seconds = duration_seconds_total % 60;
             gtk_label_set_text(current_time_, "0:00");
             gtk_label_set_text(
                 total_time_,
@@ -42,8 +43,9 @@ PlaybackFooter::PlaybackFooter(GtkBuilder *builder) noexcept
     NowPlayingList::instance().on_playback_position_changed([this](
                                                                 auto position) {
         gtk_adjustment_set_value(playback_progress_adjustment_, position);
-        const auto elapsed_minutes = position / (1000 * 60);
-        const auto elapsed_seconds = position % (1000 * 60);
+        auto elapsed_seconds_total = position / 1000;
+        const auto elapsed_minutes = elapsed_seconds_total / 60;
+        const auto elapsed_seconds = elapsed_seconds_total % 60;
         gtk_label_set_text(
             current_time_,
             elapsed_seconds < 10 ?

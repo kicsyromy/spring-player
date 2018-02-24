@@ -1,15 +1,30 @@
 #include "gstreamer_pipeline.h"
 
+#include <cstring>
+#include <thread>
+
+#include <gst/audio/audio.h>
+
 #include "utility.h"
 
 using namespace spring;
 using namespace spring::player;
+
+namespace
+{
+    constexpr const char MP3_CAPS_STRING[] {
+        "audio/mpeg, mpegversion=(int)1, layer=(int)3"
+    };
+}
 
 GStreamerPipeline::GStreamerPipeline() noexcept
   : playbin_(gst_element_factory_make("playbin", "play"))
   , bus_(gst_pipeline_get_bus(gtk_cast<GstPipeline>(playbin_)))
 {
     gst_bus_add_signal_watch(bus_);
+
+    g_object_set(gtk_cast<GObject>(playbin_), "uri", "appsrc://", nullptr);
+    connect_g_signal(playbin_, "source-setup", &gst_appsrc_setup, this);
 
     connect_g_signal(bus_, "message::eos", &gst_playback_finished, this);
     connect_g_signal(bus_, "message::state-changed",
@@ -26,11 +41,27 @@ GStreamerPipeline::~GStreamerPipeline() noexcept
 
 void GStreamerPipeline::play(const music::Track &track) noexcept
 {
-    gst_element_set_state(playbin_, GST_STATE_NULL);
-    g_object_set(gtk_cast<GObject>(playbin_), "uri", track.url().c_str(),
-                 nullptr);
-    gst_element_set_state(playbin_, GST_STATE_PLAYING);
     current_track_ = &track;
+
+    gst_element_set_state(playbin_, GST_STATE_NULL);
+
+    playback_buffer_.clear();
+    playback_buffer_.reserve(track.fileSize());
+    gstreamer_buffer_index_ = 0;
+
+    current_track_->trackData(
+        [](std::uint8_t *data, std::size_t size, void *instance) {
+            auto self = static_cast<GStreamerPipeline *>(instance);
+
+            //        std::lock_guard<std::mutex> lock(self->buffer_mutex_);
+            self->playback_buffer_.append(reinterpret_cast<const char *>(data),
+                                          size);
+
+            return size;
+        },
+        this);
+
+    gst_element_set_state(playbin_, GST_STATE_PLAYING);
 }
 
 void GStreamerPipeline::pause_resume() noexcept
@@ -128,7 +159,7 @@ void GStreamerPipeline::gst_playback_error(GstBus *,
     gst_element_set_state(self->playbin_, GST_STATE_NULL);
     gchar *error_message;
     gst_message_parse_error(message, nullptr, &error_message);
-    g_error("GStreamerPipeline: Error: %s", error_message);
+    g_warning("GStreamerPipeline: Error: %s", error_message);
     free(error_message);
 }
 
@@ -145,5 +176,72 @@ gboolean GStreamerPipeline::update_playback_position(
     self->emit_playback_position_changed(
         nanoseconds_to_milliseconds(position_nanoseconds));
 
+    return true;
+}
+
+void GStreamerPipeline::gst_appsrc_setup(GstElement *,
+                                         GstElement *source,
+                                         GStreamerPipeline *self) noexcept
+{
+    g_warning("seource setup");
+
+    self->appsrc_ = gtk_cast<GstAppSrc>(source);
+
+    auto caps =
+        gst_caps_from_string(MP3_CAPS_STRING);
+    gst_app_src_set_caps(self->appsrc_, caps);
+    gst_caps_unref(caps);
+
+    gst_app_src_set_stream_type(self->appsrc_, GST_APP_STREAM_TYPE_SEEKABLE);
+    gst_app_src_set_size(self->appsrc_,
+                         static_cast<gint64>(self->current_track_->fileSize()));
+    gst_app_src_set_callbacks(self->appsrc_, &self->gst_appsrc_callbacks_, self,
+                              [](auto) {});
+    g_object_set(self->appsrc_, "format", GST_FORMAT_TIME, nullptr);
+}
+
+void GStreamerPipeline::gst_appsrc_need_data(GstAppSrc *src,
+                                             guint length,
+                                             void *instance) noexcept
+{
+    static constexpr std::size_t BUFFER_SIZE{ 4 * 1024 };
+    auto self = static_cast<GStreamerPipeline *>(instance);
+
+    auto new_buffer_index = self->gstreamer_buffer_index_ + BUFFER_SIZE;
+    auto copy_amount =
+        new_buffer_index >= self->current_track_->fileSize() ?
+            self->current_track_->fileSize() - self->gstreamer_buffer_index_ :
+            BUFFER_SIZE;
+
+    const char *buffer_data =
+        self->playback_buffer_.data() + self->gstreamer_buffer_index_;
+
+    auto gst_buffer = gst_buffer_new_allocate(nullptr, copy_amount, nullptr);
+    GstMapInfo buffer_info;
+    gst_buffer_map(gst_buffer, &buffer_info, GST_MAP_WRITE);
+    {
+        std::lock_guard<std::mutex> lock(self->buffer_mutex_);
+        memcpy(buffer_info.data, buffer_data, copy_amount);
+    }
+    gst_buffer_unmap(gst_buffer, &buffer_info);
+
+    gst_app_src_push_buffer(self->appsrc_, gst_buffer);
+
+    self->gstreamer_buffer_index_ += copy_amount;
+}
+
+void GStreamerPipeline::gst_appsrc_enough_data(GstAppSrc *src,
+                                               void *instance) noexcept
+{
+    auto self = static_cast<GStreamerPipeline *>(instance);
+    g_warning("enough data");
+}
+
+gboolean GStreamerPipeline::gst_appsrc_seek_data(GstAppSrc *src,
+                                                 guint64 offset,
+                                                 void *instance) noexcept
+{
+    auto self = static_cast<GStreamerPipeline *>(instance);
+    g_warning("seek data");
     return true;
 }

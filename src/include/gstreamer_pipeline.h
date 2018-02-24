@@ -1,6 +1,9 @@
 #ifndef SPRING_PLAYER_GSTREAMER_PIPELINE_H
 #define SPRING_PLAYER_GSTREAMER_PIPELINE_H
 
+#include <mutex>
+
+#include <gst/app/gstappsrc.h>
 #include <gst/gst.h>
 
 #include <libspring_global.h>
@@ -65,11 +68,38 @@ namespace spring
             static gboolean update_playback_position(
                 GStreamerPipeline *self) noexcept;
 
+            static void gst_appsrc_setup(GstElement *,
+                                         GstElement *,
+                                         GStreamerPipeline *self) noexcept;
+
+            static void gst_appsrc_need_data(GstAppSrc *src,
+                                             guint length,
+                                             void *instance) noexcept;
+
+            static void gst_appsrc_enough_data(GstAppSrc *src,
+                                               void *instance) noexcept;
+
+            static gboolean gst_appsrc_seek_data(GstAppSrc *src,
+                                                 guint64 offset,
+                                                 void *instance) noexcept;
+
         private:
             GstElement *playbin_{ nullptr };
+            GstAppSrc *appsrc_{ nullptr };
             GstBus *bus_{ nullptr };
             std::uint32_t position_update_callback_tag_{ 0 };
             PlaybackState current_state_{ PlaybackState::Stopped };
+
+            std::mutex buffer_mutex_{};
+            std::string playback_buffer_{};
+            std::size_t gstreamer_buffer_index_{ std::string::npos };
+
+            GstAppSrcCallbacks gst_appsrc_callbacks_{
+                &GStreamerPipeline::gst_appsrc_need_data,
+                &GStreamerPipeline::gst_appsrc_enough_data,
+                &GStreamerPipeline::gst_appsrc_seek_data,
+                {}
+            };
 
             const music::Track *current_track_{ nullptr };
 

@@ -37,7 +37,7 @@ private:                                                                       \
     {                                                                          \
         void (*notify)(__VA_ARGS__, void *){ nullptr };                        \
         void *user_data{ nullptr };                                            \
-    } signal_##name##_;                                                        \
+    } signal_##name##_{};                                                      \
                                                                                \
     template <typename... Args>                                                \
     inline void emit_##name(Args &&... args) const noexcept                    \
@@ -58,19 +58,6 @@ namespace spring
 {
     namespace player
     {
-        template <typename GObjectType,
-                  typename SignalHandlerType,
-                  typename UserDataType>
-        inline auto connect_g_signal(GObjectType *instance,
-                                     const gchar *signal,
-                                     SignalHandlerType signal_handler,
-                                     UserDataType *user_data) noexcept
-        {
-            return g_signal_connect_data(
-                instance, signal, reinterpret_cast<GCallback>(signal_handler),
-                user_data, nullptr, static_cast<GConnectFlags>(0));
-        }
-
         template <typename Widget> class GtkRefGuard
         {
         public:
@@ -156,6 +143,21 @@ namespace spring
         {
             return reinterpret_cast<destination_t *>(
                 static_cast<typename GtkRefGuard<source_t>::gtk_t *>(object));
+        }
+
+        template <typename GObjectType,
+                  typename SignalHandlerType,
+                  typename UserDataType>
+        inline auto connect_g_signal(GObjectType *instance,
+                                     const gchar *signal,
+                                     SignalHandlerType signal_handler,
+                                     UserDataType *user_data) noexcept
+        {
+            return g_signal_connect_data(
+                gtk_cast<GObject>(instance), signal,
+                reinterpret_cast<GCallback>(signal_handler),
+                gtk_cast<gpointer>(user_data), nullptr,
+                static_cast<GConnectFlags>(0));
         }
 
         template <int width, int height>
