@@ -1,8 +1,10 @@
 #ifndef SPRING_PLAYER_UTILITY_H
 #define SPRING_PLAYER_UTILITY_H
 
+#include <condition_variable>
 #include <cstdint>
 #include <memory>
+#include <mutex>
 #include <string_view>
 #include <vector>
 
@@ -300,6 +302,48 @@ namespace spring
 
             return false;
         }
+
+        struct Semaphore
+        {
+        public:
+            Semaphore(std::size_t count) noexcept
+              : count_(count)
+            {
+            }
+
+        public:
+            inline std::size_t count() const noexcept
+            {
+                std::unique_lock<std::mutex> lock(mtx_);
+                return count_;
+            }
+
+        public:
+            inline void operator++(int)noexcept
+            {
+                std::unique_lock<std::mutex> lock(mtx_);
+                ++count_;
+                cv_.notify_one();
+            }
+            inline void operator++() noexcept { this->operator++(0); }
+
+            inline void operator--(int)noexcept
+            {
+                std::unique_lock<std::mutex> lock(mtx_);
+
+                while (count_ == 0)
+                {
+                    cv_.wait(lock);
+                }
+                --count_;
+            }
+            inline void operator--() noexcept { this->operator--(0); }
+
+        private:
+            mutable std::mutex mtx_{};
+            std::condition_variable cv_{};
+            std::size_t count_{ 0 };
+        };
     }
 }
 
