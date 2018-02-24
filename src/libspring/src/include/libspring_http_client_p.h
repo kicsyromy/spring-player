@@ -275,6 +275,12 @@ namespace spring
         public:
             http_request_result_t send() noexcept;
 
+            using write_callback_t = std::size_t (*)(std::uint8_t *responseData,
+                                                     std::size_t responseSize,
+                                                     void *userData);
+            http_request_result_t send(write_callback_t callback,
+                                       void *userData) noexcept;
+
         private:
             CURL *handle_{ nullptr };
             std::string url_{};

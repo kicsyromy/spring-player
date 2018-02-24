@@ -99,6 +99,8 @@ namespace spring
                          std::weak_ptr<PlexMediaServerPrivate> pms) noexcept;
             ~TrackPrivate() noexcept;
 
+            std::string path(uint32_t bitrate = 320) const noexcept;
+
         private:
             std::string key_{};
             std::string path_{};

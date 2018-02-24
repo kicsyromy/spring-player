@@ -22,15 +22,13 @@ PlaybackFooter::PlaybackFooter(GtkBuilder *builder) noexcept
     NowPlayingList::instance().on_state_changed([this](auto state) {
         if (state == NowPlayingList::PlaybackState::Playing)
         {
-            const auto duration_seconds =
-                NowPlayingList::instance().current_track()->duration().count() /
-                1000;
-            gtk_adjustment_set_upper(playback_progress_adjustment_,
-                                     duration_seconds);
+            const auto duration =
+                NowPlayingList::instance().current_track()->duration().count();
+            gtk_adjustment_set_upper(playback_progress_adjustment_, duration);
             gtk_adjustment_set_value(playback_progress_adjustment_, 0);
 
-            const auto minutes = duration_seconds / 60;
-            const auto seconds = duration_seconds % 60;
+            const auto minutes = duration / (1000 * 60);
+            const auto seconds = duration % (1000 * 60);
             gtk_label_set_text(current_time_, "0:00");
             gtk_label_set_text(
                 total_time_,
@@ -41,18 +39,16 @@ PlaybackFooter::PlaybackFooter(GtkBuilder *builder) noexcept
         }
     });
 
-    NowPlayingList::instance().on_playback_position_changed(
-        [this](auto position_seconds) {
-            gtk_adjustment_set_value(playback_progress_adjustment_,
-                                     position_seconds);
-            const auto elapsed_minutes = position_seconds / 60;
-            const auto elapsed_seconds = position_seconds % 60;
-            gtk_label_set_text(
-                current_time_,
-                elapsed_seconds < 10 ?
-                    fmt::format("{}:0{}", elapsed_minutes, elapsed_seconds)
-                        .c_str() :
-                    fmt::format("{}:{}", elapsed_minutes, elapsed_seconds)
-                        .c_str());
-        });
+    NowPlayingList::instance().on_playback_position_changed([this](
+                                                                auto position) {
+        gtk_adjustment_set_value(playback_progress_adjustment_, position);
+        const auto elapsed_minutes = position / (1000 * 60);
+        const auto elapsed_seconds = position % (1000 * 60);
+        gtk_label_set_text(
+            current_time_,
+            elapsed_seconds < 10 ?
+                fmt::format("{}:0{}", elapsed_minutes, elapsed_seconds)
+                    .c_str() :
+                fmt::format("{}:{}", elapsed_minutes, elapsed_seconds).c_str());
+    });
 }

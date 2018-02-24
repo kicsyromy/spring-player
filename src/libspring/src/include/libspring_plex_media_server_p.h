@@ -60,6 +60,7 @@ namespace spring
 
         const std::string &url() const noexcept { return url_; }
 
+        HttpClient::Request request() const noexcept;
         HttpClient::RequestResult request(std::string &&path) const noexcept;
 
     private:

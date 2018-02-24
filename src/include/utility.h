@@ -31,10 +31,46 @@
 #define get_widget_from_builder(widget_type, widget_name)                      \
     gtk_cast<widget_type>(gtk_builder_get_object(builder, #widget_name))
 
+#define signal(name, ...)                                                      \
+private:                                                                       \
+    struct                                                                     \
+    {                                                                          \
+        void (*notify)(__VA_ARGS__, void *){ nullptr };                        \
+        void *user_data{ nullptr };                                            \
+    } signal_##name##_;                                                        \
+                                                                               \
+    template <typename... Args>                                                \
+    inline void emit_##name(Args &&... args) const noexcept                    \
+    {                                                                          \
+        signal_##name##_.notify(std::forward<Args>(args)...,                   \
+                                signal_##name##_.user_data);                   \
+    }                                                                          \
+                                                                               \
+public:                                                                        \
+    using signal_##name##_t = decltype(signal_##name##_.notify);               \
+    inline void on_##name(signal_##name##_t handler, void *user_data) noexcept \
+    {                                                                          \
+        signal_##name##_.notify = handler;                                     \
+        signal_##name##_.user_data = user_data;                                \
+    }
+
 namespace spring
 {
     namespace player
     {
+        template <typename GObjectType,
+                  typename SignalHandlerType,
+                  typename UserDataType>
+        inline auto connect_g_signal(GObjectType *instance,
+                                     const gchar *signal,
+                                     SignalHandlerType signal_handler,
+                                     UserDataType *user_data) noexcept
+        {
+            return g_signal_connect_data(
+                instance, signal, reinterpret_cast<GCallback>(signal_handler),
+                user_data, nullptr, static_cast<GConnectFlags>(0));
+        }
+
         template <typename Widget> class GtkRefGuard
         {
         public:

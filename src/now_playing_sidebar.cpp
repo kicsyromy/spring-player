@@ -17,11 +17,15 @@ NowPlayingSidebar::NowPlayingSidebar(GtkBuilder *builder) noexcept
     get_widget_from_builder_simple(now_playing_list);
     get_widget_from_builder_simple(toggle_sidebar_button);
 
+    g_signal_connect(now_playing_list_, "row-activated",
+                     G_CALLBACK(&on_track_activated), this);
+
     g_signal_connect(toggle_sidebar_button_, "toggled", G_CALLBACK(&toggled),
                      this);
 
     NowPlayingList::instance().on_track_queued(
         [this](const music::Track &track) {
+            playlist_.push_back(&track);
             auto builder = gtk_builder_new_from_resource(APPLICATION_PREFIX
                                                          "/track_widget.ui");
 
@@ -75,4 +79,15 @@ void NowPlayingSidebar::toggled(GtkToggleButton *toggle_button,
     auto visible = gtk_toggle_button_get_active(toggle_button);
     gtk_widget_set_visible(gtk_cast<GtkWidget>(self->now_playing_sidebar_),
                            visible);
+}
+
+void NowPlayingSidebar::on_track_activated(GtkListBox *,
+                                           GtkListBoxRow *element,
+                                           NowPlayingSidebar *self) noexcept
+{
+    g_warning("****** activated");
+    auto index = static_cast<std::size_t>(gtk_list_box_row_get_index(element));
+
+    const auto &track = *self->playlist_.at(index);
+    NowPlayingList::instance().restart_current_track();
 }

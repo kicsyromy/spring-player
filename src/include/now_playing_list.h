@@ -8,6 +8,8 @@
 
 #include <libspring_music_track.h>
 
+#include "gstreamer_pipeline.h"
+
 namespace spring
 {
     namespace player
@@ -18,13 +20,8 @@ namespace spring
             static NowPlayingList &instance() noexcept;
 
         public:
-            enum class PlaybackState
-            {
-                Invalid = -1,
-                Playing,
-                Paused,
-                Stopped
-            };
+            using PlaybackState = GStreamerPipeline::PlaybackState;
+            using Milliseconds = GStreamerPipeline::Milliseconds;
 
         private:
             NowPlayingList() noexcept;
@@ -61,40 +58,21 @@ namespace spring
             void stop() noexcept;
             void shuffle() noexcept;
             void clear() noexcept;
+            void restart_current_track() noexcept;
             void enqueue(const music::Track &track) noexcept;
             const music::Track &enqueue(music::Track &&track) noexcept;
 
         private:
-            static void on_playback_finished(GstBus *bus,
-                                             GstMessage *message,
-                                             NowPlayingList *self) noexcept;
-            static void on_playback_state_changed(
-                GstBus *bus,
-                GstMessage *message,
-                NowPlayingList *self) noexcept;
-            static void on_playback_error(GstBus *bus,
-                                          GstMessage *message,
-                                          NowPlayingList *self) noexcept;
-
-            static gboolean update_playback_position(
-                NowPlayingList *self) noexcept;
-
-        private:
-            GstElement *playbin_{ nullptr };
-            GstBus *bus_{ nullptr };
+            GStreamerPipeline pipeline_{};
 
             std::vector<music::Track> content_{};
-            music::Track *current_track_{ nullptr };
-            PlaybackState current_state_{ PlaybackState::Stopped };
 
             std::vector<std::function<void(PlaybackState)>>
                 state_changed_callbacks_{};
             std::vector<std::function<void(const music::Track &)>>
                 track_queued_callbacks_{};
-            std::vector<std::function<void(std::int32_t)>>
+            std::vector<std::function<void(std::int64_t)>>
                 playback_position_changed_callbacks_{};
-
-            std::uint32_t position_update_callback_tag_{ 0 };
 
         private:
             DISABLE_COPY(NowPlayingList)

@@ -27,6 +27,8 @@
 #ifndef LIBSPRING_GLOBAL_H
 #define LIBSPRING_GLOBAL_H
 
+#include <cstdint>
+
 #include <libspring_config.h>
 
 #ifdef _MSC_VER
@@ -66,5 +68,11 @@
 #define DISABLE_MOVE(klass)                                                    \
     klass(klass &&) noexcept = delete;                                         \
     klass &operator=(klass &&) noexcept = delete;
+
+namespace spring
+{
+    using DataFragmentReadyCallback = std::size_t (*)(
+        std::uint8_t *responseData, std::size_t responseSize, void *userData);
+}
 
 #endif // LIBSPRING_GLOBAL_H

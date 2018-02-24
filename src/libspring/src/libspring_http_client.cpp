@@ -138,13 +138,14 @@ namespace
 
     /* Appends a buffer of length size * nmemb to data. This function is called by CUrl for */
     /* subsequent chunks of data that constitute the response for a request.                */
-    std::size_t writeCallback(void *ptr,
+    template <typename CallbackData>
+    std::size_t writeCallback(void *data,
                               std::size_t size,
                               std::size_t nmemb,
-                              std::string *data)
+                              CallbackData *callback)
     {
-        data->append(static_cast<char *>(ptr), size * nmemb);
-        return size * nmemb;
+        return callback->function(reinterpret_cast<std::uint8_t *>(data),
+                                  size * nmemb, callback->userData);
     }
 
     /* Appends a key-value pair, represented by ptr, of length size * nmemb, to the data map. */
@@ -399,7 +400,6 @@ HttpClient::HttpClient(const std::string &userAgent) noexcept
         curl_easy_setopt(handle_, CURLOPT_NOSIGNAL, 1L);
         curl_easy_setopt(handle_, CURLOPT_FOLLOWLOCATION, 1L);
         curl_easy_setopt(handle_, CURLOPT_TCP_KEEPALIVE, 1L);
-        curl_easy_setopt(handle_, CURLOPT_WRITEFUNCTION, &writeCallback);
         curl_easy_setopt(handle_, CURLOPT_HEADERFUNCTION, &headerCallback);
     }
     else
@@ -608,9 +608,30 @@ void HttpClient::Request::setHeader(HttpClient::http_header_t &&header) noexcept
 
 HttpClient::http_request_result_t HttpClient::Request::send() noexcept
 {
+    std::string text{};
+    auto response = send(
+        [](std::uint8_t *responseData, std::size_t responseSize,
+           void *userData) -> std::size_t {
+            auto text = static_cast<std::string *>(userData);
+            text->append(reinterpret_cast<char *>(responseData), responseSize);
+            return responseSize;
+        },
+        &text);
+
+    if (text.back() == '\n')
+    {
+        text = text.substr(0, text.size() - 1);
+    }
+
+    response.response.text = std::move(text);
+    return response;
+}
+
+HttpClient::http_request_result_t HttpClient::Request::send(
+    write_callback_t callback, void *userData) noexcept
+{
     std::int32_t httpStatus{ HttpClient::Status::Unknown };
     http_header_array_t responseHeaders{};
-    std::string text{};
     http_error_t err = { HttpClient::Error::Code::InternalError,
                          "An internal connection handle is invalid. "
                          "This is most likely due to operating an a moved or "
@@ -618,10 +639,18 @@ HttpClient::http_request_result_t HttpClient::Request::send() noexcept
                          "instance of this object" };
     double elapsed = 0;
 
+    struct CallbackData
+    {
+        write_callback_t function;
+        void *userData;
+    } callbackData{ callback, userData };
+
     if (handle_ != nullptr)
     {
         std::string url = fmt::format("{}{}", url_, path_);
         curl_easy_setopt(handle_, CURLOPT_URL, url.c_str());
+        curl_easy_setopt(handle_, CURLOPT_WRITEFUNCTION,
+                         &writeCallback<CallbackData>);
 
         curl_slist *headers = nullptr;
         std::vector<std::string> formatedHeaders;
@@ -634,7 +663,7 @@ HttpClient::http_request_result_t HttpClient::Request::send() noexcept
                 curl_slist_append(headers, formatedHeaders.back().c_str());
         }
         curl_easy_setopt(handle_, CURLOPT_HTTPHEADER, headers);
-        curl_easy_setopt(handle_, CURLOPT_WRITEDATA, &text);
+        curl_easy_setopt(handle_, CURLOPT_WRITEDATA, &callbackData);
         curl_easy_setopt(handle_, CURLOPT_HEADERDATA, &responseHeaders);
 
         auto errCode = curl_easy_perform(handle_);
@@ -643,16 +672,11 @@ HttpClient::http_request_result_t HttpClient::Request::send() noexcept
         curl_easy_getinfo(handle_, CURLINFO_RESPONSE_CODE, &httpStatus);
         curl_easy_getinfo(handle_, CURLINFO_TOTAL_TIME, &elapsed);
 
-        if (text.back() == '\n')
-        {
-            text = text.substr(0, text.size() - 1);
-        }
-
         curl_slist_free_all(headers);
     }
 
     return { http_status_t(httpStatus),
-             { std::move(responseHeaders), std::move(text) },
+             { std::move(responseHeaders), "" },
              elapsed,
              err };
 }

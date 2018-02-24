@@ -30,7 +30,7 @@ namespace
 }
 
 MainWindow::MainWindow(SpringPlayer &application) noexcept
-  : pms_(std::move(spring_player_pms()))
+  : pms_{ spring_player_pms() }
 {
     auto builder =
         gtk_builder_new_from_resource(APPLICATION_PREFIX "/main_window.ui");

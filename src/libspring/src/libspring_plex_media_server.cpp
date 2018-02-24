@@ -104,6 +104,17 @@ PlexMediaServerPrivate::PlexMediaServerPrivate(const char *serverAddress,
 
 PlexMediaServerPrivate::~PlexMediaServerPrivate() noexcept = default;
 
+HttpClient::Request PlexMediaServerPrivate::request() const noexcept
+{
+    auto request = http_.createRequest();
+
+    request.setHeaders(PlexMediaServerPrivate::PLEX_HEADERS);
+    request.setHeader(
+        { PlexMediaServerPrivate::PLEX_HEADER_AUTH_KEY, authenticationToken_ });
+
+    return request;
+}
+
 HttpClient::RequestResult PlexMediaServerPrivate::request(
     std::string &&path) const noexcept
 {
