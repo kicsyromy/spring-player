@@ -17,6 +17,18 @@ NowPlayingList::NowPlayingList() noexcept
         this,
         [](PlaybackState new_state, void *instance) {
             auto self = static_cast<NowPlayingList *>(instance);
+
+            g_warning("new state %d", new_state);
+            if (new_state == PlaybackState::Stopped)
+            {
+                if (!self->content_.empty() &&
+                    self->current_index_ < self->content_.size() - 1)
+                {
+                    ++self->current_index_;
+                    self->play_pause();
+                }
+            }
+
             self->emit_playback_state_changed(std::move(new_state));
         },
         this);
@@ -58,13 +70,32 @@ const music::Track *NowPlayingList::current_track() const noexcept
     return pipeline_.current_track();
 }
 
-void NowPlayingList::play() noexcept
+std::size_t NowPlayingList::track_count() const noexcept
+{
+    return content_.size();
+}
+
+void NowPlayingList::play_from(std::size_t index) noexcept
+{
+    pipeline_.stop();
+    if (index >= content_.size())
+    {
+        current_index_ = content_.empty() ? 0 : content_.size() - 1;
+    }
+    else
+    {
+        current_index_ = index;
+    }
+    play_pause();
+}
+
+void NowPlayingList::play_pause() noexcept
 {
     if (!content_.empty())
     {
         if (pipeline_.current_track() == nullptr)
         {
-            pipeline_.play(content_.front());
+            pipeline_.play(content_.at(current_index_));
         }
         else
         {
@@ -73,14 +104,35 @@ void NowPlayingList::play() noexcept
     }
 }
 
-void NowPlayingList::pause() noexcept
-{
-    pipeline_.pause_resume();
-}
-
 void NowPlayingList::stop() noexcept
 {
     pipeline_.stop();
+    current_index_ = 0;
+}
+
+void NowPlayingList::next() noexcept
+{
+    pipeline_.stop();
+    ++current_index_;
+    if (current_index_ < content_.size())
+    {
+        play_pause();
+    }
+    else
+    {
+        current_index_ = 0;
+    }
+}
+
+void NowPlayingList::previous() noexcept
+{
+    pipeline_.stop();
+    if (current_index_ > 0)
+    {
+        --current_index_;
+    }
+
+    play_pause();
 }
 
 void NowPlayingList::shuffle() noexcept
@@ -91,10 +143,6 @@ void NowPlayingList::clear() noexcept
 {
     pipeline_.stop();
     content_.clear();
-}
-
-void NowPlayingList::restart_current_track() noexcept
-{
 }
 
 void NowPlayingList::enqueue(const music::Track &track) noexcept

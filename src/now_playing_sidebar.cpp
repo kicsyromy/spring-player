@@ -103,6 +103,5 @@ void NowPlayingSidebar::on_track_activated(GtkListBox *,
     g_warning("****** activated");
     auto index = static_cast<std::size_t>(gtk_list_box_row_get_index(element));
 
-    const auto &track = *self->playlist_.at(index);
-    NowPlayingList::instance().restart_current_track();
+    NowPlayingList::instance().play_from(index);
 }

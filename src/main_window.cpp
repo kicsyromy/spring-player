@@ -102,8 +102,6 @@ void MainWindow::hide() noexcept
 void MainWindow::on_search_toggled(GtkToggleButton *toggle_button,
                                    MainWindow *self) noexcept
 {
-    g_warning("search toggled");
-
     auto reveal = gtk_toggle_button_get_active(toggle_button);
     gtk_revealer_set_reveal_child(self->search_revealer_, reveal);
 

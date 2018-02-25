@@ -129,10 +129,8 @@ void AlbumWidget::on_track_activated(GtkListBox *,
 {
     std::size_t element_index =
         static_cast<std::size_t>(gtk_list_box_row_get_index(element));
-    NowPlayingList::instance().clear();
     NowPlayingList::instance().enqueue(
         std::move(self->tracks_.at(element_index)));
-    NowPlayingList::instance().play();
 }
 
 void AlbumWidget::on_popover_closed(GtkPopover *, AlbumWidget *self) noexcept

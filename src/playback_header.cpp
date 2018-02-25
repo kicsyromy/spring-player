@@ -19,6 +19,13 @@ PlaybackHeader::PlaybackHeader(GtkBuilder *builder) noexcept
     get_widget_from_builder_simple(previous_button);
     get_widget_from_builder_simple(next_button);
     get_widget_from_builder_simple(play_pause_button);
+    get_widget_from_builder_simple(play_pause_button_icon);
+
+    connect_g_signal(play_pause_button_, "clicked",
+                     &on_play_pause_button_clicked, this);
+    connect_g_signal(next_button_, "clicked", &on_next_button_clicked, this);
+    connect_g_signal(previous_button_, "clicked", &on_previous_button_clicked,
+                     this);
 
     NowPlayingList::instance().on_playback_state_changed(
         this,
@@ -47,6 +54,16 @@ PlaybackHeader::PlaybackHeader(GtkBuilder *builder) noexcept
                         fmt::format("{}:{}", minutes, seconds).c_str());
                 gtk_widget_set_visible(
                     gtk_cast<GtkWidget>(self->playback_progress_layout_), true);
+
+                gtk_image_set_from_icon_name(self->play_pause_button_icon_,
+                                             "media-playback-pause-symbolic",
+                                             GTK_ICON_SIZE_DND);
+            }
+            else
+            {
+                gtk_image_set_from_icon_name(self->play_pause_button_icon_,
+                                             "media-playback-start-symbolic",
+                                             GTK_ICON_SIZE_DND);
             }
         },
         this);
@@ -80,9 +97,6 @@ PlaybackHeader::PlaybackHeader(GtkBuilder *builder) noexcept
             auto file_size = track.fileSize();
             auto duration = static_cast<std::size_t>(track.duration().count());
 
-            g_warning("***** new fill level: %d, obtained from: %d",
-                      new_size * duration / file_size, new_size);
-
             gtk_range_set_fill_level(
                 gtk_cast<GtkRange>(self->playback_progress_bar_),
                 new_size * duration / file_size);
@@ -109,4 +123,22 @@ PlaybackHeader::~PlaybackHeader() noexcept
     NowPlayingList::instance().disconnect_track_cached(this);
     NowPlayingList::instance().disconnect_playback_position_changed(this);
     NowPlayingList::instance().disconnect_playback_state_changed(this);
+}
+
+void PlaybackHeader::on_play_pause_button_clicked(GtkButton *,
+                                                  PlaybackHeader *) noexcept
+{
+    NowPlayingList::instance().play_pause();
+}
+
+void PlaybackHeader::on_next_button_clicked(GtkButton *,
+                                            PlaybackHeader *) noexcept
+{
+    NowPlayingList::instance().next();
+}
+
+void PlaybackHeader::on_previous_button_clicked(GtkButton *,
+                                                PlaybackHeader *) noexcept
+{
+    NowPlayingList::instance().previous();
 }

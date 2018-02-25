@@ -24,6 +24,15 @@ namespace spring
             GtkButton *previous_button_{ nullptr };
             GtkButton *next_button_{ nullptr };
             GtkButton *play_pause_button_{ nullptr };
+            GtkImage *play_pause_button_icon_{ nullptr };
+
+        private:
+            static void on_play_pause_button_clicked(
+                GtkButton *button, PlaybackHeader *self) noexcept;
+            static void on_next_button_clicked(GtkButton *button,
+                                               PlaybackHeader *self) noexcept;
+            static void on_previous_button_clicked(
+                GtkButton *button, PlaybackHeader *self) noexcept;
 
         private:
             DISABLE_COPY(PlaybackHeader)

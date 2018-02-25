@@ -66,7 +66,7 @@ PlaybackBuffer::PlaybackBuffer() noexcept
         [](void *instance) {
             auto self = static_cast<PlaybackBuffer *>(instance);
 
-            self->file_size_ = self->buffer_.size();
+            self->buffering_finished_ = true;
             self->emit_caching_finished();
         },
         this);
@@ -102,7 +102,7 @@ PlaybackBuffer::~PlaybackBuffer() noexcept
 void PlaybackBuffer::cache(const music::Track &track) noexcept
 {
     consumed_ = 0;
-    file_size_ = track.fileSize();
+    buffering_finished_ = false;
     buffer_.clear();
     buffer_producer_.start_buffering(track);
 }
@@ -115,7 +115,8 @@ const std::string_view PlaybackBuffer::consume(std::size_t count) noexcept
                                 count;
 
     consumed_ += range_size;
-    if (buffer_.size() - consumed_ < MINIMUM_UNCONSUMED_BUFFER)
+    if (!buffering_finished_ &&
+        buffer_.size() - consumed_ < MINIMUM_UNCONSUMED_BUFFER)
     {
         emit_minimum_available_buffer_exceeded();
     }

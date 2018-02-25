@@ -62,7 +62,7 @@ namespace spring
             Producer buffer_producer_{};
             std::string buffer_{};
             std::size_t consumed_{ 0 };
-            std::size_t file_size_{};
+            bool buffering_finished_{ true };
 
         private:
             DISABLE_COPY(PlaybackBuffer)

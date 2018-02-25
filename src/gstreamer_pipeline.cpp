@@ -143,6 +143,13 @@ void GStreamerPipeline::gst_playback_finished(GstBus *,
 {
     g_warning("GStreamerPipeline: Playback finished");
     gst_element_set_state(self->playbin_, GST_STATE_NULL);
+
+    if (self->current_state_ != PlaybackState::Stopped)
+    {
+        self->current_state_ = PlaybackState::Stopped;
+        self->emit_playback_state_changed(PlaybackState::Stopped);
+    }
+
     self->current_track_ = nullptr;
 }
 
@@ -161,10 +168,10 @@ void GStreamerPipeline::gst_playback_state_changed(
         {
             default:
             case GST_STATE_VOID_PENDING:
-            case GST_STATE_READY:
                 new_state = PlaybackState::Invalid;
                 break;
 
+            case GST_STATE_READY:
             case GST_STATE_NULL:
                 new_state = PlaybackState::Stopped;
                 break;
