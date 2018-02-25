@@ -29,6 +29,7 @@ namespace spring
             enum class PlaybackState
             {
                 Invalid = -1,
+                Pending,
                 Playing,
                 Paused,
                 Stopped
@@ -52,6 +53,8 @@ namespace spring
         public:
             signal(playback_state_changed, PlaybackState);
             signal(playback_position_changed, Milliseconds);
+            signal(track_cache_updated, std::size_t);
+            signal(track_cached);
 
         private:
             static void gst_playback_finished(GstBus *bus,

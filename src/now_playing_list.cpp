@@ -28,9 +28,27 @@ NowPlayingList::NowPlayingList() noexcept
             self->emit_playback_position_changed(milliseconds.count());
         },
         this);
+
+    pipeline_.on_track_cache_updated(
+        this,
+        [](std::size_t new_size, void *instance) {
+            auto self = static_cast<NowPlayingList *>(instance);
+            self->emit_track_cache_updated(std::move(new_size));
+        },
+        this);
+
+    pipeline_.on_track_cached(this,
+                              [](void *instance) {
+                                  auto self =
+                                      static_cast<NowPlayingList *>(instance);
+                                  self->emit_track_cached();
+                              },
+                              this);
 };
 NowPlayingList::~NowPlayingList() noexcept
 {
+    pipeline_.disconnect_track_cached(this);
+    pipeline_.disconnect_track_cache_updated(this);
     pipeline_.disconnect_playback_position_changed(this);
     pipeline_.disconnect_playback_state_changed(this);
 }

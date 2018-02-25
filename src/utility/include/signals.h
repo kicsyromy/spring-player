@@ -114,7 +114,7 @@ namespace spring
                     {
                         auto data =
                             new QueuedData{ connection.first,
-                                            { std::forward_as_tuple(args)...,
+                                            { std::forward<Args>(args)...,
                                               connection.second } };
                         g_idle_add(
                             [](void *d) -> int {

@@ -28,6 +28,7 @@ namespace spring
             public:
                 signal(prebuffer_filled);
                 signal(buffering_finished);
+                signal(buffer_updated, std::size_t);
 
             public:
                 void start_buffering(const music::Track &track) noexcept;
@@ -62,6 +63,7 @@ namespace spring
         public:
             signal(precaching_finished);
             signal(caching_finished);
+            signal(cache_updated, std::size_t);
 
         private:
             Producer buffer_producer_{};

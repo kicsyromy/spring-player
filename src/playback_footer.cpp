@@ -25,12 +25,11 @@ PlaybackFooter::PlaybackFooter(GtkBuilder *builder) noexcept
         [](auto state, void *instance) {
             auto self = static_cast<PlaybackFooter *>(instance);
 
+            const auto duration =
+                NowPlayingList::instance().current_track()->duration().count();
+
             if (state == NowPlayingList::PlaybackState::Playing)
             {
-                const auto duration = NowPlayingList::instance()
-                                          .current_track()
-                                          ->duration()
-                                          .count();
                 gtk_adjustment_set_upper(self->playback_progress_adjustment_,
                                          duration);
                 gtk_adjustment_set_value(self->playback_progress_adjustment_,
@@ -70,10 +69,43 @@ PlaybackFooter::PlaybackFooter(GtkBuilder *builder) noexcept
                         .c_str());
         },
         this);
+
+    NowPlayingList::instance().on_track_cache_updated(
+        this,
+        [](std::size_t new_size, void *instance) {
+            auto self = static_cast<PlaybackFooter *>(instance);
+
+            auto &track = *NowPlayingList::instance().current_track();
+            auto file_size = track.fileSize();
+            auto duration = static_cast<std::size_t>(track.duration().count());
+
+            g_warning("***** new fill level: %d, obtained from: %d",
+                      new_size * duration / file_size, new_size);
+
+            gtk_range_set_fill_level(
+                gtk_cast<GtkRange>(self->playback_progress_bar_),
+                new_size * duration / file_size);
+        },
+        this);
+
+    NowPlayingList::instance().on_track_cached(
+        this,
+        [](void *instance) {
+            auto self = static_cast<PlaybackFooter *>(instance);
+
+            auto &track = *NowPlayingList::instance().current_track();
+            auto duration = static_cast<std::size_t>(track.duration().count());
+
+            gtk_range_set_fill_level(
+                gtk_cast<GtkRange>(self->playback_progress_bar_), duration);
+
+        },
+        this);
 }
 
 PlaybackFooter::~PlaybackFooter() noexcept
 {
+    NowPlayingList::instance().disconnect_track_cached(this);
     NowPlayingList::instance().disconnect_playback_position_changed(this);
     NowPlayingList::instance().disconnect_playback_state_changed(this);
 }

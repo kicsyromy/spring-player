@@ -5,7 +5,7 @@ using namespace spring::player;
 
 namespace
 {
-    constexpr const std::size_t PREBUFFER_SIZE_KB{ 100 * 1024 };
+    constexpr const std::size_t PREBUFFER_SIZE_KB{ 512 * 1024 };
 }
 
 PlaybackBuffer::Producer::Producer() noexcept = default;
@@ -43,6 +43,7 @@ void PlaybackBuffer::Producer::start_buffering(
                     std::unique_lock<std::mutex> lock(self->mutex_);
                     self->buffer_.append(reinterpret_cast<const char *>(data),
                                          size);
+                    auto buffer_size = self->buffer_.size();
                     self->condition_variable_.notify_one();
 
                     if (!prebuffer_filled &&
@@ -52,6 +53,9 @@ void PlaybackBuffer::Producer::start_buffering(
                     }
 
                     result = size;
+
+                    self->emit_queued_buffer_updated(std::move(buffer_size));
+                    //                    std::this_thread::sleep_for(std::chrono::milliseconds(200));
                 }
 
                 g_warning("returning size = %d", result);
@@ -125,10 +129,20 @@ PlaybackBuffer::PlaybackBuffer() noexcept
             self->emit_caching_finished();
         },
         this);
+
+    buffer_producer_.on_buffer_updated(
+        this,
+        [](std::size_t new_size, void *instance) {
+            auto self = static_cast<PlaybackBuffer *>(instance);
+
+            self->emit_cache_updated(std::move(new_size));
+        },
+        this);
 }
 
 PlaybackBuffer::~PlaybackBuffer() noexcept
 {
+    buffer_producer_.disconnect_buffer_updated(this);
     buffer_producer_.disconnect_buffering_finished(this);
     buffer_producer_.disconnect_prebuffer_filled(this);
 }
