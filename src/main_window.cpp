@@ -49,7 +49,7 @@ MainWindow::MainWindow(SpringPlayer &application) noexcept
     now_playing_sidebar_ = std::make_unique<NowPlayingSidebar>(builder);
     now_playing_sidebar_->show();
 
-    playback_footer_ = std::make_unique<PlaybackFooter>(builder);
+    playback_footer_ = std::make_unique<PlaybackHeader>(builder);
 
     auto library = std::move(pms_.sections().at(2).content());
     page_stack_ = std::make_unique<PageStack>(

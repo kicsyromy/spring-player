@@ -26,27 +26,19 @@ namespace spring
                 ~Producer() noexcept;
 
             public:
-                signal(prebuffer_filled);
                 signal(buffering_finished);
-                signal(buffer_updated, std::size_t);
+                signal(buffer_updated, std::uint8_t *, std::size_t);
 
             public:
                 void start_buffering(const music::Track &track) noexcept;
                 void stop_buffering() noexcept;
                 std::string_view buffer_range(std::size_t index,
                                               std::size_t count) const noexcept;
-                bool buffering_finished() const noexcept;
                 std::string &take() noexcept;
 
             private:
-                std::string buffer_{};
-
                 std::thread thread_{};
-                mutable std::mutex mutex_{};
-                mutable std::condition_variable condition_variable_{};
-
                 std::atomic_bool keep_buffering_{ false };
-                std::atomic_bool buffering_done_{ true };
             };
 
         public:
@@ -61,13 +53,14 @@ namespace spring
             const std::string_view consume(std::size_t count) noexcept;
 
         public:
-            signal(precaching_finished);
+            signal(minimum_available_buffer_reached);
+            signal(minimum_available_buffer_exceeded);
             signal(caching_finished);
             signal(cache_updated, std::size_t);
 
         private:
             Producer buffer_producer_{};
-            std::string completed_buffer_{};
+            std::string buffer_{};
             std::size_t consumed_{ 0 };
             std::size_t file_size_{};
 

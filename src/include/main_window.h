@@ -10,7 +10,7 @@
 
 #include "now_playing_sidebar.h"
 #include "page_stack.h"
-#include "playback_footer.h"
+#include "playback_header.h"
 #include "utility.h"
 
 using SpringPlayer = struct _SpringPlayer;
@@ -41,7 +41,7 @@ namespace spring
             GtkLabel *window_title_{ nullptr };
             std::unique_ptr<PageStack> page_stack_{ nullptr };
             std::unique_ptr<NowPlayingSidebar> now_playing_sidebar_{ nullptr };
-            std::unique_ptr<PlaybackFooter> playback_footer_{ nullptr };
+            std::unique_ptr<PlaybackHeader> playback_footer_{ nullptr };
 
             PlexMediaServer pms_;
 

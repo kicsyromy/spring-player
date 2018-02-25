@@ -60,7 +60,8 @@ NowPlayingSidebar::NowPlayingSidebar(GtkBuilder *builder) noexcept
         this,
         [](auto playback_state, void *instance) {
             auto self = static_cast<NowPlayingSidebar *>(instance);
-            if (playback_state == NowPlayingList::PlaybackState::Playing)
+            if (playback_state == NowPlayingList::PlaybackState::Pending ||
+                playback_state == NowPlayingList::PlaybackState::Playing)
             {
                 const auto &artwork =
                     NowPlayingList::instance().current_track()->artwork();

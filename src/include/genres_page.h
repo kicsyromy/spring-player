@@ -13,6 +13,7 @@ namespace spring
         {
         public:
             GenresPage(GtkBuilder *builder,
+                       /* weak_ptr instead of ref */
                        const MusicLibrary &music_library) noexcept;
             ~GenresPage() noexcept = default;
 

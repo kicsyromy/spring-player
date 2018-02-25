@@ -1,4 +1,4 @@
-#include "playback_footer.h"
+#include "playback_header.h"
 
 #include <fmt/format.h>
 
@@ -9,7 +9,7 @@ using namespace spring;
 using namespace spring::player;
 using namespace spring::player::utility;
 
-PlaybackFooter::PlaybackFooter(GtkBuilder *builder) noexcept
+PlaybackHeader::PlaybackHeader(GtkBuilder *builder) noexcept
 {
     get_widget_from_builder_simple(playback_progress_layout);
     get_widget_from_builder_simple(playback_progress_bar);
@@ -23,12 +23,13 @@ PlaybackFooter::PlaybackFooter(GtkBuilder *builder) noexcept
     NowPlayingList::instance().on_playback_state_changed(
         this,
         [](auto state, void *instance) {
-            auto self = static_cast<PlaybackFooter *>(instance);
+            auto self = static_cast<PlaybackHeader *>(instance);
 
             const auto duration =
                 NowPlayingList::instance().current_track()->duration().count();
 
-            if (state == NowPlayingList::PlaybackState::Playing)
+            if (state == NowPlayingList::PlaybackState::Pending ||
+                state == NowPlayingList::PlaybackState::Playing)
             {
                 gtk_adjustment_set_upper(self->playback_progress_adjustment_,
                                          duration);
@@ -53,7 +54,7 @@ PlaybackFooter::PlaybackFooter(GtkBuilder *builder) noexcept
     NowPlayingList::instance().on_playback_position_changed(
         this,
         [](auto position, void *instance) {
-            auto self = static_cast<PlaybackFooter *>(instance);
+            auto self = static_cast<PlaybackHeader *>(instance);
 
             gtk_adjustment_set_value(self->playback_progress_adjustment_,
                                      position);
@@ -73,7 +74,7 @@ PlaybackFooter::PlaybackFooter(GtkBuilder *builder) noexcept
     NowPlayingList::instance().on_track_cache_updated(
         this,
         [](std::size_t new_size, void *instance) {
-            auto self = static_cast<PlaybackFooter *>(instance);
+            auto self = static_cast<PlaybackHeader *>(instance);
 
             auto &track = *NowPlayingList::instance().current_track();
             auto file_size = track.fileSize();
@@ -91,7 +92,7 @@ PlaybackFooter::PlaybackFooter(GtkBuilder *builder) noexcept
     NowPlayingList::instance().on_track_cached(
         this,
         [](void *instance) {
-            auto self = static_cast<PlaybackFooter *>(instance);
+            auto self = static_cast<PlaybackHeader *>(instance);
 
             auto &track = *NowPlayingList::instance().current_track();
             auto duration = static_cast<std::size_t>(track.duration().count());
@@ -103,7 +104,7 @@ PlaybackFooter::PlaybackFooter(GtkBuilder *builder) noexcept
         this);
 }
 
-PlaybackFooter::~PlaybackFooter() noexcept
+PlaybackHeader::~PlaybackHeader() noexcept
 {
     NowPlayingList::instance().disconnect_track_cached(this);
     NowPlayingList::instance().disconnect_playback_position_changed(this);

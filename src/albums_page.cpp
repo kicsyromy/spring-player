@@ -1,5 +1,7 @@
 #include "albums_page.h"
 
+#include <thread>
+
 #include "async_queue.h"
 #include "utility.h"
 
@@ -8,7 +10,7 @@ using namespace spring::player;
 using namespace spring::player::utility;
 
 AlbumsPage::AlbumsPage(GtkBuilder *builder,
-                       const MusicLibrary &music_library) noexcept
+                       std::weak_ptr<MusicLibrary> music_library) noexcept
   : music_library_(music_library)
 {
     get_widget_from_builder_simple(albums_page);
@@ -32,28 +34,38 @@ void AlbumsPage::activated() noexcept
 
         async_queue::post_request(new async_queue::Request{
             "load_albums", [this]() {
-                auto album_widgets =
-                    new std::vector<std::unique_ptr<AlbumWidget>>{};
-                auto albums = std::move(music_library_.albums());
+                /* TODOD: There is a crash at start-up if we start fetching   */
+                /*        album data immediately so we add an artificial delay*/
+                std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
-                for (auto &album : albums)
+                auto music_library = music_library_.lock();
+
+                if (music_library != nullptr)
                 {
-                    album_widgets->push_back(
-                        std::make_unique<AlbumWidget>(std::move(album)));
+                    auto album_widgets =
+                        new std::vector<std::unique_ptr<AlbumWidget>>{};
+                    auto albums = music_library->albums();
+
+                    for (auto &album : albums)
+                    {
+                        album_widgets->push_back(
+                            std::make_unique<AlbumWidget>(std::move(album)));
+                    }
+
+                    async_queue::post_response(new async_queue::Response{
+                        "albums_ready", [this, album_widgets]() {
+                            albums_ = std::move(*album_widgets);
+                            delete album_widgets;
+
+                            for (auto &album : albums_)
+                            {
+                                gtk_flow_box_insert(albums_content_, *album,
+                                                    -1);
+                            }
+
+                            gtk_spinner_stop(albums_loading_spinner_);
+                        } });
                 }
-
-                async_queue::post_response(new async_queue::Response{
-                    "albums_ready", [this, album_widgets]() {
-                        albums_ = std::move(*album_widgets);
-                        delete album_widgets;
-
-                        for (auto &album : albums_)
-                        {
-                            gtk_flow_box_insert(albums_content_, *album, -1);
-                        }
-
-                        gtk_spinner_stop(albums_loading_spinner_);
-                    } });
             } });
     }
 }

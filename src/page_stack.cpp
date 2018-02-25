@@ -6,8 +6,9 @@ using namespace spring;
 using namespace spring::player;
 
 PageStack::PageStack(GtkBuilder *builder, MusicLibrary &&music_library) noexcept
-  : music_library_(std::move(music_library))
 {
+    *music_library_ = std::move(music_library);
+
     get_widget_from_builder_simple(page_stack);
 
     auto switch_page = [this](Page page) {
@@ -35,9 +36,10 @@ PageStack::PageStack(GtkBuilder *builder, MusicLibrary &&music_library) noexcept
     };
 
     albums_page_ = std::make_unique<AlbumsPage>(builder, music_library_);
-    artists_page_ = std::make_unique<ArtistsPage>(builder, music_library_);
-    genres_page_ = std::make_unique<GenresPage>(builder, music_library_);
-    songs_page_ = std::make_unique<SongsPage>(builder, music_library_);
+    /* weak_ptr instead of ref */
+    artists_page_ = std::make_unique<ArtistsPage>(builder, *music_library_);
+    genres_page_ = std::make_unique<GenresPage>(builder, *music_library_);
+    songs_page_ = std::make_unique<SongsPage>(builder, *music_library_);
 
     switch_page(settings::get_current_page());
 

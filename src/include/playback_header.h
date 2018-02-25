@@ -9,11 +9,11 @@ namespace spring
 {
     namespace player
     {
-        class PlaybackFooter
+        class PlaybackHeader
         {
         public:
-            PlaybackFooter(GtkBuilder *builder) noexcept;
-            ~PlaybackFooter() noexcept;
+            PlaybackHeader(GtkBuilder *builder) noexcept;
+            ~PlaybackHeader() noexcept;
 
         private:
             GtkBox *playback_progress_layout_{ nullptr };
@@ -26,8 +26,8 @@ namespace spring
             GtkButton *play_pause_button_{ nullptr };
 
         private:
-            DISABLE_COPY(PlaybackFooter)
-            DISABLE_MOVE(PlaybackFooter)
+            DISABLE_COPY(PlaybackHeader)
+            DISABLE_MOVE(PlaybackHeader)
         };
     }
 }

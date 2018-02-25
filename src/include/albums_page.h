@@ -18,7 +18,7 @@ namespace spring
         {
         public:
             AlbumsPage(GtkBuilder *builder,
-                       const MusicLibrary &music_library) noexcept;
+                       std::weak_ptr<MusicLibrary> music_library) noexcept;
             ~AlbumsPage() noexcept = default;
 
         public:
@@ -43,7 +43,7 @@ namespace spring
             GtkSpinner *albums_loading_spinner_{ nullptr };
             GtkSearchEntry *search_entry_{ nullptr };
 
-            const MusicLibrary &music_library_;
+            std::weak_ptr<MusicLibrary> music_library_;
             std::vector<std::unique_ptr<AlbumWidget>> albums_{};
 
         private:
