@@ -38,6 +38,7 @@ namespace spring
             GtkRevealer *search_revealer_{ nullptr };
             GtkSearchEntry *search_entry_{ nullptr };
             GtkToggleButton *search_button_{ nullptr };
+            GtkLabel *window_title_{ nullptr };
             std::unique_ptr<PageStack> page_stack_{ nullptr };
             std::unique_ptr<NowPlayingSidebar> now_playing_sidebar_{ nullptr };
             std::unique_ptr<PlaybackFooter> playback_footer_{ nullptr };

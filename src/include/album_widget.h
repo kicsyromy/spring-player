@@ -38,11 +38,11 @@ namespace spring
                                           AlbumWidget *self) noexcept;
 
         private:
-            GtkRefGuard<GtkBox> album_widget_{ nullptr };
+            utility::GtkRefGuard<GtkBox> album_widget_{ nullptr };
             GtkImage *cover_{ nullptr };
             GtkLabel *artist_{ nullptr };
             GtkLabel *title_{ nullptr };
-            GtkRefGuard<GtkPopover> track_list_popover_{ nullptr };
+            utility::GtkRefGuard<GtkPopover> track_list_popover_{ nullptr };
             GtkListBox *track_list_{ nullptr };
             GtkSpinner *tracks_loading_spinner_{ nullptr };
 

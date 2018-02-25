@@ -26,8 +26,8 @@ namespace spring
                 ~Producer() noexcept;
 
             public:
-                signal_simple(prebuffer_filled);
-                signal_simple(buffering_finished);
+                signal(prebuffer_filled);
+                signal(buffering_finished);
 
             public:
                 void start_buffering(const music::Track &track) noexcept;
@@ -35,17 +35,17 @@ namespace spring
                 std::string_view buffer_range(std::size_t index,
                                               std::size_t count) const noexcept;
                 bool buffering_finished() const noexcept;
-                std::size_t capacity() const noexcept;
+                std::string &take() noexcept;
 
             private:
-                std::string buffer_;
+                std::string buffer_{};
 
                 std::thread thread_{};
                 mutable std::mutex mutex_{};
                 mutable std::condition_variable condition_variable_{};
 
-                bool keep_buffering_{ false };
-                bool buffering_done_{ true };
+                std::atomic_bool keep_buffering_{ false };
+                std::atomic_bool buffering_done_{ true };
             };
 
         public:
@@ -60,12 +60,14 @@ namespace spring
             const std::string_view consume(std::size_t count) noexcept;
 
         public:
-            signal_simple(precaching_finished);
-            signal_simple(caching_finished);
+            signal(precaching_finished);
+            signal(caching_finished);
 
         private:
             Producer buffer_producer_{};
+            std::string completed_buffer_{};
             std::size_t consumed_{ 0 };
+            std::size_t file_size_{};
 
         private:
             DISABLE_COPY(PlaybackBuffer)

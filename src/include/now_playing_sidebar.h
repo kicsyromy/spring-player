@@ -16,7 +16,7 @@ namespace spring
         {
         public:
             NowPlayingSidebar(GtkBuilder *builder) noexcept;
-            ~NowPlayingSidebar() noexcept = default;
+            ~NowPlayingSidebar() noexcept;
 
         public:
             void show() noexcept;

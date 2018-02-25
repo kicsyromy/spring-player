@@ -5,10 +5,12 @@
 
 #include <gst/audio/audio.h>
 
+#include "async_queue.h"
 #include "utility.h"
 
 using namespace spring;
 using namespace spring::player;
+using namespace spring::player::utility;
 
 namespace
 {
@@ -32,6 +34,7 @@ GStreamerPipeline::GStreamerPipeline() noexcept
     connect_g_signal(bus_, "message::error", &gst_playback_error, this);
 
     playback_buffer_.on_precaching_finished(
+        this,
         [](void *instance) {
             auto self = static_cast<GStreamerPipeline *>(instance);
             gst_element_set_state(self->playbin_, GST_STATE_PLAYING);
@@ -42,8 +45,9 @@ GStreamerPipeline::GStreamerPipeline() noexcept
 GStreamerPipeline::~GStreamerPipeline() noexcept
 {
     g_warning("******************* destroying gstreamer pipeline");
-    g_signal_handlers_disconnect_by_data(bus_, this);
-    g_signal_handlers_disconnect_by_data(playbin_, this);
+
+    playback_buffer_.disconnect_precaching_finished(this);
+
     gst_object_unref(bus_);
     gst_element_set_state(playbin_, GST_STATE_NULL);
     gst_object_unref(playbin_);
@@ -139,7 +143,7 @@ void GStreamerPipeline::gst_playback_state_changed(
             new_state != self->current_state_)
         {
             self->current_state_ = new_state;
-            self->emit_playback_state_changed(new_state);
+            self->emit_playback_state_changed(std::move(new_state));
         }
     }
 }
@@ -193,26 +197,29 @@ void GStreamerPipeline::gst_appsrc_need_data(GstAppSrc *src,
                                              guint length,
                                              void *instance) noexcept
 {
-    g_warning("need more data");
     static constexpr std::size_t BUFFER_SIZE{ 16 * 1024 };
     auto self = static_cast<GStreamerPipeline *>(instance);
 
-    auto range = self->playback_buffer_.consume(BUFFER_SIZE);
+    async_queue::post_request(new async_queue::Request{
+        "grab_track_data_from_backbuffer", [self] {
+            auto range = self->playback_buffer_.consume(BUFFER_SIZE);
 
-    auto gst_buffer = gst_buffer_new_allocate(nullptr, range.size(), nullptr);
-    GstMapInfo buffer_info;
-    gst_buffer_map(gst_buffer, &buffer_info, GST_MAP_WRITE);
+            auto gst_buffer =
+                gst_buffer_new_allocate(nullptr, range.size(), nullptr);
+            GstMapInfo buffer_info;
+            gst_buffer_map(gst_buffer, &buffer_info, GST_MAP_WRITE);
 
-    memcpy(buffer_info.data, range.data(), range.size());
+            memcpy(buffer_info.data, range.data(), range.size());
 
-    gst_buffer_unmap(gst_buffer, &buffer_info);
+            gst_buffer_unmap(gst_buffer, &buffer_info);
 
-    gst_app_src_push_buffer(self->appsrc_, gst_buffer);
+            gst_app_src_push_buffer(self->appsrc_, gst_buffer);
 
-    if (range.size() < BUFFER_SIZE)
-    {
-        gst_app_src_end_of_stream(self->appsrc_);
-    }
+            if (range.size() < BUFFER_SIZE)
+            {
+                gst_app_src_end_of_stream(self->appsrc_);
+            }
+        } });
 }
 
 void GStreamerPipeline::gst_appsrc_enough_data(GstAppSrc *src,

@@ -32,6 +32,7 @@ target_include_directories (
 
 add_subdirectory (libspring)
 add_subdirectory (ui)
+add_subdirectory (utility)
 target_link_libraries (
     ${PROJECT_NAME} PUBLIC
     ${APPLICATION_ID}.ui
@@ -41,6 +42,7 @@ target_link_libraries (
     ${GSTREAMER_APP_LIBRARIES}
     ${LIBICU_LIBRARIES}
     spring
+    ${PROJECT_NAME}.utility
     pthread
 )
 

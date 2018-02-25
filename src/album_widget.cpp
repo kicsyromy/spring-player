@@ -8,6 +8,7 @@
 
 using namespace spring;
 using namespace spring::player;
+using namespace spring::player::utility;
 
 AlbumWidget::AlbumWidget(music::Album &&album) noexcept
   : album_(std::move(album))
@@ -25,10 +26,8 @@ AlbumWidget::AlbumWidget(music::Album &&album) noexcept
 
     g_object_unref(builder);
 
-    g_signal_connect(track_list_, "row-activated",
-                     G_CALLBACK(&on_track_activated), this);
-    g_signal_connect(track_list_popover_, "closed",
-                     G_CALLBACK(&on_popover_closed), this);
+    connect_g_signal(track_list_, "row-activated", &on_track_activated, this);
+    connect_g_signal(track_list_popover_, "closed", &on_popover_closed, this);
 
     gtk_label_set_text(artist_, album_.artist().c_str());
     gtk_label_set_text(title_, album_.title().c_str());
@@ -53,7 +52,7 @@ void AlbumWidget::activated() noexcept
     async_queue::post_request(new async_queue::Request{
         "get_tracks_for_album", [this]() {
         auto tracks = new std::vector<music::Track>();
-        *tracks = std::move(album_.tracks());
+        *tracks = album_.tracks();
         std::vector<GtkRefGuard<GtkBox>> track_list_entries;
         track_list_entries.reserve(tracks->size());
 
@@ -93,7 +92,6 @@ void AlbumWidget::activated() noexcept
                     if (gtk_widget_get_visible(
                             gtk_cast<GtkWidget>(track_list_popover_)))
                     {
-                        async_queue::clear_all_pending_requests();
                         on_popover_closed(track_list_popover_, this);
 
                         auto &track_list_entries =

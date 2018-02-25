@@ -4,6 +4,7 @@
 
 using namespace spring;
 using namespace spring::player;
+using namespace spring::player::utility;
 
 ArtistsPage::ArtistsPage(GtkBuilder *builder,
                          const MusicLibrary &music_library) noexcept

@@ -14,27 +14,26 @@ NowPlayingList &NowPlayingList::instance() noexcept
 NowPlayingList::NowPlayingList() noexcept
 {
     pipeline_.on_playback_state_changed(
+        this,
         [](PlaybackState new_state, void *instance) {
             auto self = static_cast<NowPlayingList *>(instance);
-            for (const auto &callback : self->state_changed_callbacks_)
-            {
-                callback(new_state);
-            }
+            self->emit_playback_state_changed(std::move(new_state));
         },
         this);
 
     pipeline_.on_playback_position_changed(
+        this,
         [](Milliseconds milliseconds, void *instance) {
             auto self = static_cast<NowPlayingList *>(instance);
-            for (const auto &callback :
-                 self->playback_position_changed_callbacks_)
-            {
-                callback(milliseconds.count());
-            }
+            self->emit_playback_position_changed(milliseconds.count());
         },
         this);
 };
-NowPlayingList::~NowPlayingList() noexcept = default;
+NowPlayingList::~NowPlayingList() noexcept
+{
+    pipeline_.disconnect_playback_position_changed(this);
+    pipeline_.disconnect_playback_state_changed(this);
+}
 
 const music::Track *NowPlayingList::current_track() const noexcept
 {
@@ -89,10 +88,7 @@ const music::Track &NowPlayingList::enqueue(music::Track &&track) noexcept
     content_.push_back(std::move(track));
     const auto &t = content_.back();
 
-    for (const auto &callback : track_queued_callbacks_)
-    {
-        callback(t);
-    }
+    emit_track_queued(t);
 
     return t;
 }

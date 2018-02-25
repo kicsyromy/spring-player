@@ -51,8 +51,6 @@ static void spring_player_startup(GApplication *app)
     auto app_menu = G_MENU_MODEL(gtk_builder_get_object(builder, "appmenu"));
     gtk_application_set_app_menu(GTK_APPLICATION(app), app_menu);
     g_object_unref(builder);
-
-    spring::player::async_queue::start_processing();
 }
 
 static void spring_player_init(SpringPlayer *self)
@@ -66,6 +64,8 @@ static void spring_player_activate(GApplication *app)
     auto self = reinterpret_cast<SpringPlayer *>(app);
     if (self->main_window == nullptr)
     {
+        spring::player::async_queue::start_processing();
+
         self->main_window = std::make_unique<spring::player::MainWindow>(*self);
         self->main_window->show();
     }
@@ -73,10 +73,11 @@ static void spring_player_activate(GApplication *app)
 
 static void spring_player_shutdown(GApplication *app)
 {
-    spring::player::async_queue::stop_processing();
 
     auto self = reinterpret_cast<SpringPlayer *>(app);
     self->main_window.reset(nullptr);
+
+    spring::player::async_queue::stop_processing();
 
     G_APPLICATION_CLASS(spring_player_parent_class)->shutdown(app);
 }

@@ -59,9 +59,8 @@ void async_queue::stop_processing()
 {
     if (worker.joinable())
     {
+        clear_all_pending_requests();
         message_loop_running = false;
-        g_async_queue_push_front(message_queue,
-                                 new async_queue::Request{ "", nullptr });
         worker.join();
     }
 

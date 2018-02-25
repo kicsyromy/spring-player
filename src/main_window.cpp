@@ -8,6 +8,7 @@
 
 using namespace spring;
 using namespace spring::player;
+using namespace spring::player::utility;
 
 namespace
 {
@@ -41,11 +42,9 @@ MainWindow::MainWindow(SpringPlayer &application) noexcept
     get_widget_from_builder_simple(search_revealer);
     get_widget_from_builder_simple(search_entry);
     get_widget_from_builder_simple(search_button);
+    get_widget_from_builder_simple(window_title);
 
-    g_signal_connect(search_button_, "toggled", G_CALLBACK(&on_search_toggled),
-                     this);
-
-    get_widget_from_builder_new(GtkLabel, window_title);
+    connect_g_signal(search_button_, "toggled", &on_search_toggled, this);
 
     now_playing_sidebar_ = std::make_unique<NowPlayingSidebar>(builder);
     now_playing_sidebar_->show();
@@ -58,21 +57,25 @@ MainWindow::MainWindow(SpringPlayer &application) noexcept
 
     g_object_unref(builder);
 
-    NowPlayingList::instance().on_state_changed(
-        [this, window_title](auto state) {
+    NowPlayingList::instance().on_playback_state_changed(
+        this,
+        [](auto state, void *instance) {
+            auto self = static_cast<MainWindow *>(instance);
+
             if (state == NowPlayingList::PlaybackState::Playing)
             {
                 const auto &track = NowPlayingList::instance().current_track();
-                gtk_label_set_text(window_title,
+                gtk_label_set_text(self->window_title_,
                                    fmt::format("{} - {} - {}", track->artist(),
                                                track->album(), track->title())
                                        .c_str());
             }
             else
             {
-                gtk_label_set_text(window_title, "Spring Player");
+                gtk_label_set_text(self->window_title_, "Spring Player");
             }
-        });
+        },
+        this);
 
     load_css_styling(css_provider_);
 }
@@ -80,6 +83,9 @@ MainWindow::MainWindow(SpringPlayer &application) noexcept
 MainWindow::~MainWindow() noexcept
 {
     g_warning("Deleting main window");
+
+    NowPlayingList::instance().disconnect_playback_state_changed(this);
+
     g_object_unref(css_provider_);
 }
 

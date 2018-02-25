@@ -9,6 +9,7 @@
 
 using namespace spring;
 using namespace spring::player;
+using namespace spring::player::utility;
 
 NowPlayingSidebar::NowPlayingSidebar(GtkBuilder *builder) noexcept
 {
@@ -17,15 +18,16 @@ NowPlayingSidebar::NowPlayingSidebar(GtkBuilder *builder) noexcept
     get_widget_from_builder_simple(now_playing_list);
     get_widget_from_builder_simple(toggle_sidebar_button);
 
-    g_signal_connect(now_playing_list_, "row-activated",
-                     G_CALLBACK(&on_track_activated), this);
-
-    g_signal_connect(toggle_sidebar_button_, "toggled", G_CALLBACK(&toggled),
+    connect_g_signal(now_playing_list_, "row-activated", &on_track_activated,
                      this);
+    connect_g_signal(toggle_sidebar_button_, "toggled", &toggled, this);
 
     NowPlayingList::instance().on_track_queued(
-        [this](const music::Track &track) {
-            playlist_.push_back(&track);
+        this,
+        [](const music::Track &track, void *instance) {
+            auto self = static_cast<NowPlayingSidebar *>(instance);
+
+            self->playlist_.push_back(&track);
             auto builder = gtk_builder_new_from_resource(APPLICATION_PREFIX
                                                          "/track_widget.ui");
 
@@ -45,22 +47,34 @@ NowPlayingSidebar::NowPlayingSidebar(GtkBuilder *builder) noexcept
                               fmt::format("{}:0{}", minutes, seconds).c_str() :
                               fmt::format("{}:{}", minutes, seconds).c_str());
 
-            gtk_container_add(gtk_cast<GtkContainer>(now_playing_list_),
+            gtk_container_add(gtk_cast<GtkContainer>(self->now_playing_list_),
                               gtk_cast<GtkWidget>(track_list_entry));
 
             gtk_widget_set_visible(gtk_cast<GtkWidget>(track_list_entry), true);
 
             g_object_unref(builder);
-        });
+        },
+        this);
 
-    NowPlayingList::instance().on_state_changed([this](auto playback_state) {
-        if (playback_state == NowPlayingList::PlaybackState::Playing)
-        {
-            const auto &artwork =
-                NowPlayingList::instance().current_track()->artwork();
-            load_image_from_data_scaled<200, 200>(artwork, now_playing_cover_);
-        }
-    });
+    NowPlayingList::instance().on_playback_state_changed(
+        this,
+        [](auto playback_state, void *instance) {
+            auto self = static_cast<NowPlayingSidebar *>(instance);
+            if (playback_state == NowPlayingList::PlaybackState::Playing)
+            {
+                const auto &artwork =
+                    NowPlayingList::instance().current_track()->artwork();
+                load_image_from_data_scaled<200, 200>(artwork,
+                                                      self->now_playing_cover_);
+            }
+        },
+        this);
+}
+
+NowPlayingSidebar::~NowPlayingSidebar() noexcept
+{
+    NowPlayingList::instance().disconnect_playback_state_changed(this);
+    NowPlayingList::instance().disconnect_track_queued(this);
 }
 
 void NowPlayingSidebar::show() noexcept

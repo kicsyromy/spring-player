@@ -13,7 +13,7 @@ namespace spring
         {
         public:
             PlaybackFooter(GtkBuilder *builder) noexcept;
-            ~PlaybackFooter() noexcept = default;
+            ~PlaybackFooter() noexcept;
 
         private:
             GtkBox *playback_progress_layout_{ nullptr };

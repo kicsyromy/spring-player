@@ -26,7 +26,6 @@ namespace spring
 
         private:
             static gboolean filter(GtkFlowBoxChild *child, void *self) noexcept;
-            static void destroy_function(void *self) noexcept;
             static void on_search_changed(GtkSearchEntry *element,
                                           AlbumsPage *self) noexcept;
 

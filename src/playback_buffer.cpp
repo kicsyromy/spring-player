@@ -21,11 +21,8 @@ void PlaybackBuffer::Producer::start_buffering(
     buffer_.reserve(track.fileSize());
 
     thread_ = std::thread{ [this, &track] {
-        {
-            std::lock_guard<std::mutex> lock(mutex_);
-            buffering_done_ = false;
-            keep_buffering_ = true;
-        }
+        buffering_done_ = false;
+        keep_buffering_ = true;
 
         struct WorkerData
         {
@@ -41,12 +38,7 @@ void PlaybackBuffer::Producer::start_buffering(
 
                 std::size_t result{ 0 };
 
-                bool keep_buffering{ true };
-                {
-                    std::lock_guard<std::mutex> lock(self->mutex_);
-                    keep_buffering = self->keep_buffering_;
-                }
-                if (keep_buffering)
+                if (self->keep_buffering_)
                 {
                     std::unique_lock<std::mutex> lock(self->mutex_);
                     self->buffer_.append(reinterpret_cast<const char *>(data),
@@ -62,25 +54,27 @@ void PlaybackBuffer::Producer::start_buffering(
                     result = size;
                 }
 
+                g_warning("returning size = %d", result);
+
                 return result;
             },
             &worker_data);
+
+        buffering_done_ = true;
+
+        if (keep_buffering_)
         {
-            std::lock_guard<std::mutex> lock(mutex_);
-            buffering_done_ = true;
-            keep_buffering_ = false;
+            emit_queued_buffering_finished();
         }
 
-        emit_queued_buffering_finished();
+        keep_buffering_ = false;
+
     } };
 }
 
 void PlaybackBuffer::Producer::stop_buffering() noexcept
 {
-    {
-        std::lock_guard<std::mutex> lock(mutex_);
-        keep_buffering_ = false;
-    }
+    keep_buffering_ = false;
 
     if (thread_.joinable())
     {
@@ -103,18 +97,18 @@ std::string_view PlaybackBuffer::Producer::buffer_range(std::size_t index,
 
 bool PlaybackBuffer::Producer::buffering_finished() const noexcept
 {
-    std::lock_guard<std::mutex> lock(mutex_);
     return buffering_done_;
 }
 
-std::size_t PlaybackBuffer::Producer::capacity() const noexcept
+std::string &PlaybackBuffer::Producer::take() noexcept
 {
-    return buffer_.capacity();
+    return buffer_;
 }
 
 PlaybackBuffer::PlaybackBuffer() noexcept
 {
     buffer_producer_.on_prebuffer_filled(
+        this,
         [](void *instance) {
             auto self = static_cast<PlaybackBuffer *>(instance);
             self->emit_precaching_finished();
@@ -122,30 +116,45 @@ PlaybackBuffer::PlaybackBuffer() noexcept
         this);
 
     buffer_producer_.on_buffering_finished(
+        this,
         [](void *instance) {
             auto self = static_cast<PlaybackBuffer *>(instance);
+
+            self->completed_buffer_ = std::move(self->buffer_producer_.take());
+
             self->emit_caching_finished();
         },
         this);
 }
 
-PlaybackBuffer::~PlaybackBuffer() noexcept = default;
+PlaybackBuffer::~PlaybackBuffer() noexcept
+{
+    buffer_producer_.disconnect_buffering_finished(this);
+    buffer_producer_.disconnect_prebuffer_filled(this);
+}
 
 void PlaybackBuffer::cache(const music::Track &track) noexcept
 {
     consumed_ = 0;
+    file_size_ = track.fileSize();
+    completed_buffer_.clear();
     buffer_producer_.start_buffering(track);
 }
 
 const std::string_view PlaybackBuffer::consume(std::size_t count) noexcept
 {
-    const auto range_begin = consumed_;
-    const auto range_end_index = consumed_ + count;
-    const auto file_size = buffer_producer_.capacity();
-    const auto range_size =
-        range_end_index >= file_size ? file_size - consumed_ : count;
+    if (completed_buffer_.empty())
+    {
+        return buffer_producer_.buffer_range(consumed_, count);
+    }
+    else
+    {
+        const auto range_begin = consumed_;
+        const auto range_size = consumed_ + count >= completed_buffer_.size() ?
+                                    completed_buffer_.size() - consumed_ :
+                                    count;
 
-    consumed_ += count;
-
-    return buffer_producer_.buffer_range(range_begin, range_size);
+        consumed_ += range_size;
+        return { completed_buffer_.data() + range_begin, range_size };
+    }
 }

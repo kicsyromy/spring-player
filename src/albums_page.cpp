@@ -5,6 +5,7 @@
 
 using namespace spring;
 using namespace spring::player;
+using namespace spring::player::utility;
 
 AlbumsPage::AlbumsPage(GtkBuilder *builder,
                        const MusicLibrary &music_library) noexcept
@@ -16,14 +17,11 @@ AlbumsPage::AlbumsPage(GtkBuilder *builder,
     get_widget_from_builder_simple(search_entry);
 
     gtk_flow_box_set_filter_func(albums_content_, &AlbumsPage::filter,
-                                 reinterpret_cast<void *>(this),
-                                 &AlbumsPage::destroy_function);
+                                 reinterpret_cast<void *>(this), [](void *) {});
 
-    g_signal_connect(albums_content_, "child-activated",
-                     G_CALLBACK(&on_child_activated), this);
-
-    g_signal_connect(search_entry_, "search-changed",
-                     G_CALLBACK(&on_search_changed), this);
+    connect_g_signal(albums_content_, "child-activated", &on_child_activated,
+                     this);
+    connect_g_signal(search_entry_, "search-changed", &on_search_changed, this);
 }
 
 void AlbumsPage::activated() noexcept
@@ -36,7 +34,7 @@ void AlbumsPage::activated() noexcept
             "load_albums", [this]() {
                 auto album_widgets =
                     new std::vector<std::unique_ptr<AlbumWidget>>{};
-                auto albums = music_library_.albums();
+                auto albums = std::move(music_library_.albums());
 
                 for (auto &album : albums)
                 {
@@ -74,16 +72,12 @@ gboolean AlbumsPage::filter(GtkFlowBoxChild *element, void *instance) noexcept
             .at(static_cast<std::size_t>(gtk_flow_box_child_get_index(element)))
             ->artist();
 
-    const bool is_near_title_match{ fuzzy_match(searched_text, album_title,
-                                                2) };
-    const bool is_near_artist_match{ fuzzy_match(searched_text, artist_name,
-                                                 2) };
+    const bool is_near_title_match{ utility::fuzzy_match(searched_text,
+                                                         album_title, 2) };
+    const bool is_near_artist_match{ utility::fuzzy_match(searched_text,
+                                                          artist_name, 2) };
 
     return searched_text.empty() || is_near_title_match || is_near_artist_match;
-}
-
-void AlbumsPage::destroy_function(void *) noexcept
-{
 }
 
 void AlbumsPage::on_search_changed(GtkSearchEntry *entry,
