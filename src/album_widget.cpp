@@ -119,7 +119,12 @@ void AlbumWidget::activated() noexcept
                                     gtk_cast<GtkWidget>(cover_));
     }
 
+#if GTK_MINOR_VERSION >= 22
     gtk_popover_popup(track_list_popover_);
+#else
+    gtk_popover_set_transitions_enabled(track_list_popover_, true);
+    gtk_widget_show(gtk_cast<GtkWidget>(track_list_popover_));
+#endif
 /* clang-format on */
 }
 

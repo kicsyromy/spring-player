@@ -193,7 +193,8 @@ void GStreamerPipeline::gst_playback_state_changed(
         if (new_state != PlaybackState::Invalid &&
             new_state != self->current_state_)
         {
-            g_warning("Playback state changed to: %d", new_state);
+            g_warning("Playback state changed to: %d",
+                      static_cast<int>(new_state));
             self->current_state_ = new_state;
             self->emit_playback_state_changed(std::move(new_state));
         }

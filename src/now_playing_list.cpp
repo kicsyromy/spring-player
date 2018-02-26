@@ -18,7 +18,7 @@ NowPlayingList::NowPlayingList() noexcept
         [](PlaybackState new_state, void *instance) {
             auto self = static_cast<NowPlayingList *>(instance);
 
-            g_warning("new state %d", new_state);
+            g_warning("new state %d", static_cast<int>(new_state));
             if (new_state == PlaybackState::Stopped)
             {
                 if (!self->content_.empty() &&

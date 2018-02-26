@@ -410,7 +410,19 @@ HttpClient::HttpClient(const std::string &userAgent) noexcept
 }
 
 HttpClient::HttpClient(HttpClient &&) noexcept = default;
-HttpClient &HttpClient::operator=(HttpClient &&) noexcept = default;
+HttpClient &HttpClient::operator=(HttpClient &&other) noexcept
+{
+    hostname_ = std::move(other.hostname_);
+    port_ = other.port_;
+    authenticationEnabled_ = other.authenticationEnabled_;
+    authentication_ = std::move(other.authentication_);
+    sslErrorHandlingEnabled_ = other.sslErrorHandlingEnabled_;
+    timeout_ = other.timeout_;
+    handle_ = other.handle_;
+    other.handle_ = nullptr;
+
+    return *this;
+}
 
 HttpClient::~HttpClient() noexcept
 {

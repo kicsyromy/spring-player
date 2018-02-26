@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Generated with glade 3.20.3 -->
+<!-- Generated with glade 3.20.2 -->
 <interface>
   <requires lib="gtk+" version="3.18"/>
   <object class="GtkImage" id="album_stock_image">
@@ -505,7 +505,7 @@
                         <property name="can_focus">False</property>
                         <property name="margin_left">8</property>
                         <property name="margin_right">8</property>
-                        <property name="icon_name">view-list-compact-symbolic</property>
+                        <property name="icon_name">view-list-symbolic</property>
                       </object>
                     </child>
                   </object>
@@ -541,7 +541,7 @@
                       <object class="GtkImage">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
-                        <property name="icon_name">media-skip-backward-symbolic.symbolic</property>
+                        <property name="icon_name">media-skip-backward-symbolic</property>
                       </object>
                     </child>
                   </object>
@@ -563,7 +563,7 @@
                       <object class="GtkImage" id="play_pause_button_icon">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
-                        <property name="icon_name">media-playback-start-symbolic.symbolic</property>
+                        <property name="icon_name">media-playback-start-symbolic</property>
                         <property name="icon_size">5</property>
                       </object>
                     </child>
@@ -586,7 +586,7 @@
                       <object class="GtkImage">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
-                        <property name="icon_name">media-skip-forward-symbolic.symbolic</property>
+                        <property name="icon_name">media-skip-forward-symbolic</property>
                       </object>
                     </child>
                   </object>

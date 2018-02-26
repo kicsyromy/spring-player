@@ -112,10 +112,11 @@ namespace spring
                 {
                     for (const auto &connection : connections_)
                     {
-                        auto data =
-                            new QueuedData{ connection.first,
-                                            { std::forward<Args>(args)...,
-                                              connection.second } };
+                        auto data = new QueuedData{
+                            connection.first,
+                            std::make_tuple(std::forward<Args>(args)...,
+                                            connection.second)
+                        };
                         g_idle_add(
                             [](void *d) -> int {
                                 auto data = std::unique_ptr<QueuedData>{

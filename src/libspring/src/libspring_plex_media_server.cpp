@@ -86,7 +86,8 @@ PlexMediaServerPrivate::PlexMediaServerPrivate(const char *serverAddress,
     //    JsonFormat format{ result.response.text };
     //    auto user = sequential::from_format<UserProperties>(format);
     char token[100];
-    FILE *f = fopen("/home/kicsyromy/workspace/token.txt", "r");
+    auto path = fmt::format("{}/workspace/token.txt", getenv("HOME"));
+    FILE *f = fopen(path.c_str(), "r");
     fscanf(f, "%s", token);
     authenticationToken_ = token;
     fclose(f);

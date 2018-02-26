@@ -30,11 +30,11 @@ namespace
 
     const std::array<const char *, PropertyCount> properties{ "current-page" };
 
-    const std::string home_directory = std::move([]() -> std::string {
+    const std::string home_directory = []() -> std::string {
         auto HOME = getenv("HOME");
         return { HOME };
-    }());
-    const std::string data_directory = std::move([]() -> std::string {
+    }();
+    const std::string data_directory = []() -> std::string {
         auto XDG_DATA_HOME = getenv("XDG_DATA_HOME");
         if (XDG_DATA_HOME != nullptr)
         {
@@ -44,9 +44,9 @@ namespace
         {
             return fmt::format("{}/.local/share", home_directory);
         }
-    }());
+    }();
 
-    const std::string config_directory = std::move([]() -> std::string {
+    const std::string config_directory = []() -> std::string {
         auto XDG_CONFIG_HOME = getenv("XDG_CONFIG_HOME");
         if (XDG_CONFIG_HOME != nullptr)
         {
@@ -56,9 +56,9 @@ namespace
         {
             return fmt::format("{}/.config", home_directory);
         }
-    }());
+    }();
 
-    const std::string cache_directory = std::move([]() -> std::string {
+    const std::string cache_directory = []() -> std::string {
         auto XDG_CACHE_HOME = getenv("XDG_CACHE_HOME");
         if (XDG_CACHE_HOME != nullptr)
         {
@@ -68,7 +68,7 @@ namespace
         {
             return fmt::format("{}/.cache", home_directory);
         }
-    }());
+    }();
 }
 
 void settings::set_current_page(settings::Page page) noexcept

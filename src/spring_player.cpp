@@ -2,6 +2,8 @@
 
 #include <memory>
 
+#include <fmt/format.h>
+
 #include "application_settings.h"
 #include "async_queue.h"
 #include "gstreamer_pipeline.h"
@@ -108,7 +110,9 @@ SpringPlayer *spring_player_new()
 spring::PlexMediaServer spring_player_pms()
 {
     char host[100];
-    FILE *f = fopen("/home/kicsyromy/workspace/host.txt", "r");
+    auto path = fmt::format("{}/workspace/host.txt",
+                            spring::player::settings::home_directory());
+    FILE *f = fopen(path.c_str(), "r");
     fscanf(f, "%s", host);
     fclose(f);
     return { host, -1, "username", "password" };

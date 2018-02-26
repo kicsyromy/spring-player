@@ -8,6 +8,15 @@
 #include <gtk/gtk.h>
 
 #include <utfcpp.h>
+#if __has_include(<string_view>)
+#include <string_view>
+#else
+#include <experimental/string_view>
+namespace std
+{
+    using string_view = std::experimental::string_view;
+}
+#endif
 
 namespace spring
 {
