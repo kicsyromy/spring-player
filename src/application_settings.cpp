@@ -30,45 +30,10 @@ namespace
 
     const std::array<const char *, PropertyCount> properties{ "current-page" };
 
-    const std::string home_directory = []() -> std::string {
-        auto HOME = getenv("HOME");
-        return { HOME };
-    }();
-    const std::string data_directory = []() -> std::string {
-        auto XDG_DATA_HOME = getenv("XDG_DATA_HOME");
-        if (XDG_DATA_HOME != nullptr)
-        {
-            return { XDG_DATA_HOME };
-        }
-        else
-        {
-            return fmt::format("{}/.local/share", home_directory);
-        }
-    }();
-
-    const std::string config_directory = []() -> std::string {
-        auto XDG_CONFIG_HOME = getenv("XDG_CONFIG_HOME");
-        if (XDG_CONFIG_HOME != nullptr)
-        {
-            return { XDG_CONFIG_HOME };
-        }
-        else
-        {
-            return fmt::format("{}/.config", home_directory);
-        }
-    }();
-
-    const std::string cache_directory = []() -> std::string {
-        auto XDG_CACHE_HOME = getenv("XDG_CACHE_HOME");
-        if (XDG_CACHE_HOME != nullptr)
-        {
-            return { XDG_CACHE_HOME };
-        }
-        else
-        {
-            return fmt::format("{}/.cache", home_directory);
-        }
-    }();
+    std::string home_directory{};
+    std::string data_directory{};
+    std::string config_directory{};
+    std::string cache_directory{};
 }
 
 void settings::set_current_page(settings::Page page) noexcept
@@ -85,20 +50,76 @@ settings::Page settings::get_current_page() noexcept
 
 const std::string &settings::home_directory() noexcept
 {
+    if (::home_directory.empty())
+    {
+        ::home_directory = []() -> std::string {
+            auto HOME = getenv("HOME");
+            return { HOME };
+        }();
+    }
+
     return ::home_directory;
 }
 
 const std::string &settings::data_directory() noexcept
 {
+    if (::data_directory.empty())
+    {
+        ::data_directory = []() -> std::string {
+            auto XDG_DATA_HOME = getenv("XDG_DATA_HOME");
+            if (XDG_DATA_HOME != nullptr)
+            {
+                return fmt::format("{}/" APPLICATION_ID, XDG_DATA_HOME);
+            }
+            else
+            {
+                return fmt::format("{}/.local/share/" APPLICATION_ID,
+                                   home_directory());
+            }
+        }();
+    }
+
     return ::data_directory;
 }
 
 const std::string &settings::config_directory() noexcept
 {
+    if (::config_directory.empty())
+    {
+        ::config_directory = []() -> std::string {
+            auto XDG_CONFIG_HOME = getenv("XDG_CONFIG_HOME");
+            if (XDG_CONFIG_HOME != nullptr)
+            {
+                return fmt::format("{}/" APPLICATION_ID, XDG_CONFIG_HOME);
+            }
+            else
+            {
+                return fmt::format("{}/.config/" APPLICATION_ID,
+                                   home_directory());
+            }
+        }();
+    }
+
     return ::config_directory;
 }
 
 const std::string &settings::cache_directory() noexcept
 {
+    if (::cache_directory.empty())
+    {
+        ::cache_directory = []() -> std::string {
+            auto XDG_CACHE_HOME = getenv("XDG_CACHE_HOME");
+            if (XDG_CACHE_HOME != nullptr)
+            {
+                return fmt::format("{}/" APPLICATION_ID, XDG_CACHE_HOME);
+            }
+            else
+            {
+                return fmt::format("{}/.cache/" APPLICATION_ID,
+                                   home_directory());
+            }
+        }();
+    }
+
     return ::cache_directory;
 }

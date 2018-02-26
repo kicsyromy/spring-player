@@ -18,11 +18,11 @@ namespace spring
 
             using Response = Request;
 
-            void start_processing();
-            void stop_processing();
-            void post_request(Request *request);
-            void clear_all_pending_requests();
-            void post_response(Response *response);
+            void start_processing() noexcept;
+            void stop_processing() noexcept;
+            void push_back_request(Request *request) noexcept;
+            void push_front_request(Request *request) noexcept;
+            void post_response(Response *response) noexcept;
         }
     }
 }

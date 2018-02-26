@@ -75,11 +75,10 @@ static void spring_player_activate(GApplication *app)
 
 static void spring_player_shutdown(GApplication *app)
 {
+    spring::player::async_queue::stop_processing();
 
     auto self = reinterpret_cast<SpringPlayer *>(app);
     self->main_window.reset(nullptr);
-
-    spring::player::async_queue::stop_processing();
 
     G_APPLICATION_CLASS(spring_player_parent_class)->shutdown(app);
 }
@@ -93,15 +92,6 @@ static void spring_player_class_init(SpringPlayerClass *klass)
 
 SpringPlayer *spring_player_new()
 {
-    g_warning("****** home: %s",
-              spring::player::settings::home_directory().c_str());
-    g_warning("****** data: %s",
-              spring::player::settings::data_directory().c_str());
-    g_warning("****** config: %s",
-              spring::player::settings::config_directory().c_str());
-    g_warning("****** cache: %s",
-              spring::player::settings::cache_directory().c_str());
-
     return static_cast<SpringPlayer *>(
         g_object_new(SPRING_PLAYER_TYPE, "application-id", APPLICATION_ID,
                      "flags", G_APPLICATION_HANDLES_OPEN, nullptr));

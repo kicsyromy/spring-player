@@ -8,15 +8,8 @@
 #include <gtk/gtk.h>
 
 #include <utfcpp.h>
-#if __has_include(<string_view>)
-#include <string_view>
-#else
-#include <experimental/string_view>
-namespace std
-{
-    using string_view = std::experimental::string_view;
-}
-#endif
+
+#include "compatibility.h"
 
 namespace spring
 {
@@ -24,30 +17,40 @@ namespace spring
     {
         namespace utility
         {
-            template <int width, int height>
-            inline void load_image_from_data_scaled(const std::string &data,
-                                                    GtkImage *result) noexcept
+            inline GdkPixbuf *load_pixbuf_from_data(
+                const std::string &data) noexcept
             {
                 auto loader = gdk_pixbuf_loader_new();
+
                 gdk_pixbuf_loader_write(
                     loader, reinterpret_cast<const guchar *>(data.data()),
                     data.size(), nullptr);
-                auto pixbuf = gdk_pixbuf_loader_get_pixbuf(loader);
-                auto scaled_pixbuf = gdk_pixbuf_scale_simple(
-                    pixbuf, width, height, GDK_INTERP_HYPER);
-                gtk_image_set_from_pixbuf(result, scaled_pixbuf);
 
-                g_object_unref(scaled_pixbuf);
-                g_object_unref(pixbuf);
+                auto pixbuf = gdk_pixbuf_loader_get_pixbuf(loader);
 
                 gdk_pixbuf_loader_close(loader, nullptr);
+
+                return pixbuf;
+            }
+
+            template <int width, int height>
+            inline GdkPixbuf *load_pixbuf_from_data_scaled(
+                const std::string &data) noexcept
+            {
+                auto pixbuf = load_pixbuf_from_data(data);
+                auto scaled_pixbuf = gdk_pixbuf_scale_simple(
+                    pixbuf, width, height, GDK_INTERP_HYPER);
+
+                g_object_unref(pixbuf);
+
+                return scaled_pixbuf;
             }
 
             /* Shamelessly adapted from:                                                         */
             /* https://en.wikipedia.org/wiki/Levenshtein_distance#Iterative_with_two_matrix_rows */
             inline std::int32_t levenshtein_distance(
-                const std::string_view &from,
-                const std::string_view &to) noexcept
+                const utility::string_view &from,
+                const utility::string_view &to) noexcept
             {
                 std::size_t s1_size = utf8::distance(from.begin(), from.end());
                 std::size_t s2_size = utf8::distance(to.begin(), to.end());
@@ -117,8 +120,8 @@ namespace spring
                 return previous_distances[s2.size()];
             }
 
-            inline bool fuzzy_match(const std::string_view &s1,
-                                    const std::string_view &s2,
+            inline bool fuzzy_match(const utility::string_view &s1,
+                                    const utility::string_view &s2,
                                     std::int32_t precision)
             {
                 std::size_t s1_size = utf8::distance(s1.begin(), s1.end());
@@ -133,7 +136,7 @@ namespace spring
                     {
                         auto s2_window_end = s2_window_begin;
                         utf8::advance(s2_window_end, s1_size);
-                        std::string_view s2_window{
+                        utility::string_view s2_window{
                             s2_window_begin,
                             static_cast<std::size_t>(
                                 std::distance(s2_window_begin, s2_window_end))
@@ -153,7 +156,7 @@ namespace spring
                     {
                         auto s1_window_end = s1_window_begin;
                         utf8::advance(s1_window_end, s2_size);
-                        std::string_view s1_window{
+                        utility::string_view s1_window{
                             s1_window_begin,
                             static_cast<std::size_t>(
                                 std::distance(s1_window_begin, s1_window_end))

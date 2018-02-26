@@ -32,38 +32,42 @@ PlaybackHeader::PlaybackHeader(GtkBuilder *builder) noexcept
         [](auto state, void *instance) {
             auto self = static_cast<PlaybackHeader *>(instance);
 
-            const auto duration =
-                NowPlayingList::instance().current_track()->duration().count();
-
-            if (state == NowPlayingList::PlaybackState::Pending ||
-                state == NowPlayingList::PlaybackState::Playing)
+            auto track = NowPlayingList::instance().current_track();
+            if (track != nullptr)
             {
-                gtk_adjustment_set_upper(self->playback_progress_adjustment_,
-                                         duration);
-                gtk_adjustment_set_value(self->playback_progress_adjustment_,
-                                         0);
+                auto duration = track->duration().count();
 
-                auto duration_seconds_total = duration / 1000;
-                const auto minutes = duration_seconds_total / 60;
-                const auto seconds = duration_seconds_total % 60;
-                gtk_label_set_text(self->current_time_, "0:00");
-                gtk_label_set_text(
-                    self->total_time_,
-                    seconds < 10 ?
-                        fmt::format("{}:0{}", minutes, seconds).c_str() :
-                        fmt::format("{}:{}", minutes, seconds).c_str());
-                gtk_widget_set_visible(
-                    gtk_cast<GtkWidget>(self->playback_progress_layout_), true);
+                if (state == NowPlayingList::PlaybackState::Pending ||
+                    state == NowPlayingList::PlaybackState::Playing)
+                {
+                    gtk_adjustment_set_upper(
+                        self->playback_progress_adjustment_, duration);
+                    gtk_adjustment_set_value(
+                        self->playback_progress_adjustment_, 0);
 
-                gtk_image_set_from_icon_name(self->play_pause_button_icon_,
-                                             "media-playback-pause-symbolic",
-                                             GTK_ICON_SIZE_DND);
-            }
-            else
-            {
-                gtk_image_set_from_icon_name(self->play_pause_button_icon_,
-                                             "media-playback-start-symbolic",
-                                             GTK_ICON_SIZE_DND);
+                    auto duration_seconds_total = duration / 1000;
+                    const auto minutes = duration_seconds_total / 60;
+                    const auto seconds = duration_seconds_total % 60;
+                    gtk_label_set_text(self->current_time_, "0:00");
+                    gtk_label_set_text(
+                        self->total_time_,
+                        seconds < 10 ?
+                            fmt::format("{}:0{}", minutes, seconds).c_str() :
+                            fmt::format("{}:{}", minutes, seconds).c_str());
+                    gtk_widget_set_visible(
+                        gtk_cast<GtkWidget>(self->playback_progress_layout_),
+                        true);
+
+                    gtk_image_set_from_icon_name(
+                        self->play_pause_button_icon_,
+                        "media-playback-pause-symbolic", GTK_ICON_SIZE_DND);
+                }
+                else
+                {
+                    gtk_image_set_from_icon_name(
+                        self->play_pause_button_icon_,
+                        "media-playback-start-symbolic", GTK_ICON_SIZE_DND);
+                }
             }
         },
         this);

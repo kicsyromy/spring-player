@@ -32,8 +32,9 @@ namespace spring
             public:
                 void start_buffering(const music::Track &track) noexcept;
                 void stop_buffering() noexcept;
-                std::string_view buffer_range(std::size_t index,
-                                              std::size_t count) const noexcept;
+                utility::string_view buffer_range(std::size_t index,
+                                                  std::size_t count) const
+                    noexcept;
                 std::string &take() noexcept;
 
             private:
@@ -50,7 +51,7 @@ namespace spring
 
         public:
             void cache(const music::Track &track) noexcept;
-            const std::string_view consume(std::size_t count) noexcept;
+            const utility::string_view consume(std::size_t count) noexcept;
 
         public:
             signal(minimum_available_buffer_reached);

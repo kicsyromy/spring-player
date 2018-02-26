@@ -18,11 +18,11 @@
         name() noexcept : name##_() {}                                    \
         name(const type &value) noexcept : name##_(value) {}              \
         name(type &&value) noexcept : name##_(std::move(value)) {}        \
-        static constexpr const char *string() noexcept { return #name; }; \
-        inline const type &value() const noexcept { return name##_; };    \
-        inline type &value() noexcept { return name##_; };                \
-        inline void set_value(const type &v) noexcept { name##_ = v; };   \
-        inline void set_value(type &&v) noexcept { name##_ = v; };        \
+        static constexpr const char *string() noexcept { return #name; }  \
+        inline const type &value() const noexcept { return name##_; }     \
+        inline type &value() noexcept { return name##_; }                 \
+        inline void set_value(const type &v) noexcept { name##_ = v; }    \
+        inline void set_value(type &&v) noexcept { name##_ = v; }         \
         private: type name##_;                                            \
     };                                                                    \
     public:                                                               \

@@ -107,7 +107,7 @@ void PlaybackBuffer::cache(const music::Track &track) noexcept
     buffer_producer_.start_buffering(track);
 }
 
-const std::string_view PlaybackBuffer::consume(std::size_t count) noexcept
+const utility::string_view PlaybackBuffer::consume(std::size_t count) noexcept
 {
     const auto range_begin = consumed_;
     const auto range_size = consumed_ + count >= buffer_.size() ?

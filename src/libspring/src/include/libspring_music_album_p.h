@@ -86,6 +86,7 @@ namespace spring
 
         private:
             std::string key_{};
+            std::string id_{};
             std::string title_{};
             std::string artist_{};
             std::string genre_{};

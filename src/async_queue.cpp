@@ -12,12 +12,36 @@ using namespace spring::player;
 namespace
 {
     std::atomic_bool message_loop_running{ true };
-    //    std::mutex message_discard_lock {};
     GAsyncQueue *message_queue{ nullptr };
     std::thread worker{};
+
+    inline void clear_all_pending_requests() noexcept
+    {
+        using namespace async_queue;
+
+        if (message_loop_running && message_queue != nullptr)
+        {
+            g_async_queue_push_front(
+                message_queue,
+                new Request{
+                    "clear_message_queue", []() {
+                        for (;;)
+                        {
+                            std::unique_ptr<Request> request{
+                                static_cast<Request *>(
+                                    g_async_queue_try_pop(message_queue))
+                            };
+                            if (request == nullptr)
+                            {
+                                break;
+                            }
+                        }
+                    } });
+        }
+    }
 }
 
-void async_queue::start_processing()
+void async_queue::start_processing() noexcept
 {
     g_warning("Main thread %p", std::this_thread::get_id());
     message_queue = g_async_queue_new();
@@ -55,7 +79,7 @@ void async_queue::start_processing()
     } };
 }
 
-void async_queue::stop_processing()
+void async_queue::stop_processing() noexcept
 {
     if (worker.joinable())
     {
@@ -70,7 +94,7 @@ void async_queue::stop_processing()
     }
 }
 
-void async_queue::post_request(Request *request)
+void async_queue::push_back_request(Request *request) noexcept
 {
     if (message_loop_running && message_queue != nullptr)
     {
@@ -85,29 +109,22 @@ void async_queue::post_request(Request *request)
     }
 }
 
-void async_queue::clear_all_pending_requests()
+void async_queue::push_front_request(Request *request) noexcept
 {
     if (message_loop_running && message_queue != nullptr)
     {
-        g_async_queue_push_front(
-            message_queue,
-            new Request{ "clear_message_queue", []() {
-                            for (;;)
-                            {
-                                std::unique_ptr<Request> request{
-                                    static_cast<Request *>(
-                                        g_async_queue_try_pop(message_queue))
-                                };
-                                if (request == nullptr)
-                                {
-                                    break;
-                                }
-                            }
-                        } });
+        g_warning("AsyncQueue: posting message: \"%s\"", request->id);
+        g_async_queue_push_front(message_queue, request);
+    }
+    else
+    {
+        g_warning("AsyncQueue: queue is not running, message \"%s\" lost",
+                  request->id);
+        delete request;
     }
 }
 
-void async_queue::post_response(Response *response)
+void async_queue::post_response(Response *response) noexcept
 {
     if (message_loop_running && response->request != nullptr)
     {

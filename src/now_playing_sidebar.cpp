@@ -65,8 +65,8 @@ NowPlayingSidebar::NowPlayingSidebar(GtkBuilder *builder) noexcept
             {
                 const auto &artwork =
                     NowPlayingList::instance().current_track()->artwork();
-                load_image_from_data_scaled<200, 200>(artwork,
-                                                      self->now_playing_cover_);
+                auto pixbuf = load_pixbuf_from_data_scaled<200, 200>(artwork);
+                gtk_image_set_from_pixbuf(self->now_playing_cover_, pixbuf);
             }
         },
         this);

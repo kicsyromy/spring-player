@@ -51,6 +51,7 @@ namespace spring
             Album &operator=(Album &&other) noexcept;
 
         public:
+            const std::string &id() const noexcept;
             const std::string &title() const noexcept;
             const std::string &artist() const noexcept;
             const std::string &genre() const noexcept;

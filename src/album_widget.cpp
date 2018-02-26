@@ -4,6 +4,7 @@
 
 #include "async_queue.h"
 #include "now_playing_list.h"
+#include "resource_cache.h"
 #include "utility.h"
 
 using namespace spring;
@@ -32,7 +33,37 @@ AlbumWidget::AlbumWidget(music::Album &&album) noexcept
     gtk_label_set_text(artist_, album_.artist().c_str());
     gtk_label_set_text(title_, album_.title().c_str());
 
-    //    load_image_from_data_scaled<200, 200>(album_.artwork(), cover_);
+    async_queue::push_back_request(new async_queue::Request{
+        "load_album_artwork", [this] {
+            ResourceCache rc;
+            auto result = rc.from_cache("album_artwork", album_.id());
+            if (result.second)
+            {
+                GdkPixbuf *pixbuf{ nullptr };
+
+                /* File is not cached, load it from the server and cache it */
+                if (result.first.empty())
+                {
+                    pixbuf = load_pixbuf_from_data_scaled<200, 200>(
+                        album_.artwork());
+                    rc.to_cache("album_artwork", album_.id(), pixbuf);
+                }
+                else /* File is cached and read, create a pixbuf out of it */
+                {
+                    pixbuf = load_pixbuf_from_data(result.first);
+                }
+
+                async_queue::post_response(new async_queue::Response{
+                    "album_artwork_ready", [this, pixbuf] {
+                        gtk_image_set_from_pixbuf(cover_, pixbuf);
+                        g_object_unref(pixbuf);
+                    } });
+            }
+            else
+            {
+                g_warning(" failed to cache artwork");
+            }
+        } });
 }
 
 const std::string &AlbumWidget::title() const noexcept
@@ -49,7 +80,7 @@ void AlbumWidget::activated() noexcept
 {
     gtk_spinner_start(tracks_loading_spinner_);
 
-    async_queue::post_request(new async_queue::Request{
+    async_queue::push_front_request(new async_queue::Request{
         "get_tracks_for_album", [this]() {
         auto tracks = new std::vector<music::Track>();
         *tracks = album_.tracks();

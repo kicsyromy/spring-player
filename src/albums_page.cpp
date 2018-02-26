@@ -32,7 +32,7 @@ void AlbumsPage::activated() noexcept
     {
         gtk_spinner_start(albums_loading_spinner_);
 
-        async_queue::post_request(new async_queue::Request{
+        async_queue::push_front_request(new async_queue::Request{
             "load_albums", [this]() {
                 /* TODOD: There is a crash at start-up if we start fetching   */
                 /*        album data immediately so we add an artificial delay*/
@@ -51,6 +51,8 @@ void AlbumsPage::activated() noexcept
                         album_widgets->push_back(
                             std::make_unique<AlbumWidget>(std::move(album)));
                     }
+                    //                    album_widgets->push_back(
+                    //                        std::make_unique<AlbumWidget>(std::move(albums[0])));
 
                     async_queue::post_response(new async_queue::Response{
                         "albums_ready", [this, album_widgets]() {

@@ -39,6 +39,9 @@ using namespace spring::music;
 AlbumPrivate::AlbumPrivate(RawAlbumMetadata &&metadata,
                            std::weak_ptr<PlexMediaServerPrivate> pms) noexcept
   : key_(std::move(metadata.get_key()))
+  /* This micro-algorithm assumes that each key starts with '/library/metadata'*/
+  /* and has exactly 5 charactes... there should be better ways to do this     */
+  , id_(key_.c_str() + 18, 5)
   , title_(std::move(metadata.get_title()))
   , artist_(std::move(metadata.get_parentTitle()))
   , genre_(metadata.get_Genre().size() > 0 ?
@@ -68,6 +71,11 @@ Album &Album::operator=(Album &&other) noexcept
 {
     priv_ = std::move(other.priv_);
     return *this;
+}
+
+const std::string &Album::id() const noexcept
+{
+    return priv_->id_;
 }
 
 const std::string &Album::title() const noexcept
