@@ -2,6 +2,8 @@
 
 #include <fmt/format.h>
 
+#include <libspring_logger.h>
+
 #include "now_playing_list.h"
 #include "spring_player.h"
 #include "utility.h"
@@ -14,6 +16,8 @@ namespace
 {
     void load_css_styling(GtkCssProvider *&css_provider) noexcept
     {
+        LOG_INFO("MainWindow: Internal: Loading CSS styling...");
+
         css_provider = gtk_css_provider_new();
 
         GError *error{ nullptr };
@@ -21,7 +25,9 @@ namespace
                                             "/application_style.css");
         if (error != nullptr)
         {
-            g_warning("Error: %s", error->message);
+            LOG_ERROR("MainWindow: Internal: Failed to apply CSS styling: {}",
+                      error->message);
+            g_error_free(error);
         }
 
         gtk_style_context_add_provider_for_screen(
@@ -33,6 +39,8 @@ namespace
 MainWindow::MainWindow(SpringPlayer &application) noexcept
   : pms_{ spring_player_pms() }
 {
+    LOG_INFO("MainWindow({}): Creating...", void_p(this));
+
     auto builder =
         gtk_builder_new_from_resource(APPLICATION_PREFIX "/main_window.ui");
 
@@ -51,7 +59,7 @@ MainWindow::MainWindow(SpringPlayer &application) noexcept
 
     playback_footer_ = std::make_unique<PlaybackHeader>(builder);
 
-    auto library = std::move(pms_.sections().at(2).content());
+    auto library = pms_.sections().at(2).content();
     page_stack_ = std::make_unique<PageStack>(
         builder, std::move(static_cast<spring::MusicLibrary &>(library)));
 
@@ -61,6 +69,9 @@ MainWindow::MainWindow(SpringPlayer &application) noexcept
         this,
         [](auto state, void *instance) {
             auto self = static_cast<MainWindow *>(instance);
+
+            LOG_INFO("MainWindow({}): Playback state changed to {}", instance,
+                     GStreamerPipeline::playback_state_to_string(state));
 
             if (state == NowPlayingList::PlaybackState::Playing)
             {
@@ -82,7 +93,7 @@ MainWindow::MainWindow(SpringPlayer &application) noexcept
 
 MainWindow::~MainWindow() noexcept
 {
-    g_warning("Deleting main window");
+    LOG_INFO("MainWindow({}): Destroying...", void_p(this));
 
     NowPlayingList::instance().disconnect_playback_state_changed(this);
 
@@ -91,17 +102,21 @@ MainWindow::~MainWindow() noexcept
 
 void MainWindow::show() noexcept
 {
+    LOG_INFO("MainWindow({}): Showing...", void_p(this));
     gtk_window_present(gtk_cast<GtkWindow>(main_window_));
 }
 
 void MainWindow::hide() noexcept
 {
+    LOG_INFO("MainWindow({}): Hiding...", void_p(this));
     gtk_widget_set_visible(gtk_cast<GtkWidget>(main_window_), false);
 }
 
 void MainWindow::on_search_toggled(GtkToggleButton *toggle_button,
                                    MainWindow *self) noexcept
 {
+    LOG_INFO("MainWindow({}): Search toggled", void_p(self));
+
     auto reveal = gtk_toggle_button_get_active(toggle_button);
     gtk_revealer_set_reveal_child(self->search_revealer_, reveal);
 

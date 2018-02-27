@@ -24,7 +24,7 @@ namespace spring
             PageStackSwitcher(
                 GtkBuilder *builder,
                 std::function<void(ToggleButton)> &&toggled_handler) noexcept;
-            ~PageStackSwitcher() noexcept = default;
+            ~PageStackSwitcher() noexcept;
 
         public:
             ToggleButton toggled_button() const noexcept;

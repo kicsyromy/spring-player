@@ -32,7 +32,8 @@ namespace spring
                 Pending,
                 Playing,
                 Paused,
-                Stopped
+                Stopped,
+                Count
             };
 
             using Milliseconds = music::Track::Milliseconds;
@@ -49,6 +50,10 @@ namespace spring
 
         public:
             const music::Track *current_track() const noexcept;
+
+        public:
+            static const char *playback_state_to_string(
+                PlaybackState state) noexcept;
 
         public:
             signal(playback_state_changed, PlaybackState);

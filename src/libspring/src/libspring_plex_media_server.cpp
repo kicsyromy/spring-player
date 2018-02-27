@@ -31,7 +31,7 @@
 #include <sequential.h>
 
 #include "libspring_library_section_p.h"
-#include "libspring_logger_p.h"
+#include "libspring_logger.h"
 #include "libspring_user_properties_p.h"
 
 using namespace spring;

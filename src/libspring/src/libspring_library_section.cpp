@@ -31,7 +31,7 @@
 
 #include <json_format.h>
 
-#include "libspring_logger_p.h"
+#include "libspring_logger.h"
 #include "libspring_media_library_p.h"
 #include "libspring_music_library_p.h"
 #include "libspring_plex_media_server_p.h"
@@ -90,7 +90,8 @@ MediaLibrary LibrarySection::content() const noexcept
     }
     else
     {
-        LOG_WARN("Unimplemented type: %d", type());
+        LOG_WARN("MediaLibrary: Unimplemented type: {}",
+                 static_cast<int>(type()));
     }
 
     return { mediaLibrary };

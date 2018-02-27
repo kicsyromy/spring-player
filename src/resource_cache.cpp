@@ -4,6 +4,8 @@
 
 #include <fmt/format.h>
 
+#include <libspring_logger.h>
+
 #include "application_settings.h"
 
 using namespace spring;
@@ -29,8 +31,8 @@ std::pair<std::string, bool> ResourceCache::from_cache(
     {
         if (error->code != G_FILE_ERROR_NOENT)
         {
-            g_warning("ResourceCache: Failed to open file %s. Error was: %s",
-                      full_file_path.c_str(), error->message);
+            LOG_ERROR("ResourceCache: Failed to open file {}: {}",
+                      full_file_path, error->message);
         }
         else
         {
@@ -57,9 +59,8 @@ void ResourceCache::to_cache(const string_view &prefix,
     if (result > 0)
     {
         auto err = errno;
-        g_warning(
-            "ResourceCache: Failed to create directory %s. Failed with: %s",
-            path.c_str(), std::strerror(err));
+        LOG_ERROR("ResourceCache: Failed to create directory {}: {}", path,
+                  std::strerror(err));
     }
     else
     {
@@ -69,8 +70,8 @@ void ResourceCache::to_cache(const string_view &prefix,
 
         if (!success)
         {
-            g_warning("ResourceCache: Failed to save file %s. Error was: %s",
-                      full_file_path.c_str(), error->message);
+            LOG_ERROR("ResourceCache: Failed to save file {}: {}",
+                      full_file_path, error->message);
         }
 
         g_clear_error(&error);
@@ -88,9 +89,8 @@ void ResourceCache::to_cache(const string_view &prefix,
     if (result > 0)
     {
         auto err = errno;
-        g_warning(
-            "ResourceCache: Failed to create directory %s. Failed with: %s",
-            path.c_str(), std::strerror(err));
+        LOG_ERROR("ResourceCache: Failed to create directory {}: {}", path,
+                  std::strerror(err));
     }
     else
     {
@@ -98,9 +98,8 @@ void ResourceCache::to_cache(const string_view &prefix,
         gdk_pixbuf_save(pixbuf, full_file_path.c_str(), "png", &error, nullptr);
         if (error != nullptr)
         {
-            g_warning("ResourceCache: Failed to save pixbuf %s to disk. Error "
-                      "was: %s",
-                      full_file_path.c_str(), error->message);
+            LOG_ERROR("ResourceCache: Failed to save pixbuf {} to disk: {}",
+                      full_file_path, error->message);
         }
 
         g_clear_error(&error);

@@ -29,7 +29,7 @@ namespace spring
         public:
             PageStack(GtkBuilder *builder,
                       MusicLibrary &&music_library) noexcept;
-            ~PageStack() noexcept = default;
+            ~PageStack() noexcept;
 
         private:
             GtkStack *page_stack_{ nullptr };

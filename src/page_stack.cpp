@@ -1,5 +1,7 @@
 #include "page_stack.h"
 
+#include <libspring_logger.h>
+
 #include "utility.h"
 
 using namespace spring;
@@ -7,6 +9,8 @@ using namespace spring::player;
 
 PageStack::PageStack(GtkBuilder *builder, MusicLibrary &&music_library) noexcept
 {
+    LOG_INFO("PageStack({}): Creating...", void_p(this));
+
     *music_library_ = std::move(music_library);
 
     get_widget_from_builder_simple(page_stack);
@@ -45,4 +49,9 @@ PageStack::PageStack(GtkBuilder *builder, MusicLibrary &&music_library) noexcept
 
     page_stack_switcher_ =
         std::make_unique<PageStackSwitcher>(builder, switch_page);
+}
+
+PageStack::~PageStack() noexcept
+{
+    LOG_INFO("PageStack({}): Destroying...", void_p(this));
 }

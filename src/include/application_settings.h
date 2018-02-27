@@ -14,7 +14,8 @@ namespace spring
                 Albums,
                 Artists,
                 Genres,
-                Songs
+                Songs,
+                Count
             };
 
             void set_current_page(Page page) noexcept;

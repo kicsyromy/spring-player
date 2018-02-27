@@ -30,7 +30,7 @@
 using namespace spring;
 using namespace spring::music;
 
-#include "libspring_logger_p.h"
+#include "libspring_logger.h"
 #include "libspring_plex_media_server_p.h"
 
 namespace
