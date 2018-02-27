@@ -32,6 +32,8 @@
 
 #include <fmt/format.h>
 
+extern thread_local fmt::MemoryWriter output;
+
 #ifdef _MSC_VER
 #define PATH_SEPARATOR '\\'
 #else
@@ -41,13 +43,13 @@
 #define LOG(...)                                                               \
     do                                                                         \
     {                                                                          \
-        fmt::MemoryWriter output;                                              \
         output.write("   INFO: {:<20}: {:<4} ** {:<20} **: ",                  \
                      strrchr(__FILE__, PATH_SEPARATOR) + 1, __LINE__,          \
                      __func__);                                                \
         output.write(__VA_ARGS__);                                             \
         output.write("\n");                                                    \
         std::fputs(output.c_str(), stderr);                                    \
+        output.clear();                                                        \
     } while (0)
 
 #define LOG_INFO(...) LOG(__VA_ARGS__)
@@ -55,31 +57,30 @@
 #define LOG_WARN(...)                                                          \
     do                                                                         \
     {                                                                          \
-        fmt::MemoryWriter output;                                              \
         output.write("WARNING: {:<20}: {:<4} ** {:<20} **: ",                  \
                      strrchr(__FILE__, PATH_SEPARATOR) + 1, __LINE__,          \
                      __func__);                                                \
         output.write(__VA_ARGS__);                                             \
         output.write("\n");                                                    \
         std::fputs(output.c_str(), stderr);                                    \
+        output.clear();                                                        \
     } while (0)
 
 #define LOG_ERROR(...)                                                         \
     do                                                                         \
     {                                                                          \
-        fmt::MemoryWriter output;                                              \
         output.write("  ERROR: {:<20}: {:<4} ** {:<20} **: ",                  \
                      strrchr(__FILE__, PATH_SEPARATOR) + 1, __LINE__,          \
                      __func__);                                                \
         output.write(__VA_ARGS__);                                             \
         output.write("\n");                                                    \
         std::fputs(output.c_str(), stderr);                                    \
+        output.clear();                                                        \
     } while (0)
 
 #define LOG_FATAL(...)                                                         \
     do                                                                         \
     {                                                                          \
-        fmt::MemoryWriter output;                                              \
         output.write("  FATAL: {:<20}: {:<4} ** {:<20} **: ",                  \
                      strrchr(__FILE__, PATH_SEPARATOR) + 1, __LINE__,          \
                      __func__);                                                \
@@ -93,13 +94,13 @@
 #define LOG_DEBUG(...)                                                         \
     do                                                                         \
     {                                                                          \
-        fmt::MemoryWriter output;                                              \
         output.write("  DEBUG: {:<20}: {:<4} ** {:<20} **: ",                  \
                      strrchr(__FILE__, PATH_SEPARATOR) + 1, __LINE__,          \
                      __func__);                                                \
         output.write(__VA_ARGS__);                                             \
         output.write("\n");                                                    \
         std::fputs(output.c_str(), stderr);                                    \
+        output.clear();                                                        \
     } while (0)
 #else
 #define LOG_DEBUG(...)

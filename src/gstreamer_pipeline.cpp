@@ -116,7 +116,7 @@ void GStreamerPipeline::play(const music::Track &track) noexcept
 void GStreamerPipeline::pause_resume() noexcept
 {
     LOG_INFO("GStreamerPipeline({}): Pause/Resume {}", void_p(this),
-             current_track_ ? current_track_->title() : "");
+             (current_track_ ? current_track_->title() : ""));
 
     if (current_state_ == PlaybackState::Playing)
     {
@@ -137,7 +137,7 @@ void GStreamerPipeline::pause_resume() noexcept
 void GStreamerPipeline::stop() noexcept
 {
     LOG_INFO("GStreamerPipeline({}): Stop {}", void_p(this),
-             current_track_ ? current_track_->title() : "");
+             (current_track_ ? current_track_->title() : ""));
 
     if (position_update_callback_tag_ > 0)
     {
@@ -176,15 +176,7 @@ void GStreamerPipeline::gst_playback_finished(GstBus *,
              void_p(self),
              self->current_track_ ? self->current_track_->title() : "");
 
-    gst_element_set_state(self->playbin_, GST_STATE_NULL);
-
-    // TODO: Make sure all of this is necessary
-    if (self->current_state_ != PlaybackState::Stopped)
-    {
-        self->current_state_ = PlaybackState::Stopped;
-        self->emit_playback_state_changed(PlaybackState::Stopped);
-    }
-
+    gst_element_set_state(self->playbin_, GST_STATE_READY);
     self->current_track_ = nullptr;
 }
 
