@@ -2,6 +2,8 @@
 
 #include <thread>
 
+#include <libspring_logger.h>
+
 #include "async_queue.h"
 #include "utility.h"
 
@@ -10,9 +12,13 @@ using namespace spring::player;
 using namespace spring::player::utility;
 
 AlbumsPage::AlbumsPage(GtkBuilder *builder,
-                       std::weak_ptr<MusicLibrary> music_library) noexcept
+                       std::weak_ptr<MusicLibrary> music_library,
+                       std::weak_ptr<PlaybackList> playback_list) noexcept
   : music_library_(music_library)
+  , playback_list_(playback_list)
 {
+    LOG_INFO("AlbumsPage({}): Creating...", void_p(this));
+
     get_widget_from_builder_simple(albums_page);
     get_widget_from_builder_simple(albums_content);
     get_widget_from_builder_simple(albums_loading_spinner);
@@ -28,6 +34,8 @@ AlbumsPage::AlbumsPage(GtkBuilder *builder,
 
 void AlbumsPage::activated() noexcept
 {
+    LOG_INFO("AlbumsPage({}): Activated", void_p(this));
+
     if (albums_.empty())
     {
         gtk_spinner_start(albums_loading_spinner_);
@@ -37,6 +45,8 @@ void AlbumsPage::activated() noexcept
                 /* TODOD: There is a crash at start-up if we start fetching   */
                 /*        album data immediately so we add an artificial delay*/
                 std::this_thread::sleep_for(std::chrono::milliseconds(500));
+
+                LOG_INFO("AlbumsPage({}): Loading content...", void_p(this));
 
                 auto music_library = music_library_.lock();
 
@@ -48,14 +58,19 @@ void AlbumsPage::activated() noexcept
 
                     for (auto &album : albums)
                     {
-                        album_widgets->push_back(
-                            std::make_unique<AlbumWidget>(std::move(album)));
+                        album_widgets->push_back(std::make_unique<AlbumWidget>(
+                            std::move(album), playback_list_));
                     }
                     //                    album_widgets->push_back(
                     //                        std::make_unique<AlbumWidget>(std::move(albums[0])));
 
                     async_queue::post_response(new async_queue::Response{
                         "albums_ready", [this, album_widgets]() {
+                            LOG_INFO(
+                                "AlbumsPage({}): Content ready, populating "
+                                "GtkFlowBox",
+                                void_p(this));
+
                             albums_ = std::move(*album_widgets);
                             delete album_widgets;
 
@@ -77,6 +92,10 @@ gboolean AlbumsPage::filter(GtkFlowBoxChild *element, void *instance) noexcept
     auto self = static_cast<AlbumsPage *>(instance);
     const auto searched_text = std::string{ gtk_entry_get_text(
         gtk_cast<GtkEntry>(self->search_entry_)) };
+
+    LOG_INFO("AlbumsPage({}): Applying filter for string {}", void_p(self),
+             searched_text);
+
     const auto &album_title =
         self->albums_
             .at(static_cast<std::size_t>(gtk_flow_box_child_get_index(element)))
@@ -94,9 +113,11 @@ gboolean AlbumsPage::filter(GtkFlowBoxChild *element, void *instance) noexcept
     return searched_text.empty() || is_near_title_match || is_near_artist_match;
 }
 
-void AlbumsPage::on_search_changed(GtkSearchEntry *entry,
-                                   AlbumsPage *self) noexcept
+void AlbumsPage::on_search_changed(GtkSearchEntry *, AlbumsPage *self) noexcept
 {
+    LOG_INFO("AlbumsPage({}): Search string changed, resetting filter",
+             void_p(self));
+
     if (gtk_widget_get_visible(gtk_cast<GtkWidget>(self->albums_page_)))
     {
         gtk_flow_box_invalidate_filter(self->albums_content_);
@@ -107,9 +128,13 @@ void AlbumsPage::on_child_activated(GtkFlowBox *,
                                     GtkFlowBoxChild *element,
                                     AlbumsPage *self) noexcept
 {
-    self->albums_
-        .at(static_cast<std::size_t>(gtk_flow_box_child_get_index(element)))
-        ->activated();
+    auto index =
+        static_cast<std::size_t>(gtk_flow_box_child_get_index(element));
+
+    LOG_INFO("AlbumsPage({}): Activated album at index {}", void_p(self),
+             index);
+
+    self->albums_.at(index)->activated();
 }
 
 AlbumsPage::operator GtkWidget *() noexcept

@@ -1,8 +1,7 @@
 #ifndef SPRING_PLAYER_GSTREAMER_PIPELINE_H
 #define SPRING_PLAYER_GSTREAMER_PIPELINE_H
 
-#include <mutex>
-#include <thread>
+#include <memory>
 
 #include <gst/app/gstappsrc.h>
 #include <gst/gst.h>
@@ -17,14 +16,10 @@ namespace spring
 {
     namespace player
     {
+        class PlaybackList;
+
         class GStreamerPipeline
         {
-        public:
-            static inline void initialize() noexcept
-            {
-                gst_init(nullptr, nullptr);
-            }
-
         public:
             enum class PlaybackState
             {
@@ -32,23 +27,26 @@ namespace spring
                 Pending,
                 Playing,
                 Paused,
-                Stopped
+                Stopped,
+                Count
             };
 
             using Milliseconds = music::Track::Milliseconds;
 
         public:
-            GStreamerPipeline() noexcept;
+            GStreamerPipeline(const PlaybackList &playback_list) noexcept;
             ~GStreamerPipeline() noexcept;
 
         public:
-            void play(const music::Track &track) noexcept;
+            void play(std::shared_ptr<const music::Track> track) noexcept;
             void pause_resume() noexcept;
             void stop() noexcept;
             void seek(music::Track::Milliseconds target) noexcept;
+            PlaybackState playback_state() const noexcept;
 
         public:
-            const music::Track *current_track() const noexcept;
+            static const char *playback_state_to_string(
+                PlaybackState state) noexcept;
 
         public:
             signal(playback_state_changed, PlaybackState);
@@ -66,6 +64,17 @@ namespace spring
                 GstMessage *message,
                 GStreamerPipeline *self) noexcept;
 
+            static PlaybackState on_gst_state_change_void_pending(
+                GStreamerPipeline &self) noexcept;
+            static PlaybackState on_gst_state_change_null(
+                GStreamerPipeline &self) noexcept;
+            static PlaybackState on_gst_state_change_ready(
+                GStreamerPipeline &self) noexcept;
+            static PlaybackState on_gst_state_change_paused(
+                GStreamerPipeline &self) noexcept;
+            static PlaybackState on_gst_state_change_playing(
+                GStreamerPipeline &self) noexcept;
+
             static void gst_playback_error(GstBus *bus,
                                            GstMessage *message,
                                            GStreamerPipeline *self) noexcept;
@@ -73,8 +82,8 @@ namespace spring
             static gboolean update_playback_position(
                 GStreamerPipeline *self) noexcept;
 
-            static void gst_appsrc_setup(GstElement *,
-                                         GstElement *,
+            static void gst_appsrc_setup(GstElement *pipeline,
+                                         GstElement *source,
                                          GStreamerPipeline *self) noexcept;
 
             static void gst_appsrc_need_data(GstAppSrc *src,
@@ -92,10 +101,11 @@ namespace spring
             GstElement *playbin_{ nullptr };
             GstAppSrc *appsrc_{ nullptr };
             GstBus *bus_{ nullptr };
-            std::uint32_t position_update_callback_tag_{ 0 };
             PlaybackState current_state_{ PlaybackState::Stopped };
+            GstState gst_state_;
 
             PlaybackBuffer playback_buffer_{};
+            const PlaybackList &playback_list_;
 
             GstAppSrcCallbacks gst_appsrc_callbacks_{
                 &GStreamerPipeline::gst_appsrc_need_data,
@@ -104,7 +114,17 @@ namespace spring
                 {}
             };
 
-            const music::Track *current_track_{ nullptr };
+            std::uint32_t progress_update_source_id_{ 0 };
+
+        private:
+            const std::array<PlaybackState (*)(GStreamerPipeline &), 5>
+                gst_state_change_handlers_{
+                    &GStreamerPipeline::on_gst_state_change_void_pending,
+                    &GStreamerPipeline::on_gst_state_change_null,
+                    &GStreamerPipeline::on_gst_state_change_ready,
+                    &GStreamerPipeline::on_gst_state_change_paused,
+                    &GStreamerPipeline::on_gst_state_change_playing,
+                };
 
         private:
             DISABLE_COPY(GStreamerPipeline)

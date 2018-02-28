@@ -9,6 +9,7 @@
 #include <libspring_music_library.h>
 
 #include "album_widget.h"
+#include "playback_list.h"
 
 namespace spring
 {
@@ -18,7 +19,8 @@ namespace spring
         {
         public:
             AlbumsPage(GtkBuilder *builder,
-                       std::weak_ptr<MusicLibrary> music_library) noexcept;
+                       std::weak_ptr<MusicLibrary> music_library,
+                       std::weak_ptr<PlaybackList> playback_list) noexcept;
             ~AlbumsPage() noexcept = default;
 
         public:
@@ -43,8 +45,10 @@ namespace spring
             GtkSpinner *albums_loading_spinner_{ nullptr };
             GtkSearchEntry *search_entry_{ nullptr };
 
-            std::weak_ptr<MusicLibrary> music_library_;
+            std::weak_ptr<MusicLibrary> music_library_{};
             std::vector<std::unique_ptr<AlbumWidget>> albums_{};
+
+            std::weak_ptr<PlaybackList> playback_list_{};
 
         private:
             DISABLE_COPY(AlbumsPage)

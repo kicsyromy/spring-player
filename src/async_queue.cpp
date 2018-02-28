@@ -1,13 +1,22 @@
 #include "async_queue.h"
 
+#include <pthread.h>
+
 #include <atomic>
 #include <mutex>
 #include <thread>
 
 #include <gtk/gtk.h>
 
+#include <libspring_logger.h>
+
 using namespace spring;
 using namespace spring::player;
+
+namespace
+{
+    inline unsigned long current_thread_id() noexcept { return pthread_self(); }
+}
 
 namespace
 {
@@ -43,11 +52,12 @@ namespace
 
 void async_queue::start_processing() noexcept
 {
-    g_warning("Main thread %p", std::this_thread::get_id());
+    LOG_INFO("AsyncQueue: Main thread: 0x{:x}", current_thread_id());
     message_queue = g_async_queue_new();
     worker = std::thread{ []() {
         g_async_queue_ref(message_queue);
-        g_warning("Started worker thread %p", std::this_thread::get_id());
+        LOG_INFO("AsyncQueue: Started worker thread 0x{:x}",
+                 current_thread_id());
 
         for (;;)
         {
@@ -61,14 +71,15 @@ void async_queue::start_processing() noexcept
 
             if (request->request == nullptr)
             {
-                g_warning("AsyncQueue: Received empty request...");
+                LOG("AsyncQueue: Received empty request...");
             }
             else
             {
                 if (message_loop_running)
                 {
-                    g_warning("Executing request \"%s\" on thread %p",
-                              request->id, std::this_thread::get_id());
+                    LOG_INFO("AsyncQueue: Executing request \"{}\" on thread "
+                             "0x{:x}",
+                             request->id, current_thread_id());
 
                     request->request();
                 }
@@ -98,13 +109,13 @@ void async_queue::push_back_request(Request *request) noexcept
 {
     if (message_loop_running && message_queue != nullptr)
     {
-        g_warning("AsyncQueue: posting message: \"%s\"", request->id);
+        LOG_INFO("AsyncQueue: Posting message: \"{}\"", request->id);
         g_async_queue_push(message_queue, request);
     }
     else
     {
-        g_warning("AsyncQueue: queue is not running, message \"%s\" lost",
-                  request->id);
+        LOG_WARN("AsyncQueue: Queue is not running, message \"{}\" lost",
+                 request->id);
         delete request;
     }
 }
@@ -113,13 +124,13 @@ void async_queue::push_front_request(Request *request) noexcept
 {
     if (message_loop_running && message_queue != nullptr)
     {
-        g_warning("AsyncQueue: posting message: \"%s\"", request->id);
+        LOG_INFO("AsyncQueue: Posting message: \"{}\"", request->id);
         g_async_queue_push_front(message_queue, request);
     }
     else
     {
-        g_warning("AsyncQueue: queue is not running, message \"%s\" lost",
-                  request->id);
+        LOG_WARN("AsyncQueue: Queue is not running, message \"{}\" lost",
+                 request->id);
         delete request;
     }
 }
@@ -128,7 +139,7 @@ void async_queue::post_response(Response *response) noexcept
 {
     if (message_loop_running && response->request != nullptr)
     {
-        g_warning("AsyncQueue: posting reply: \"%s\"", response->id);
+        LOG_INFO("AsyncQueue: Posting reply: \"{}\"", response->id);
         g_main_context_invoke(nullptr,
                               [](gpointer data) -> int {
                                   std::unique_ptr<Response> response{

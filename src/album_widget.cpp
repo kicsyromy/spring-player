@@ -3,7 +3,7 @@
 #include <fmt/format.h>
 
 #include "async_queue.h"
-#include "now_playing_list.h"
+#include "playback_list.h"
 #include "resource_cache.h"
 #include "utility.h"
 
@@ -11,9 +11,16 @@ using namespace spring;
 using namespace spring::player;
 using namespace spring::player::utility;
 
-AlbumWidget::AlbumWidget(music::Album &&album) noexcept
+#include <libspring_logger.h>
+
+AlbumWidget::AlbumWidget(music::Album &&album,
+                         std::weak_ptr<PlaybackList> playback_list) noexcept
   : album_(std::move(album))
+  , playback_list_(playback_list)
 {
+    LOG_INFO("AlbumWidget({}): Creating album widget for album {}",
+             void_p(this), album_.title());
+
     auto builder =
         gtk_builder_new_from_resource(APPLICATION_PREFIX "/album_widget.ui");
     get_guarded_widget_from_builder(album_widget);
@@ -61,7 +68,8 @@ AlbumWidget::AlbumWidget(music::Album &&album) noexcept
             }
             else
             {
-                g_warning(" failed to cache artwork");
+                LOG_ERROR("AlbumWidget({}): Failed to grab artwork for {}",
+                          void_p(this), album_.title());
             }
         } });
 }
@@ -78,41 +86,49 @@ const std::string &AlbumWidget::artist() const noexcept
 
 void AlbumWidget::activated() noexcept
 {
+    LOG_INFO("AlbumWidget({}): Activated album {}", void_p(this),
+             album_.title());
+
     gtk_spinner_start(tracks_loading_spinner_);
 
     async_queue::push_front_request(new async_queue::Request{
         "get_tracks_for_album", [this]() {
-        auto tracks = new std::vector<music::Track>();
-        *tracks = album_.tracks();
-        std::vector<GtkRefGuard<GtkBox>> track_list_entries;
-        track_list_entries.reserve(tracks->size());
 
-        for (const auto &track : *tracks)
-        {
-            auto builder = gtk_builder_new_from_resource(APPLICATION_PREFIX
-                                                         "/track_widget.ui");
+            LOG_INFO("AlbumWidget({}): Loading tracks for {}", void_p(this),
+                     album_.title());
 
-            get_widget_from_builder_new(GtkBox, track_list_entry);
-            get_widget_from_builder_new(GtkLabel, artist_name);
-            get_widget_from_builder_new(GtkLabel, song_title);
-            get_widget_from_builder_new(GtkLabel, duration);
+            auto tracks = new std::vector<music::Track>();
+            *tracks = album_.tracks();
+            std::vector<GtkRefGuard<GtkBox>> track_list_entries;
+            track_list_entries.reserve(tracks->size());
 
-            gtk_label_set_text(artist_name, track.artist().c_str());
-            gtk_label_set_text(song_title, track.title().c_str());
+            for (const auto &track : *tracks)
+            {
+                auto builder = gtk_builder_new_from_resource(
+                    APPLICATION_PREFIX "/track_widget.ui");
 
-            auto duration_seconds = track.duration().count() / 1000;
-            auto minutes = duration_seconds / 60;
-            auto seconds = duration_seconds % 60;
-            gtk_label_set_text(
-                duration, seconds < 10 ?
-                              fmt::format("{}:0{}", minutes, seconds).c_str() :
-                              fmt::format("{}:{}", minutes, seconds).c_str());
+                get_widget_from_builder_new(GtkBox, track_list_entry);
+                get_widget_from_builder_new(GtkLabel, artist_name);
+                get_widget_from_builder_new(GtkLabel, song_title);
+                get_widget_from_builder_new(GtkLabel, duration);
 
-            track_list_entries.emplace_back(track_list_entry);
+                gtk_label_set_text(artist_name, track.artist().c_str());
+                gtk_label_set_text(song_title, track.title().c_str());
 
-            g_object_unref(builder);
-        }
-        /* clang-format off */
+                auto duration_seconds = track.duration().count() / 1000;
+                auto minutes = duration_seconds / 60;
+                auto seconds = duration_seconds % 60;
+                gtk_label_set_text(
+                    duration,
+                    seconds < 10 ?
+                        fmt::format("{}:0{}", minutes, seconds).c_str() :
+                        fmt::format("{}:{}", minutes, seconds).c_str());
+
+                track_list_entries.emplace_back(track_list_entry);
+
+                g_object_unref(builder);
+            }
+            /* clang-format off */
             async_queue::post_response(new async_queue::Response{
                 "tracks_for_album_ready",
                 [
@@ -120,6 +136,10 @@ void AlbumWidget::activated() noexcept
                     entries{ std::move(track_list_entries) },
                     tracks
                 ]() {
+                    LOG_INFO("AlbumWidget({}): Tracks ready for {}",
+                             void_p(this),
+                             album_.title());
+
                     if (gtk_widget_get_visible(
                             gtk_cast<GtkWidget>(track_list_popover_)))
                     {
@@ -130,14 +150,20 @@ void AlbumWidget::activated() noexcept
                         std::unique_ptr<std::vector<music::Track>> track_list;
                         track_list.reset(tracks);
 
-                        gint index{ 0 };
+                        tracks_.clear();
+                        std::size_t index { 0 };
                         for (auto &track_entry : track_list_entries)
                         {
                             gtk_container_add(
                                 gtk_cast<GtkContainer>(track_list_),
                                 gtk_cast<GtkWidget>(track_entry));
+
+                            tracks_.push_back(std::make_shared<music::Track>(
+                                                            std::move(
+                                                            track_list->at(
+                                                            index++))));
                         }
-                        tracks_ = std::move(*track_list);
+
                         gtk_widget_show_all(gtk_cast<GtkWidget>(track_list_));
                         gtk_spinner_stop(tracks_loading_spinner_);
                     }
@@ -165,8 +191,15 @@ void AlbumWidget::on_track_activated(GtkListBox *,
 {
     std::size_t element_index =
         static_cast<std::size_t>(gtk_list_box_row_get_index(element));
-    NowPlayingList::instance().enqueue(
-        std::move(self->tracks_.at(element_index)));
+
+    LOG_INFO("AlbumWidget({}): Track {} activated from album {}", void_p(self),
+             self->tracks_.at(element_index)->title(), self->album_.title());
+
+    auto playlist = self->playback_list_.lock();
+    if (playlist != nullptr)
+    {
+        playlist->enqueue(std::move(self->tracks_.at(element_index)));
+    }
 }
 
 void AlbumWidget::on_popover_closed(GtkPopover *, AlbumWidget *self) noexcept

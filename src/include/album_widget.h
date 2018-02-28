@@ -7,6 +7,7 @@
 #include <libspring_music_album.h>
 #include <libspring_music_track.h>
 
+#include "playback_list.h"
 #include "utility.h"
 
 struct TrackListUpdateRequest;
@@ -19,7 +20,8 @@ namespace spring
         class AlbumWidget
         {
         public:
-            AlbumWidget(music::Album &&album) noexcept;
+            AlbumWidget(music::Album &&album,
+                        std::weak_ptr<PlaybackList> playback_list) noexcept;
             ~AlbumWidget() noexcept = default;
 
         public:
@@ -47,7 +49,9 @@ namespace spring
             GtkSpinner *tracks_loading_spinner_{ nullptr };
 
             music::Album album_{ nullptr };
-            std::vector<music::Track> tracks_{};
+            std::vector<std::shared_ptr<music::Track>> tracks_{};
+
+            std::weak_ptr<PlaybackList> playback_list_{};
 
         private:
             DISABLE_COPY(AlbumWidget)

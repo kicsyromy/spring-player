@@ -2,6 +2,8 @@
 
 #include <cstring>
 
+#include <libspring_logger.h>
+
 using namespace spring;
 using namespace spring::player;
 
@@ -10,21 +12,30 @@ namespace
     constexpr const std::size_t MINIMUM_UNCONSUMED_BUFFER{ 128 * 1024 };
 }
 
-PlaybackBuffer::Producer::Producer() noexcept = default;
+PlaybackBuffer::Producer::Producer() noexcept
+{
+    LOG_INFO("PlaybackBuffer::Producer: Creating...");
+}
+
 PlaybackBuffer::Producer::~Producer() noexcept
 {
+    LOG_INFO("PlaybackBuffer::Producer: Destroying...");
     stop_buffering();
 }
 
 void PlaybackBuffer::Producer::start_buffering(
-    const music::Track &track) noexcept
+    std::shared_ptr<const music::Track> track) noexcept
 {
+    LOG_INFO("PlaybackBuffer::Producer({}): New buffering session for track {}",
+             void_p(this), track->title());
     stop_buffering();
 
-    thread_ = std::thread{ [this, &track] {
+    thread_ = std::thread{ [this, track] {
         keep_buffering_ = true;
+        LOG_INFO("PlaybackBuffer::Producer({}): Start buffering for track {}",
+                 void_p(this), track->title());
 
-        track.trackData(
+        track->trackData(
             [](std::uint8_t *data, std::size_t size, void *instance) {
                 auto self = static_cast<PlaybackBuffer::Producer *>(instance);
 
@@ -37,13 +48,27 @@ void PlaybackBuffer::Producer::start_buffering(
                     self->emit_queued_buffer_updated(std::move(buffer),
                                                      std::move(size));
                 }
+                else
+                {
+                    LOG_INFO(
+                        "PlaybackBuffer::Producer: Buffering interrupted...");
+                }
                 return result;
             },
             this);
 
         if (keep_buffering_)
         {
+            LOG_INFO(
+                "PlaybackBuffer::Producer({}): Buffering finished for track {}",
+                void_p(this), track->title());
             emit_queued_buffering_finished();
+        }
+        else
+        {
+            LOG_INFO("PlaybackBuffer::Producer({}): Buffering interrupted for "
+                     "track {}",
+                     void_p(this), track->title());
         }
         keep_buffering_ = false;
     } };
@@ -51,6 +76,9 @@ void PlaybackBuffer::Producer::start_buffering(
 
 void PlaybackBuffer::Producer::stop_buffering() noexcept
 {
+    LOG_INFO("PlaybackBuffer::Producer({}): Attempting to stop buffering...",
+             void_p(this));
+
     keep_buffering_ = false;
 
     if (thread_.joinable())
@@ -61,6 +89,8 @@ void PlaybackBuffer::Producer::stop_buffering() noexcept
 
 PlaybackBuffer::PlaybackBuffer() noexcept
 {
+    LOG_INFO("PlaybackBuffer({}): Creating...", void_p(this));
+
     buffer_producer_.on_buffering_finished(
         this,
         [](void *instance) {
@@ -95,12 +125,17 @@ PlaybackBuffer::PlaybackBuffer() noexcept
 
 PlaybackBuffer::~PlaybackBuffer() noexcept
 {
+    LOG_INFO("PlaybackBuffer({}): Destroying...", void_p(this));
+
     buffer_producer_.disconnect_buffer_updated(this);
     buffer_producer_.disconnect_buffering_finished(this);
 }
 
-void PlaybackBuffer::cache(const music::Track &track) noexcept
+void PlaybackBuffer::cache(std::shared_ptr<const music::Track> track) noexcept
 {
+    LOG_INFO("PlaybackBuffer({}): Caching track {}", void_p(this),
+             track->title());
+
     consumed_ = 0;
     buffering_finished_ = false;
     buffer_.clear();
@@ -121,4 +156,19 @@ const utility::string_view PlaybackBuffer::consume(std::size_t count) noexcept
         emit_minimum_available_buffer_exceeded();
     }
     return { buffer_.data() + range_begin, range_size };
+}
+
+void PlaybackBuffer::seek(std::size_t absolute_offset) noexcept
+{
+    if (absolute_offset >= buffer_.size())
+    {
+        LOG_WARN(
+            "PlaybackBuffer({}): Unimplemented: Seeking beyond cached data",
+            void_p(this));
+        consumed_ = buffer_.size();
+    }
+    else
+    {
+        consumed_ = absolute_offset;
+    }
 }

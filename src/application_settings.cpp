@@ -4,6 +4,8 @@
 
 #include <gtk/gtk.h>
 
+#include <libspring_logger.h>
+
 #include <fmt/format.h>
 
 using namespace spring;
@@ -16,19 +18,25 @@ namespace
         SettingsInitializer() noexcept
           : handle_(g_settings_new(APPLICATION_ID))
         {
+            LOG_INFO("ApplicationSettings: Initializing...");
         }
         ~SettingsInitializer() noexcept { g_object_unref(handle_); }
         operator GSettings *() noexcept { return handle_; }
         GSettings *handle_{ nullptr };
     } app_settings;
 
+    constexpr std::array<const char *,
+                         static_cast<std::size_t>(settings::Page::Count)>
+        PAGES{ "Page::Albums", "Page::Artists", "Page::Genres", "Page::Songs" };
+
     enum Properties : std::size_t
     {
         PropertyCurrentPage,
         PropertyCount
     };
-
-    const std::array<const char *, PropertyCount> properties{ "current-page" };
+    constexpr std::array<const char *, PropertyCount> properties{
+        "current-page"
+    };
 
     std::string home_directory{};
     std::string data_directory{};
@@ -38,14 +46,22 @@ namespace
 
 void settings::set_current_page(settings::Page page) noexcept
 {
+    LOG_INFO("ApplicationSettings: Saving selected page {} to settings",
+             PAGES[static_cast<std::size_t>(page)]);
+
     g_settings_set_enum(app_settings, properties[PropertyCurrentPage],
                         static_cast<gint>(page));
 }
 
 settings::Page settings::get_current_page() noexcept
 {
-    return static_cast<settings::Page>(
+    auto page = static_cast<settings::Page>(
         g_settings_get_enum(app_settings, properties[PropertyCurrentPage]));
+
+    LOG_INFO("ApplicationSettings: Loaded current page {} from settings",
+             PAGES[static_cast<std::size_t>(page)]);
+
+    return page;
 }
 
 const std::string &settings::home_directory() noexcept

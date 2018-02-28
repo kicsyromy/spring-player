@@ -30,7 +30,7 @@
 #include <json_format.h>
 
 #include "libspring_library_section_p.h"
-#include "libspring_logger_p.h"
+#include "libspring_logger.h"
 #include "libspring_music_album_p.h"
 #include "libspring_music_artist_p.h"
 #include "libspring_music_genre_p.h"

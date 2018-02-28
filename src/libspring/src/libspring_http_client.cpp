@@ -30,7 +30,7 @@
 #include <cctype>
 #include <iostream>
 
-#include "libspring_logger_p.h"
+#include "libspring_logger.h"
 #include "libspring_vla_p.h"
 
 using namespace spring;
@@ -404,8 +404,8 @@ HttpClient::HttpClient(const std::string &userAgent) noexcept
     }
     else
     {
-        LOG_FATAL("Error %s while initiation connection.",
-                  static_cast<std::string>(fromCUrlError(-1)).c_str());
+        LOG_FATAL("Error {} while initiation connection.",
+                  static_cast<std::string>(fromCUrlError(-1)));
     }
 }
 

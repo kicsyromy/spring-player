@@ -1,5 +1,7 @@
 #include "songs_page.h"
 
+#include <libspring_logger.h>
+
 #include "utility.h"
 
 using namespace spring;
@@ -16,7 +18,7 @@ SongsPage::SongsPage(GtkBuilder *builder,
 
 void SongsPage::activated() noexcept
 {
-    g_warning("songs activated");
+    LOG_INFO("SongsPage: Activated");
 }
 
 SongsPage::operator GtkWidget *() noexcept

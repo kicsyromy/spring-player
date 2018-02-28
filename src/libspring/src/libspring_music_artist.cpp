@@ -27,7 +27,7 @@
 #include "libspring_music_artist.h"
 #include "libspring_music_artist_p.h"
 
-#include "libspring_logger_p.h"
+#include "libspring_logger.h"
 #include "libspring_plex_media_server_p.h"
 
 using namespace spring;

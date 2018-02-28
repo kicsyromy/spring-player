@@ -1,9 +1,12 @@
 #include "page_stack_swicher.h"
 
+#include <libspring_logger.h>
+
 #include "utility.h"
 
 using namespace spring;
 using namespace spring::player;
+using namespace spring::player::utility;
 
 namespace
 {
@@ -33,27 +36,35 @@ PageStackSwitcher::PageStackSwitcher(
   , toggled_handler_(std::move(toggled_handler))
   , toggled_button_(settings::get_current_page())
 {
+    LOG_INFO("PageStackSwitcher({}): Creating...", void_p(this));
+
     gtk_toggle_button_set_active(
         toggle_buttons_[static_cast<std::size_t>(toggled_button_)], true);
 
     for (auto &toggle_button : toggle_buttons_)
     {
-        g_signal_connect(toggle_button, "button-press-event",
-                         G_CALLBACK(&on_toggle_button_press_event), nullptr);
+        connect_g_signal(toggle_button, "button-press-event",
+                         &on_toggle_button_press_event,
+                         static_cast<void *>(nullptr));
     }
 
-    g_signal_connect(
+    connect_g_signal(
         toggle_buttons_[static_cast<std::size_t>(ToggleButton::Albums)],
-        "toggled", G_CALLBACK(&button_toggled), this);
-    g_signal_connect(
+        "toggled", &button_toggled, this);
+    connect_g_signal(
         toggle_buttons_[static_cast<std::size_t>(ToggleButton::Artists)],
-        "toggled", G_CALLBACK(&button_toggled), this);
-    g_signal_connect(
+        "toggled", &button_toggled, this);
+    connect_g_signal(
         toggle_buttons_[static_cast<std::size_t>(ToggleButton::Genres)],
-        "toggled", G_CALLBACK(&button_toggled), this);
-    g_signal_connect(
+        "toggled", &button_toggled, this);
+    connect_g_signal(
         toggle_buttons_[static_cast<std::size_t>(ToggleButton::Songs)],
-        "toggled", G_CALLBACK(&button_toggled), this);
+        "toggled", &button_toggled, this);
+}
+
+PageStackSwitcher::~PageStackSwitcher() noexcept
+{
+    LOG_INFO("PageStackSwitcher({}): Destroying...", void_p(this));
 }
 
 PageStackSwitcher::ToggleButton PageStackSwitcher::toggled_button() const

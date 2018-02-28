@@ -1,5 +1,7 @@
 #include "artists_page.h"
 
+#include <libspring_logger.h>
+
 #include "utility.h"
 
 using namespace spring;
@@ -10,13 +12,15 @@ ArtistsPage::ArtistsPage(GtkBuilder *builder,
                          const MusicLibrary &music_library) noexcept
   : music_library_(music_library)
 {
+    LOG_INFO("ArtistsPage({}): Creating...", void_p(this));
+
     get_widget_from_builder_simple(artists_page);
     get_widget_from_builder_simple(artists_content);
 }
 
 void ArtistsPage::activated() noexcept
 {
-    g_warning("artists activated");
+    LOG_INFO("ArtistsPage({}): Activated", void_p(this));
 }
 
 ArtistsPage::operator GtkWidget *() noexcept
