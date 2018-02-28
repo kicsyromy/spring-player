@@ -55,9 +55,9 @@ MainWindow::MainWindow(SpringPlayer &application,
 
     connect_g_signal(search_button_, "toggled", &on_search_toggled, this);
 
-    now_playing_sidebar_ =
+    playlist_sidebar_ =
         std::make_unique<PlaylistSidebar>(builder, playback_list);
-    now_playing_sidebar_->show();
+    playlist_sidebar_->show();
 
     playback_footer_ = std::make_unique<PlaybackHeader>(builder, playback_list);
 

@@ -7,7 +7,7 @@
 #include <libspring_music_album.h>
 #include <libspring_music_track.h>
 
-#include "now_playing_list.h"
+#include "playback_list.h"
 #include "utility.h"
 
 struct TrackListUpdateRequest;

@@ -7,7 +7,7 @@
 
 #include <libspring_global.h>
 
-#include "now_playing_list.h"
+#include "playback_list.h"
 
 namespace spring
 {

@@ -1,5 +1,5 @@
-#ifndef SPRING_PLAYER_NOW_PLAYING_LIST_H
-#define SPRING_PLAYER_NOW_PLAYING_LIST_H
+#ifndef SPRING_PLAYER_PLAYBACK_LIST_H
+#define SPRING_PLAYER_PLAYBACK_LIST_H
 
 #include <functional>
 #include <vector>
@@ -59,4 +59,4 @@ namespace spring
     }
 }
 
-#endif // !SPRING_PLAYER_NOW_PLAYING_LIST_H
+#endif // !SPRING_PLAYER_PLAYBACK_LIST_H

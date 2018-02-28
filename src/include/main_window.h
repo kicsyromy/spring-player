@@ -8,10 +8,10 @@
 #include <libspring_global.h>
 #include <libspring_plex_media_server.h>
 
-#include "now_playing_list.h"
-#include "now_playing_sidebar.h"
 #include "page_stack.h"
 #include "playback_header.h"
+#include "playback_list.h"
+#include "playlist_sidebar.h"
 #include "utility.h"
 
 using SpringPlayer = struct _SpringPlayer;
@@ -42,7 +42,7 @@ namespace spring
             GtkToggleButton *search_button_{ nullptr };
             GtkLabel *window_title_{ nullptr };
             std::unique_ptr<PageStack> page_stack_{ nullptr };
-            std::unique_ptr<PlaylistSidebar> now_playing_sidebar_{ nullptr };
+            std::unique_ptr<PlaylistSidebar> playlist_sidebar_{ nullptr };
             std::unique_ptr<PlaybackHeader> playback_footer_{ nullptr };
 
             std::weak_ptr<PlaybackList> playback_list_{};

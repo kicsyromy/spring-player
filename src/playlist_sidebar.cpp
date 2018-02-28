@@ -1,11 +1,11 @@
-#include "now_playing_sidebar.h"
+#include "playlist_sidebar.h"
 
 #include <fmt/format.h>
 
 #include <libspring_logger.h>
 #include <libspring_music_track.h>
 
-#include "now_playing_list.h"
+#include "playback_list.h"
 #include "utility.h"
 
 using namespace spring;
@@ -18,12 +18,12 @@ PlaylistSidebar::PlaylistSidebar(
 {
     LOG_INFO("PlaylistSidebar({}): Creating...", void_p(this));
 
-    get_widget_from_builder_simple(now_playing_sidebar);
-    get_widget_from_builder_simple(now_playing_cover);
-    get_widget_from_builder_simple(now_playing_list);
+    get_widget_from_builder_simple(playlist_sidebar);
+    get_widget_from_builder_simple(current_track_cover);
+    get_widget_from_builder_simple(playback_list_box);
     get_widget_from_builder_simple(toggle_sidebar_button);
 
-    connect_g_signal(now_playing_list_, "row-activated", &on_track_activated,
+    connect_g_signal(playback_list_box_, "row-activated", &on_track_activated,
                      this);
     connect_g_signal(toggle_sidebar_button_, "toggled", &toggled, this);
 
@@ -55,7 +55,7 @@ PlaylistSidebar::PlaylistSidebar(
                               fmt::format("{}:0{}", minutes, seconds).c_str() :
                               fmt::format("{}:{}", minutes, seconds).c_str());
 
-            gtk_container_add(gtk_cast<GtkContainer>(self->now_playing_list_),
+            gtk_container_add(gtk_cast<GtkContainer>(self->playback_list_box_),
                               gtk_cast<GtkWidget>(track_list_entry));
 
             gtk_widget_set_visible(gtk_cast<GtkWidget>(track_list_entry), true);
@@ -81,7 +81,8 @@ PlaylistSidebar::PlaylistSidebar(
                     const auto &artwork = playlist->current_track()->artwork();
                     auto pixbuf =
                         load_pixbuf_from_data_scaled<200, 200>(artwork);
-                    gtk_image_set_from_pixbuf(self->now_playing_cover_, pixbuf);
+                    gtk_image_set_from_pixbuf(self->current_track_cover_,
+                                              pixbuf);
                 }
                 else
                 {
@@ -124,7 +125,7 @@ void PlaylistSidebar::toggled(GtkToggleButton *toggle_button,
 {
     LOG_INFO("PlaylistSidebar({}): Toggle button toggled", void_p(self));
     auto visible = gtk_toggle_button_get_active(toggle_button);
-    gtk_widget_set_visible(gtk_cast<GtkWidget>(self->now_playing_sidebar_),
+    gtk_widget_set_visible(gtk_cast<GtkWidget>(self->playlist_sidebar_),
                            visible);
 }
 

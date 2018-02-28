@@ -9,7 +9,7 @@
 #include <libspring_music_library.h>
 
 #include "album_widget.h"
-#include "now_playing_list.h"
+#include "playback_list.h"
 
 namespace spring
 {

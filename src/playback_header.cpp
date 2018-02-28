@@ -2,7 +2,7 @@
 
 #include <fmt/format.h>
 
-#include "now_playing_list.h"
+#include "playback_list.h"
 #include "utility.h"
 
 using namespace spring;

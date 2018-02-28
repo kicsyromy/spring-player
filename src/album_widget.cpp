@@ -3,7 +3,7 @@
 #include <fmt/format.h>
 
 #include "async_queue.h"
-#include "now_playing_list.h"
+#include "playback_list.h"
 #include "resource_cache.h"
 #include "utility.h"
 

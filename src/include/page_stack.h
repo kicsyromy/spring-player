@@ -15,7 +15,7 @@
 #include "albums_page.h"
 #include "artists_page.h"
 #include "genres_page.h"
-#include "now_playing_list.h"
+#include "playback_list.h"
 #include "songs_page.h"
 
 namespace spring

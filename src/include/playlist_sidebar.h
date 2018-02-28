@@ -1,5 +1,5 @@
-#ifndef SPRING_PLAYER_NOW_PLAYING_SIDEBAR_H
-#define SPRING_PLAYER_NOW_PLAYING_SIDEBAR_H
+#ifndef SPRING_PLAYER_PLAYLIST_SIDEBAR_H
+#define SPRING_PLAYER_PLAYLIST_SIDEBAR_H
 
 #include <memory>
 #include <vector>
@@ -9,7 +9,7 @@
 #include <libspring_global.h>
 #include <libspring_music_track.h>
 
-#include "now_playing_list.h"
+#include "playback_list.h"
 
 namespace spring
 {
@@ -36,9 +36,9 @@ namespace spring
                                            PlaylistSidebar *self) noexcept;
 
         private:
-            GtkBox *now_playing_sidebar_{ nullptr };
-            GtkImage *now_playing_cover_{ nullptr };
-            GtkListBox *now_playing_list_{ nullptr };
+            GtkBox *playlist_sidebar_{ nullptr };
+            GtkImage *current_track_cover_{ nullptr };
+            GtkListBox *playback_list_box_{ nullptr };
             GtkToggleButton *toggle_sidebar_button_{ nullptr };
 
             std::weak_ptr<PlaybackList> playback_list_{};
@@ -51,4 +51,4 @@ namespace spring
     }
 }
 
-#endif // !SPRING_PLAYER_NOW_PLAYING_SIDEBAR_H
+#endif // !SPRING_PLAYER_PLAYLIST_SIDEBAR_H

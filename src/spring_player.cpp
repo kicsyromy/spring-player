@@ -8,7 +8,7 @@
 #include "async_queue.h"
 #include "gstreamer_pipeline.h"
 #include "main_window.h"
-#include "now_playing_list.h"
+#include "playback_list.h"
 #include "utility.h"
 
 struct _SpringPlayer
