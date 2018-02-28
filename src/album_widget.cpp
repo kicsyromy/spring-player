@@ -136,7 +136,9 @@ void AlbumWidget::activated() noexcept
                     entries{ std::move(track_list_entries) },
                     tracks
                 ]() {
-                    LOG_INFO("AlbumWidget({}): Tracks ready for {}", void_p(this), album_.title());
+                    LOG_INFO("AlbumWidget({}): Tracks ready for {}",
+                             void_p(this),
+                             album_.title());
 
                     if (gtk_widget_get_visible(
                             gtk_cast<GtkWidget>(track_list_popover_)))
@@ -148,13 +150,20 @@ void AlbumWidget::activated() noexcept
                         std::unique_ptr<std::vector<music::Track>> track_list;
                         track_list.reset(tracks);
 
+                        tracks_.clear();
+                        std::size_t index { 0 };
                         for (auto &track_entry : track_list_entries)
                         {
                             gtk_container_add(
                                 gtk_cast<GtkContainer>(track_list_),
                                 gtk_cast<GtkWidget>(track_entry));
+
+                            tracks_.push_back(std::make_shared<music::Track>(
+                                                            std::move(
+                                                            track_list->at(
+                                                            index++))));
                         }
-                        tracks_ = std::move(*track_list);
+
                         gtk_widget_show_all(gtk_cast<GtkWidget>(track_list_));
                         gtk_spinner_stop(tracks_loading_spinner_);
                     }
@@ -184,7 +193,7 @@ void AlbumWidget::on_track_activated(GtkListBox *,
         static_cast<std::size_t>(gtk_list_box_row_get_index(element));
 
     LOG_INFO("AlbumWidget({}): Track {} activated from album {}", void_p(self),
-             self->tracks_.at(element_index).title(), self->album_.title());
+             self->tracks_.at(element_index)->title(), self->album_.title());
 
     auto playlist = self->playback_list_.lock();
     if (playlist != nullptr)

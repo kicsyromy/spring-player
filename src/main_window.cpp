@@ -80,10 +80,11 @@ MainWindow::MainWindow(SpringPlayer &application,
             {
                 auto playlist = self->playback_list_.lock();
                 const auto &track = playlist->current_track();
-                gtk_label_set_text(self->window_title_,
-                                   fmt::format("{} - {} - {}", track->artist(),
-                                               track->album(), track->title())
-                                       .c_str());
+                gtk_label_set_text(
+                    self->window_title_,
+                    fmt::format("{} - {} - {}", track.second->artist(),
+                                track.second->album(), track.second->title())
+                        .c_str());
             }
             else
             {

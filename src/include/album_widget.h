@@ -49,7 +49,7 @@ namespace spring
             GtkSpinner *tracks_loading_spinner_{ nullptr };
 
             music::Album album_{ nullptr };
-            std::vector<music::Track> tracks_{};
+            std::vector<std::shared_ptr<music::Track>> tracks_{};
 
             std::weak_ptr<PlaybackList> playback_list_{};
 

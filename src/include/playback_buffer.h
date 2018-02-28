@@ -2,8 +2,8 @@
 #define SPRING_PLAYER_PLAYBACK_BUFFER_H
 
 #include <atomic>
-#include <condition_variable>
 #include <cstdint>
+#include <memory>
 #include <string>
 #include <thread>
 
@@ -30,7 +30,8 @@ namespace spring
                 signal(buffer_updated, std::uint8_t *, std::size_t);
 
             public:
-                void start_buffering(const music::Track &track) noexcept;
+                void start_buffering(
+                    std::shared_ptr<const music::Track> track) noexcept;
                 void stop_buffering() noexcept;
                 utility::string_view buffer_range(std::size_t index,
                                                   std::size_t count) const
@@ -50,8 +51,9 @@ namespace spring
             ~PlaybackBuffer() noexcept;
 
         public:
-            void cache(const music::Track &track) noexcept;
+            void cache(std::shared_ptr<const music::Track> track) noexcept;
             const utility::string_view consume(std::size_t count) noexcept;
+            void seek(std::size_t absolute_offset) noexcept;
 
         public:
             signal(minimum_available_buffer_reached);

@@ -8,6 +8,7 @@
 #include <libspring_logger.h>
 
 #include "async_queue.h"
+#include "playback_list.h"
 #include "utility.h"
 
 using namespace spring;
@@ -37,11 +38,15 @@ namespace
         };
 }
 
-GStreamerPipeline::GStreamerPipeline() noexcept
-  : playbin_(gst_element_factory_make("playbin", "play"))
-  , bus_(gst_pipeline_get_bus(gtk_cast<GstPipeline>(playbin_)))
+GStreamerPipeline::GStreamerPipeline(const PlaybackList &playback_list) noexcept
+  : playback_list_(playback_list)
 {
     LOG_INFO("GStreamerPipeline({}): Creating...", void_p(this));
+
+    gst_init(nullptr, nullptr);
+
+    playbin_ = gst_element_factory_make("playbin", "spring-player-playbin");
+    bus_ = gst_pipeline_get_bus(gtk_cast<GstPipeline>(playbin_));
 
     gst_bus_add_signal_watch(bus_);
 
@@ -90,64 +95,51 @@ GStreamerPipeline::~GStreamerPipeline() noexcept
 {
     LOG_INFO("GStreamerPipeline({}): Destroying...", void_p(this));
 
+    gst_element_set_state(playbin_, GST_STATE_NULL);
+
     playback_buffer_.disconnect_caching_finished(this);
     playback_buffer_.disconnect_cache_updated(this);
     playback_buffer_.disconnect_minimum_available_buffer_reached(this);
     playback_buffer_.disconnect_minimum_available_buffer_exceeded(this);
 
     gst_object_unref(bus_);
-    gst_element_set_state(playbin_, GST_STATE_NULL);
     gst_object_unref(playbin_);
 }
 
-void GStreamerPipeline::play(const music::Track &track) noexcept
+void GStreamerPipeline::play(std::shared_ptr<const music::Track> track) noexcept
 {
-    LOG_INFO("GStreamerPipeline({}): Playing {}", void_p(this), track.title());
+    LOG_INFO("GStreamerPipeline({}): Playing {}", void_p(this), track->title());
 
     stop();
-    current_track_ = &track;
+
     current_state_ = PlaybackState::Pending;
     emit_playback_state_changed(PlaybackState::Pending);
 
     playback_buffer_.cache(track);
-    gst_element_set_state(playbin_, GST_STATE_NULL);
 }
 
 void GStreamerPipeline::pause_resume() noexcept
 {
-    LOG_INFO("GStreamerPipeline({}): Pause/Resume {}", void_p(this),
-             (current_track_ ? current_track_->title() : ""));
+    LOG_INFO("GStreamerPipeline({}): Pause/Resume", void_p(this));
 
     if (current_state_ == PlaybackState::Playing)
     {
         LOG_INFO("GStreamerPipeline({}): Pausing playback", void_p(this));
         gst_element_set_state(playbin_, GST_STATE_PAUSED);
     }
-    else if (current_track_ != nullptr)
+    else
     {
         LOG_INFO("GStreamerPipeline({}): Resuming playback", void_p(this));
         gst_element_set_state(playbin_, GST_STATE_PLAYING);
-    }
-    else
-    {
-        LOG_WARN("GStreamerPipeline({}): Current track is null", void_p(this));
     }
 }
 
 void GStreamerPipeline::stop() noexcept
 {
-    LOG_INFO("GStreamerPipeline({}): Stop {}", void_p(this),
-             (current_track_ ? current_track_->title() : ""));
+    LOG_INFO("GStreamerPipeline({}): Stop", void_p(this));
 
-    if (position_update_callback_tag_ > 0)
-    {
-        g_source_remove(position_update_callback_tag_);
-    }
-
+    gst_element_set_state(playbin_, GST_STATE_READY);
     emit_playback_position_changed(Milliseconds{ 0 });
-
-    gst_element_set_state(playbin_, GST_STATE_NULL);
-    current_track_ = nullptr;
 }
 
 void GStreamerPipeline::seek(music::Track::Milliseconds count) noexcept
@@ -155,9 +147,10 @@ void GStreamerPipeline::seek(music::Track::Milliseconds count) noexcept
     LOG_INFO("GStreamerPipeline({}): Seek to {}", void_p(this), count.count());
 }
 
-const music::Track *GStreamerPipeline::current_track() const noexcept
+GStreamerPipeline::PlaybackState GStreamerPipeline::playback_state() const
+    noexcept
 {
-    return current_track_;
+    return current_state_;
 }
 
 const char *GStreamerPipeline::playback_state_to_string(
@@ -172,12 +165,9 @@ void GStreamerPipeline::gst_playback_finished(GstBus *,
                                               GstMessage *,
                                               GStreamerPipeline *self) noexcept
 {
-    LOG_INFO("GStreamerPipeline({}): Internal: Playback finished {}",
-             void_p(self),
-             self->current_track_ ? self->current_track_->title() : "");
-
+    LOG_INFO("GStreamerPipeline({}): Internal: Playback finished",
+             void_p(self));
     gst_element_set_state(self->playbin_, GST_STATE_READY);
-    self->current_track_ = nullptr;
 }
 
 void GStreamerPipeline::gst_playback_state_changed(
@@ -185,81 +175,22 @@ void GStreamerPipeline::gst_playback_state_changed(
 {
     auto message_type = gtk_cast<GstMessage>(message)->type;
 
-    LOG_INFO("GStreamerPipeline({}): Internal: Playback state changed",
-             void_p(self));
-
     if (message_type == GST_MESSAGE_STATE_CHANGED)
     {
         GstState gst_state;
         gst_message_parse_state_changed(message, nullptr, &gst_state, nullptr);
 
-        PlaybackState new_state;
-        switch (gst_state)
+        if (self->gst_state_ != gst_state)
         {
-            case GST_STATE_VOID_PENDING:
-            {
-                new_state = PlaybackState::Invalid;
-                LOG_INFO(
-                    "GStreamerPipeline({}): Internal: Playbin state changed "
-                    "to GST_STATE_VOID_PENDING for {}",
-                    void_p(self),
-                    self->current_track_ ? self->current_track_->title() : "");
-                break;
-            }
+            self->gst_state_ = gst_state;
+            PlaybackState new_state =
+                self->gst_state_change_handlers_[gst_state](*self);
 
-            case GST_STATE_READY:
-            {
-                new_state = PlaybackState::Stopped;
-                LOG_INFO(
-                    "GStreamerPipeline({}): Internal: Playbin state changed "
-                    "to GST_STATE_READY for {}",
-                    void_p(self),
-                    self->current_track_ ? self->current_track_->title() : "");
-                break;
-            }
+            LOG_INFO("GStreamerPipeline({}): Internal: Playbin state "
+                     "changed "
+                     "to GST_STATE_{}",
+                     void_p(self), gst_element_state_get_name(gst_state));
 
-            case GST_STATE_NULL:
-            {
-                new_state = PlaybackState::Stopped;
-                LOG_INFO(
-                    "GStreamerPipeline({}): Internal: Playbin state changed "
-                    "to GST_STATE_NULL for {}",
-                    void_p(self),
-                    self->current_track_ ? self->current_track_->title() : "");
-                break;
-            }
-
-            case GST_STATE_PLAYING:
-            {
-                new_state = PlaybackState::Playing;
-                self->position_update_callback_tag_ = g_timeout_add_seconds(
-                    1,
-                    reinterpret_cast<GSourceFunc>(
-                        &GStreamerPipeline::update_playback_position),
-                    self);
-                LOG_INFO(
-                    "GStreamerPipeline({}): Internal: Playbin state changed "
-                    "to GST_STATE_PLAYING for {}",
-                    void_p(self),
-                    self->current_track_ ? self->current_track_->title() : "");
-                break;
-            }
-
-            case GST_STATE_PAUSED:
-            {
-                new_state = PlaybackState::Paused;
-                LOG_INFO(
-                    "GStreamerPipeline({}): Internal: Playbin state changed "
-                    "to GST_STATE_PAUSED for {}",
-                    void_p(self),
-                    self->current_track_ ? self->current_track_->title() : "");
-                break;
-            }
-        }
-
-        if (new_state != PlaybackState::Invalid &&
-            new_state != self->current_state_)
-        {
             LOG_INFO("GStreamerPipeline({}): Internal: State changed to: {}",
                      void_p(self), playback_state_to_string(new_state));
             self->current_state_ = new_state;
@@ -268,11 +199,57 @@ void GStreamerPipeline::gst_playback_state_changed(
     }
 }
 
+GStreamerPipeline::PlaybackState GStreamerPipeline::
+    on_gst_state_change_void_pending(GStreamerPipeline &self) noexcept
+{
+    if (self.progress_update_source_id_)
+    {
+        g_source_remove(self.progress_update_source_id_);
+        self.progress_update_source_id_ = 0;
+    }
+
+    return PlaybackState::Invalid;
+}
+
+GStreamerPipeline::PlaybackState GStreamerPipeline::on_gst_state_change_null(
+    GStreamerPipeline &self) noexcept
+{
+    on_gst_state_change_void_pending(self);
+    return PlaybackState::Stopped;
+}
+
+GStreamerPipeline::PlaybackState GStreamerPipeline::on_gst_state_change_ready(
+    GStreamerPipeline &self) noexcept
+{
+    return on_gst_state_change_null(self);
+}
+
+GStreamerPipeline::PlaybackState GStreamerPipeline::on_gst_state_change_paused(
+    GStreamerPipeline &) noexcept
+{
+    return PlaybackState::Paused;
+}
+
+GStreamerPipeline::PlaybackState GStreamerPipeline::on_gst_state_change_playing(
+    GStreamerPipeline &self) noexcept
+{
+    if (!self.progress_update_source_id_)
+    {
+        self.progress_update_source_id_ = g_timeout_add_seconds(
+            1,
+            reinterpret_cast<GSourceFunc>(
+                &GStreamerPipeline::update_playback_position),
+            &self);
+    }
+
+    return PlaybackState::Playing;
+}
+
 void GStreamerPipeline::gst_playback_error(GstBus *,
                                            GstMessage *message,
                                            GStreamerPipeline *self) noexcept
 {
-    gst_element_set_state(self->playbin_, GST_STATE_NULL);
+    gst_element_set_state(self->playbin_, GST_STATE_READY);
     gchar *error_message;
     gst_message_parse_error(message, nullptr, &error_message);
     LOG_ERROR("GStreamerPipeline({}): Internal: Playbin error: {}",
@@ -290,7 +267,6 @@ gboolean GStreamerPipeline::update_playback_position(
     self->emit_playback_position_changed(
         nanoseconds_to_milliseconds(position_nanoseconds));
 
-    // TODO: Return false if playback state is stopped
     return true;
 }
 
@@ -309,9 +285,17 @@ void GStreamerPipeline::gst_appsrc_setup(GstElement *,
     gst_app_src_set_caps(self->appsrc_, caps);
     gst_caps_unref(caps);
 
+    auto current_track = self->playback_list_.current_track().second;
+
     gst_app_src_set_stream_type(self->appsrc_, GST_APP_STREAM_TYPE_SEEKABLE);
-    gst_app_src_set_size(self->appsrc_,
-                         static_cast<gint64>(self->current_track_->fileSize()));
+    if (current_track != nullptr)
+    {
+        gst_app_src_set_size(self->appsrc_,
+                             static_cast<gint64>(current_track->fileSize()));
+        LOG_WARN("GStreamerPipeline({}): Internal: Starting playback on a null "
+                 "track, this most likely indicates a logic error",
+                 void_p(self));
+    }
     gst_app_src_set_callbacks(self->appsrc_, &self->gst_appsrc_callbacks_, self,
                               [](void *) {});
 
@@ -344,9 +328,21 @@ void GStreamerPipeline::gst_appsrc_need_data(GstAppSrc *,
         gst_element_query_position(self->playbin_, GST_FORMAT_TIME,
                                    &position_nanoseconds);
 
-        if (nanoseconds_to_milliseconds(position_nanoseconds) + MAXIMUM_DELTA >=
-            self->current_track_->duration())
+        auto current_track = self->playback_list_.current_track().second;
+        if (current_track != nullptr)
         {
+            if (nanoseconds_to_milliseconds(position_nanoseconds) +
+                    MAXIMUM_DELTA >=
+                current_track->duration())
+            {
+                gst_app_src_end_of_stream(self->appsrc_);
+            }
+        }
+        else
+        {
+            LOG_WARN("GStreamerPipeline({}): Internal: Ending playback "
+                     "prematurely since track is null",
+                     void_p(self));
             gst_app_src_end_of_stream(self->appsrc_);
         }
     }
@@ -369,7 +365,9 @@ gboolean GStreamerPipeline::gst_appsrc_seek_data(GstAppSrc *,
              instance, offset);
 
     auto self = static_cast<GStreamerPipeline *>(instance);
-    static_cast<void>(self);
+
+    // TODO: Implement this properly
+    self->playback_buffer_.seek(0);
 
     return true;
 }

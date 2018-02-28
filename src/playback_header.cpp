@@ -37,7 +37,7 @@ PlaybackHeader::PlaybackHeader(
             auto playlist = self->playback_list_.lock();
             if (playlist != nullptr)
             {
-                auto track = playlist->current_track();
+                auto track = playlist->current_track().second;
                 if (track != nullptr)
                 {
                     auto duration = track->duration().count();
@@ -108,7 +108,7 @@ PlaybackHeader::PlaybackHeader(
             auto playlist = self->playback_list_.lock();
             if (playlist != nullptr)
             {
-                auto &track = *playlist->current_track();
+                auto &track = *playlist->current_track().second;
                 auto file_size = track.fileSize();
                 auto duration =
                     static_cast<std::size_t>(track.duration().count());
@@ -128,7 +128,7 @@ PlaybackHeader::PlaybackHeader(
             auto playlist = self->playback_list_.lock();
             if (playlist != nullptr)
             {
-                auto &track = *playlist->current_track();
+                auto &track = *playlist->current_track().second;
                 auto duration =
                     static_cast<std::size_t>(track.duration().count());
 

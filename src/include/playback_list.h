@@ -2,6 +2,7 @@
 #define SPRING_PLAYER_PLAYBACK_LIST_H
 
 #include <functional>
+#include <memory>
 #include <vector>
 
 #include <gst/gst.h>
@@ -26,19 +27,19 @@ namespace spring
             ~PlaybackList() noexcept;
 
         public:
-            const music::Track *current_track() const noexcept;
+            std::pair<std::int32_t, const music::Track *> current_track() const
+                noexcept;
             std::size_t track_count() const noexcept;
 
         public:
-            void play_from(std::size_t index) noexcept;
+            void play(std::size_t index = 0) noexcept;
             void play_pause() noexcept;
             void stop() noexcept;
             void next() noexcept;
             void previous() noexcept;
             void shuffle() noexcept;
             void clear() noexcept;
-            void enqueue(const music::Track &track) noexcept;
-            const music::Track &enqueue(music::Track &&track) noexcept;
+            void enqueue(std::shared_ptr<music::Track> track) noexcept;
 
         public:
             signal(playback_state_changed, PlaybackState);
@@ -48,9 +49,9 @@ namespace spring
             signal(track_cached);
 
         private:
-            GStreamerPipeline pipeline_{};
-            std::vector<music::Track> content_{};
-            std::size_t current_index_{ 0 };
+            GStreamerPipeline pipeline_{ *this };
+            std::vector<std::shared_ptr<music::Track>> content_{};
+            std::int32_t current_index_{ -1 };
 
         private:
             DISABLE_COPY(PlaybackList)

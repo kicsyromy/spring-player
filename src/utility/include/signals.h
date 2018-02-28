@@ -4,6 +4,7 @@
 #include <functional>
 #include <memory>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 #include <gtk/gtk.h>
@@ -69,11 +70,12 @@ namespace spring
                 {
                     signature_t notify;
                     std::tuple<Args..., void *> args;
+                    std::weak_ptr<void> lifeline;
                 };
 
             public:
-                Signal() noexcept = default;
-                ~Signal() noexcept = default;
+                inline Signal() noexcept {}
+                inline ~Signal() noexcept {}
 
             public:
                 template <typename CalleeType>
@@ -88,11 +90,12 @@ namespace spring
                 template <typename CalleeType>
                 void disconnect(CalleeType *callee) noexcept
                 {
-                    const auto it = clients_.find(callee);
-                    if (it != clients_.cend())
+                    auto it = clients_.find(callee);
+                    if (it != clients_.end())
                     {
                         auto &connection = connections_[it->second];
                         connection.first = nullptr;
+                        clients_.erase(it);
                     }
                 }
 
@@ -115,17 +118,24 @@ namespace spring
                         auto data = new QueuedData{
                             connection.first,
                             std::make_tuple(std::forward<Args>(args)...,
-                                            connection.second)
+                                            connection.second),
+                            lifeline_
                         };
+
                         g_idle_add(
                             [](void *d) -> int {
                                 auto data = std::unique_ptr<QueuedData>{
                                     static_cast<QueuedData *>(d)
                                 };
-                                if (data->notify != nullptr)
+
+                                if (data->lifeline.lock() != nullptr)
                                 {
-                                    call(data->notify, data->args);
+                                    if (data->notify != nullptr)
+                                    {
+                                        call(data->notify, data->args);
+                                    }
                                 }
+
                                 return false;
                             },
                             data);
@@ -133,8 +143,11 @@ namespace spring
                 }
 
             private:
-                std::vector<std::pair<signature_t, void *>> connections_;
-                std::unordered_map<void *, std::size_t> clients_;
+                std::vector<std::pair<signature_t, void *>> connections_{};
+                std::unordered_map<void *, std::size_t> clients_{};
+                mutable std::shared_ptr<void> lifeline_{
+                    std::make_shared<char>()
+                };
             };
         }
     }

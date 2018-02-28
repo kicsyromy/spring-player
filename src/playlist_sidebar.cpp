@@ -78,7 +78,8 @@ PlaylistSidebar::PlaylistSidebar(
                 auto playlist = self->playback_list_.lock();
                 if (playlist != nullptr)
                 {
-                    const auto &artwork = playlist->current_track()->artwork();
+                    const auto &artwork =
+                        playlist->current_track().second->artwork();
                     auto pixbuf =
                         load_pixbuf_from_data_scaled<200, 200>(artwork);
                     gtk_image_set_from_pixbuf(self->current_track_cover_,
@@ -140,6 +141,6 @@ void PlaylistSidebar::on_track_activated(GtkListBox *,
     auto playlist = self->playback_list_.lock();
     if (playlist != nullptr)
     {
-        playlist->play_from(index);
+        playlist->play(index);
     }
 }

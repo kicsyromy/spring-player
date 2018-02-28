@@ -24,18 +24,18 @@ PlaybackBuffer::Producer::~Producer() noexcept
 }
 
 void PlaybackBuffer::Producer::start_buffering(
-    const music::Track &track) noexcept
+    std::shared_ptr<const music::Track> track) noexcept
 {
     LOG_INFO("PlaybackBuffer::Producer({}): New buffering session for track {}",
-             void_p(this), track.title());
+             void_p(this), track->title());
     stop_buffering();
 
-    thread_ = std::thread{ [this, &track] {
+    thread_ = std::thread{ [this, track] {
         keep_buffering_ = true;
         LOG_INFO("PlaybackBuffer::Producer({}): Start buffering for track {}",
-                 void_p(this), track.title());
+                 void_p(this), track->title());
 
-        track.trackData(
+        track->trackData(
             [](std::uint8_t *data, std::size_t size, void *instance) {
                 auto self = static_cast<PlaybackBuffer::Producer *>(instance);
 
@@ -59,20 +59,16 @@ void PlaybackBuffer::Producer::start_buffering(
 
         if (keep_buffering_)
         {
-            /* TODO: Check to see if these calls to title() are safe, the    */
-            /*       track may get destroyed while the thread is running     */
             LOG_INFO(
                 "PlaybackBuffer::Producer({}): Buffering finished for track {}",
-                void_p(this), track.title());
+                void_p(this), track->title());
             emit_queued_buffering_finished();
         }
         else
         {
-            /* TODO: Check to see if these calls to title() are safe, the    */
-            /*       track may get destroyed while the thread is running     */
             LOG_INFO("PlaybackBuffer::Producer({}): Buffering interrupted for "
                      "track {}",
-                     void_p(this), track.title());
+                     void_p(this), track->title());
         }
         keep_buffering_ = false;
     } };
@@ -135,10 +131,10 @@ PlaybackBuffer::~PlaybackBuffer() noexcept
     buffer_producer_.disconnect_buffering_finished(this);
 }
 
-void PlaybackBuffer::cache(const music::Track &track) noexcept
+void PlaybackBuffer::cache(std::shared_ptr<const music::Track> track) noexcept
 {
     LOG_INFO("PlaybackBuffer({}): Caching track {}", void_p(this),
-             track.title());
+             track->title());
 
     consumed_ = 0;
     buffering_finished_ = false;
@@ -160,4 +156,19 @@ const utility::string_view PlaybackBuffer::consume(std::size_t count) noexcept
         emit_minimum_available_buffer_exceeded();
     }
     return { buffer_.data() + range_begin, range_size };
+}
+
+void PlaybackBuffer::seek(std::size_t absolute_offset) noexcept
+{
+    if (absolute_offset >= buffer_.size())
+    {
+        LOG_WARN(
+            "PlaybackBuffer({}): Unimplemented: Seeking beyond cached data",
+            void_p(this));
+        consumed_ = buffer_.size();
+    }
+    else
+    {
+        consumed_ = absolute_offset;
+    }
 }
