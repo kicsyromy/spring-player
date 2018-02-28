@@ -15,18 +15,15 @@ namespace spring
 {
     namespace player
     {
-        class NowPlayingList
+        class PlaybackList
         {
-        public:
-            static NowPlayingList &instance() noexcept;
-
         public:
             using PlaybackState = GStreamerPipeline::PlaybackState;
             using Milliseconds = GStreamerPipeline::Milliseconds;
 
-        private:
-            NowPlayingList() noexcept;
-            ~NowPlayingList() noexcept;
+        public:
+            PlaybackList() noexcept;
+            ~PlaybackList() noexcept;
 
         public:
             const music::Track *current_track() const noexcept;
@@ -56,8 +53,8 @@ namespace spring
             std::size_t current_index_{ 0 };
 
         private:
-            DISABLE_COPY(NowPlayingList)
-            DISABLE_MOVE(NowPlayingList)
+            DISABLE_COPY(PlaybackList)
+            DISABLE_MOVE(PlaybackList)
         };
     }
 }

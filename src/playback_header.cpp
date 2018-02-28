@@ -9,7 +9,9 @@ using namespace spring;
 using namespace spring::player;
 using namespace spring::player::utility;
 
-PlaybackHeader::PlaybackHeader(GtkBuilder *builder) noexcept
+PlaybackHeader::PlaybackHeader(
+    GtkBuilder *builder, std::shared_ptr<PlaybackList> playback_list) noexcept
+  : playback_list_(playback_list)
 {
     get_widget_from_builder_simple(playback_progress_layout);
     get_widget_from_builder_simple(playback_progress_bar);
@@ -27,52 +29,58 @@ PlaybackHeader::PlaybackHeader(GtkBuilder *builder) noexcept
     connect_g_signal(previous_button_, "clicked", &on_previous_button_clicked,
                      this);
 
-    NowPlayingList::instance().on_playback_state_changed(
+    playback_list->on_playback_state_changed(
         this,
         [](auto state, void *instance) {
             auto self = static_cast<PlaybackHeader *>(instance);
 
-            auto track = NowPlayingList::instance().current_track();
-            if (track != nullptr)
+            auto playlist = self->playback_list_.lock();
+            if (playlist != nullptr)
             {
-                auto duration = track->duration().count();
-
-                if (state == NowPlayingList::PlaybackState::Pending ||
-                    state == NowPlayingList::PlaybackState::Playing)
+                auto track = playlist->current_track();
+                if (track != nullptr)
                 {
-                    gtk_adjustment_set_upper(
-                        self->playback_progress_adjustment_, duration);
-                    gtk_adjustment_set_value(
-                        self->playback_progress_adjustment_, 0);
+                    auto duration = track->duration().count();
 
-                    auto duration_seconds_total = duration / 1000;
-                    const auto minutes = duration_seconds_total / 60;
-                    const auto seconds = duration_seconds_total % 60;
-                    gtk_label_set_text(self->current_time_, "0:00");
-                    gtk_label_set_text(
-                        self->total_time_,
-                        seconds < 10 ?
-                            fmt::format("{}:0{}", minutes, seconds).c_str() :
-                            fmt::format("{}:{}", minutes, seconds).c_str());
-                    gtk_widget_set_visible(
-                        gtk_cast<GtkWidget>(self->playback_progress_layout_),
-                        true);
+                    if (state == PlaybackList::PlaybackState::Pending ||
+                        state == PlaybackList::PlaybackState::Playing)
+                    {
+                        gtk_adjustment_set_upper(
+                            self->playback_progress_adjustment_, duration);
+                        gtk_adjustment_set_value(
+                            self->playback_progress_adjustment_, 0);
 
-                    gtk_image_set_from_icon_name(
-                        self->play_pause_button_icon_,
-                        "media-playback-pause-symbolic", GTK_ICON_SIZE_DND);
-                }
-                else
-                {
-                    gtk_image_set_from_icon_name(
-                        self->play_pause_button_icon_,
-                        "media-playback-start-symbolic", GTK_ICON_SIZE_DND);
+                        auto duration_seconds_total = duration / 1000;
+                        const auto minutes = duration_seconds_total / 60;
+                        const auto seconds = duration_seconds_total % 60;
+                        gtk_label_set_text(self->current_time_, "0:00");
+                        gtk_label_set_text(
+                            self->total_time_,
+                            seconds < 10 ?
+                                fmt::format("{}:0{}", minutes, seconds)
+                                    .c_str() :
+                                fmt::format("{}:{}", minutes, seconds).c_str());
+                        gtk_widget_set_visible(
+                            gtk_cast<GtkWidget>(
+                                self->playback_progress_layout_),
+                            true);
+
+                        gtk_image_set_from_icon_name(
+                            self->play_pause_button_icon_,
+                            "media-playback-pause-symbolic", GTK_ICON_SIZE_DND);
+                    }
+                    else
+                    {
+                        gtk_image_set_from_icon_name(
+                            self->play_pause_button_icon_,
+                            "media-playback-start-symbolic", GTK_ICON_SIZE_DND);
+                    }
                 }
             }
         },
         this);
 
-    NowPlayingList::instance().on_playback_position_changed(
+    playback_list->on_playback_position_changed(
         this,
         [](auto position, void *instance) {
             auto self = static_cast<PlaybackHeader *>(instance);
@@ -92,57 +100,82 @@ PlaybackHeader::PlaybackHeader(GtkBuilder *builder) noexcept
         },
         this);
 
-    NowPlayingList::instance().on_track_cache_updated(
+    playback_list->on_track_cache_updated(
         this,
         [](std::size_t new_size, void *instance) {
             auto self = static_cast<PlaybackHeader *>(instance);
 
-            auto &track = *NowPlayingList::instance().current_track();
-            auto file_size = track.fileSize();
-            auto duration = static_cast<std::size_t>(track.duration().count());
+            auto playlist = self->playback_list_.lock();
+            if (playlist != nullptr)
+            {
+                auto &track = *playlist->current_track();
+                auto file_size = track.fileSize();
+                auto duration =
+                    static_cast<std::size_t>(track.duration().count());
 
-            gtk_range_set_fill_level(
-                gtk_cast<GtkRange>(self->playback_progress_bar_),
-                new_size * duration / file_size);
+                gtk_range_set_fill_level(
+                    gtk_cast<GtkRange>(self->playback_progress_bar_),
+                    new_size * duration / file_size);
+            }
         },
         this);
 
-    NowPlayingList::instance().on_track_cached(
+    playback_list->on_track_cached(
         this,
         [](void *instance) {
             auto self = static_cast<PlaybackHeader *>(instance);
 
-            auto &track = *NowPlayingList::instance().current_track();
-            auto duration = static_cast<std::size_t>(track.duration().count());
+            auto playlist = self->playback_list_.lock();
+            if (playlist != nullptr)
+            {
+                auto &track = *playlist->current_track();
+                auto duration =
+                    static_cast<std::size_t>(track.duration().count());
 
-            gtk_range_set_fill_level(
-                gtk_cast<GtkRange>(self->playback_progress_bar_), duration);
-
+                gtk_range_set_fill_level(
+                    gtk_cast<GtkRange>(self->playback_progress_bar_), duration);
+            }
         },
         this);
 }
 
 PlaybackHeader::~PlaybackHeader() noexcept
 {
-    NowPlayingList::instance().disconnect_track_cached(this);
-    NowPlayingList::instance().disconnect_playback_position_changed(this);
-    NowPlayingList::instance().disconnect_playback_state_changed(this);
+    auto playlist = playback_list_.lock();
+    if (playlist != nullptr)
+    {
+        playlist->disconnect_track_cached(this);
+        playlist->disconnect_playback_position_changed(this);
+        playlist->disconnect_playback_state_changed(this);
+    }
 }
 
 void PlaybackHeader::on_play_pause_button_clicked(GtkButton *,
-                                                  PlaybackHeader *) noexcept
+                                                  PlaybackHeader *self) noexcept
 {
-    NowPlayingList::instance().play_pause();
+    auto playlist = self->playback_list_.lock();
+    if (playlist != nullptr)
+    {
+        playlist->play_pause();
+    }
 }
 
 void PlaybackHeader::on_next_button_clicked(GtkButton *,
-                                            PlaybackHeader *) noexcept
+                                            PlaybackHeader *self) noexcept
 {
-    NowPlayingList::instance().next();
+    auto playlist = self->playback_list_.lock();
+    if (playlist != nullptr)
+    {
+        playlist->next();
+    }
 }
 
 void PlaybackHeader::on_previous_button_clicked(GtkButton *,
-                                                PlaybackHeader *) noexcept
+                                                PlaybackHeader *self) noexcept
 {
-    NowPlayingList::instance().previous();
+    auto playlist = self->playback_list_.lock();
+    if (playlist != nullptr)
+    {
+        playlist->previous();
+    }
 }

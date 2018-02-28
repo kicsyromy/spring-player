@@ -4,7 +4,6 @@
 
 #include <libspring_logger.h>
 
-#include "now_playing_list.h"
 #include "spring_player.h"
 #include "utility.h"
 
@@ -36,8 +35,10 @@ namespace
     }
 }
 
-MainWindow::MainWindow(SpringPlayer &application) noexcept
-  : pms_{ spring_player_pms() }
+MainWindow::MainWindow(SpringPlayer &application,
+                       std::shared_ptr<PlaybackList> playback_list) noexcept
+  : playback_list_{ playback_list }
+  , pms_{ spring_player_pms() }
 {
     LOG_INFO("MainWindow({}): Creating...", void_p(this));
 
@@ -54,18 +55,20 @@ MainWindow::MainWindow(SpringPlayer &application) noexcept
 
     connect_g_signal(search_button_, "toggled", &on_search_toggled, this);
 
-    now_playing_sidebar_ = std::make_unique<NowPlayingSidebar>(builder);
+    now_playing_sidebar_ =
+        std::make_unique<PlaylistSidebar>(builder, playback_list);
     now_playing_sidebar_->show();
 
-    playback_footer_ = std::make_unique<PlaybackHeader>(builder);
+    playback_footer_ = std::make_unique<PlaybackHeader>(builder, playback_list);
 
     auto library = pms_.sections().at(2).content();
     page_stack_ = std::make_unique<PageStack>(
-        builder, std::move(static_cast<spring::MusicLibrary &>(library)));
+        builder, std::move(static_cast<spring::MusicLibrary &>(library)),
+        playback_list);
 
     g_object_unref(builder);
 
-    NowPlayingList::instance().on_playback_state_changed(
+    playback_list->on_playback_state_changed(
         this,
         [](auto state, void *instance) {
             auto self = static_cast<MainWindow *>(instance);
@@ -73,9 +76,10 @@ MainWindow::MainWindow(SpringPlayer &application) noexcept
             LOG_INFO("MainWindow({}): Playback state changed to {}", instance,
                      GStreamerPipeline::playback_state_to_string(state));
 
-            if (state == NowPlayingList::PlaybackState::Playing)
+            if (state == PlaybackList::PlaybackState::Playing)
             {
-                const auto &track = NowPlayingList::instance().current_track();
+                auto playlist = self->playback_list_.lock();
+                const auto &track = playlist->current_track();
                 gtk_label_set_text(self->window_title_,
                                    fmt::format("{} - {} - {}", track->artist(),
                                                track->album(), track->title())
@@ -95,7 +99,11 @@ MainWindow::~MainWindow() noexcept
 {
     LOG_INFO("MainWindow({}): Destroying...", void_p(this));
 
-    NowPlayingList::instance().disconnect_playback_state_changed(this);
+    auto playlist = playback_list_.lock();
+    if (playlist != nullptr)
+    {
+        playlist->disconnect_playback_state_changed(this);
+    }
 
     g_object_unref(css_provider_);
 }

@@ -15,6 +15,7 @@
 #include "albums_page.h"
 #include "artists_page.h"
 #include "genres_page.h"
+#include "now_playing_list.h"
 #include "songs_page.h"
 
 namespace spring
@@ -28,7 +29,8 @@ namespace spring
 
         public:
             PageStack(GtkBuilder *builder,
-                      MusicLibrary &&music_library) noexcept;
+                      MusicLibrary &&music_library,
+                      std::weak_ptr<PlaybackList> playback_list) noexcept;
             ~PageStack() noexcept;
 
         private:

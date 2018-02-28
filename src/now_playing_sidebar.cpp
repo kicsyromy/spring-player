@@ -12,9 +12,11 @@ using namespace spring;
 using namespace spring::player;
 using namespace spring::player::utility;
 
-NowPlayingSidebar::NowPlayingSidebar(GtkBuilder *builder) noexcept
+PlaylistSidebar::PlaylistSidebar(
+    GtkBuilder *builder, std::shared_ptr<PlaybackList> playback_list) noexcept
+  : playback_list_{ playback_list }
 {
-    LOG_INFO("NowPlayingSidebar({}): Creating...", void_p(this));
+    LOG_INFO("PlaylistSidebar({}): Creating...", void_p(this));
 
     get_widget_from_builder_simple(now_playing_sidebar);
     get_widget_from_builder_simple(now_playing_cover);
@@ -25,12 +27,12 @@ NowPlayingSidebar::NowPlayingSidebar(GtkBuilder *builder) noexcept
                      this);
     connect_g_signal(toggle_sidebar_button_, "toggled", &toggled, this);
 
-    NowPlayingList::instance().on_track_queued(
+    playback_list->on_track_queued(
         this,
         [](const music::Track &track, void *instance) {
-            auto self = static_cast<NowPlayingSidebar *>(instance);
+            auto self = static_cast<PlaylistSidebar *>(instance);
 
-            LOG_INFO("NowPlayingSidebar({}): Track {} queued", instance,
+            LOG_INFO("PlaylistSidebar({}): Track {} queued", instance,
                      track.title());
 
             self->playlist_.push_back(&track);
@@ -62,63 +64,81 @@ NowPlayingSidebar::NowPlayingSidebar(GtkBuilder *builder) noexcept
         },
         this);
 
-    NowPlayingList::instance().on_playback_state_changed(
+    playback_list->on_playback_state_changed(
         this,
         [](auto state, void *instance) {
-            auto self = static_cast<NowPlayingSidebar *>(instance);
+            auto self = static_cast<PlaylistSidebar *>(instance);
 
-            LOG_INFO("NowPlayingSidebar({}): Playback state changed {}",
-                     instance,
+            LOG_INFO("PlaylistSidebar({}): Playback state changed {}", instance,
                      GStreamerPipeline::playback_state_to_string(state));
 
-            if (state == NowPlayingList::PlaybackState::Pending ||
-                state == NowPlayingList::PlaybackState::Playing)
+            if (state == PlaybackList::PlaybackState::Pending ||
+                state == PlaybackList::PlaybackState::Playing)
             {
-                const auto &artwork =
-                    NowPlayingList::instance().current_track()->artwork();
-                auto pixbuf = load_pixbuf_from_data_scaled<200, 200>(artwork);
-                gtk_image_set_from_pixbuf(self->now_playing_cover_, pixbuf);
+                auto playlist = self->playback_list_.lock();
+                if (playlist != nullptr)
+                {
+                    const auto &artwork = playlist->current_track()->artwork();
+                    auto pixbuf =
+                        load_pixbuf_from_data_scaled<200, 200>(artwork);
+                    gtk_image_set_from_pixbuf(self->now_playing_cover_, pixbuf);
+                }
+                else
+                {
+                    LOG_ERROR("PlaylistSidebar({}): PlaybackList object "
+                              "destroyed, the program will not function "
+                              "correctly.",
+                              instance);
+                }
             }
         },
         this);
 }
 
-NowPlayingSidebar::~NowPlayingSidebar() noexcept
+PlaylistSidebar::~PlaylistSidebar() noexcept
 {
-    LOG_INFO("NowPlayingSidebar({}): Destroying...", void_p(this));
+    LOG_INFO("PlaylistSidebar({}): Destroying...", void_p(this));
 
-    NowPlayingList::instance().disconnect_playback_state_changed(this);
-    NowPlayingList::instance().disconnect_track_queued(this);
+    auto playlist = playback_list_.lock();
+    if (playlist != nullptr)
+    {
+        playlist->disconnect_playback_state_changed(this);
+        playlist->disconnect_track_queued(this);
+    }
 }
 
-void NowPlayingSidebar::show() noexcept
+void PlaylistSidebar::show() noexcept
 {
-    LOG_INFO("NowPlayingSidebar({}): Toggle show", void_p(this));
+    LOG_INFO("PlaylistSidebar({}): Toggle show", void_p(this));
     gtk_toggle_button_set_active(toggle_sidebar_button_, true);
 }
 
-void NowPlayingSidebar::hide() noexcept
+void PlaylistSidebar::hide() noexcept
 {
-    LOG_INFO("NowPlayingSidebar({}): Toggle hide", void_p(this));
+    LOG_INFO("PlaylistSidebar({}): Toggle hide", void_p(this));
     gtk_toggle_button_set_active(toggle_sidebar_button_, false);
 }
 
-void NowPlayingSidebar::toggled(GtkToggleButton *toggle_button,
-                                NowPlayingSidebar *self) noexcept
+void PlaylistSidebar::toggled(GtkToggleButton *toggle_button,
+                              PlaylistSidebar *self) noexcept
 {
-    LOG_INFO("NowPlayingSidebar({}): Toggle button toggled", void_p(self));
+    LOG_INFO("PlaylistSidebar({}): Toggle button toggled", void_p(self));
     auto visible = gtk_toggle_button_get_active(toggle_button);
     gtk_widget_set_visible(gtk_cast<GtkWidget>(self->now_playing_sidebar_),
                            visible);
 }
 
-void NowPlayingSidebar::on_track_activated(GtkListBox *,
-                                           GtkListBoxRow *element,
-                                           NowPlayingSidebar *self) noexcept
+void PlaylistSidebar::on_track_activated(GtkListBox *,
+                                         GtkListBoxRow *element,
+                                         PlaylistSidebar *self) noexcept
 {
     auto index = static_cast<std::size_t>(gtk_list_box_row_get_index(element));
-    LOG_INFO("NowPlayingSidebar({}): Playlist element at {} activated",
+    LOG_INFO("PlaylistSidebar({}): Playlist element at {} activated",
              void_p(self), index);
 
-    NowPlayingList::instance().play_from(index);
+    auto playlist = self->playback_list_.lock();
+    if (playlist != nullptr)
+    {
+        playlist->play_from(index);
+    }
 }

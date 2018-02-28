@@ -8,12 +8,14 @@
 #include "async_queue.h"
 #include "gstreamer_pipeline.h"
 #include "main_window.h"
+#include "now_playing_list.h"
 #include "utility.h"
 
 struct _SpringPlayer
 {
     GtkApplication parent;
 
+    std::shared_ptr<spring::player::PlaybackList> playback_list;
     std::unique_ptr<spring::player::MainWindow> main_window;
 };
 
@@ -57,6 +59,7 @@ static void spring_player_startup(GApplication *app)
 
 static void spring_player_init(SpringPlayer *self)
 {
+    self->playback_list.reset();
     self->main_window.release();
     spring::player::GStreamerPipeline::initialize();
 }
@@ -68,7 +71,10 @@ static void spring_player_activate(GApplication *app)
     {
         spring::player::async_queue::start_processing();
 
-        self->main_window = std::make_unique<spring::player::MainWindow>(*self);
+        self->playback_list = std::make_shared<spring::player::PlaybackList>();
+
+        self->main_window = std::make_unique<spring::player::MainWindow>(
+            *self, self->playback_list);
         self->main_window->show();
     }
 }

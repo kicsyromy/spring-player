@@ -13,8 +13,10 @@ using namespace spring::player::utility;
 
 #include <libspring_logger.h>
 
-AlbumWidget::AlbumWidget(music::Album &&album) noexcept
+AlbumWidget::AlbumWidget(music::Album &&album,
+                         std::weak_ptr<PlaybackList> playback_list) noexcept
   : album_(std::move(album))
+  , playback_list_(playback_list)
 {
     LOG_INFO("AlbumWidget({}): Creating album widget for album {}",
              void_p(this), album_.title());
@@ -146,7 +148,6 @@ void AlbumWidget::activated() noexcept
                         std::unique_ptr<std::vector<music::Track>> track_list;
                         track_list.reset(tracks);
 
-                        gint index{ 0 };
                         for (auto &track_entry : track_list_entries)
                         {
                             gtk_container_add(
@@ -185,8 +186,11 @@ void AlbumWidget::on_track_activated(GtkListBox *,
     LOG_INFO("AlbumWidget({}): Track {} activated from album {}", void_p(self),
              self->tracks_.at(element_index).title(), self->album_.title());
 
-    NowPlayingList::instance().enqueue(
-        std::move(self->tracks_.at(element_index)));
+    auto playlist = self->playback_list_.lock();
+    if (playlist != nullptr)
+    {
+        playlist->enqueue(std::move(self->tracks_.at(element_index)));
+    }
 }
 
 void AlbumWidget::on_popover_closed(GtkPopover *, AlbumWidget *self) noexcept

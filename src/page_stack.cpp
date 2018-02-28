@@ -7,7 +7,9 @@
 using namespace spring;
 using namespace spring::player;
 
-PageStack::PageStack(GtkBuilder *builder, MusicLibrary &&music_library) noexcept
+PageStack::PageStack(GtkBuilder *builder,
+                     MusicLibrary &&music_library,
+                     std::weak_ptr<PlaybackList> playback_list) noexcept
 {
     LOG_INFO("PageStack({}): Creating...", void_p(this));
 
@@ -39,7 +41,8 @@ PageStack::PageStack(GtkBuilder *builder, MusicLibrary &&music_library) noexcept
         }
     };
 
-    albums_page_ = std::make_unique<AlbumsPage>(builder, music_library_);
+    albums_page_ =
+        std::make_unique<AlbumsPage>(builder, music_library_, playback_list);
     /* weak_ptr instead of ref */
     artists_page_ = std::make_unique<ArtistsPage>(builder, *music_library_);
     genres_page_ = std::make_unique<GenresPage>(builder, *music_library_);

@@ -12,8 +12,10 @@ using namespace spring::player;
 using namespace spring::player::utility;
 
 AlbumsPage::AlbumsPage(GtkBuilder *builder,
-                       std::weak_ptr<MusicLibrary> music_library) noexcept
+                       std::weak_ptr<MusicLibrary> music_library,
+                       std::weak_ptr<PlaybackList> playback_list) noexcept
   : music_library_(music_library)
+  , playback_list_(playback_list)
 {
     LOG_INFO("AlbumsPage({}): Creating...", void_p(this));
 
@@ -56,8 +58,8 @@ void AlbumsPage::activated() noexcept
 
                     for (auto &album : albums)
                     {
-                        album_widgets->push_back(
-                            std::make_unique<AlbumWidget>(std::move(album)));
+                        album_widgets->push_back(std::make_unique<AlbumWidget>(
+                            std::move(album), playback_list_));
                     }
                     //                    album_widgets->push_back(
                     //                        std::make_unique<AlbumWidget>(std::move(albums[0])));

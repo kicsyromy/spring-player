@@ -7,22 +7,16 @@
 using namespace spring;
 using namespace spring::player;
 
-NowPlayingList &NowPlayingList::instance() noexcept
+PlaybackList::PlaybackList() noexcept
 {
-    static NowPlayingList instance;
-    return instance;
-}
-
-NowPlayingList::NowPlayingList() noexcept
-{
-    LOG_INFO("NowPlayingList({}): Creating...", void_p(this));
+    LOG_INFO("PlaybackList({}): Creating...", void_p(this));
 
     pipeline_.on_playback_state_changed(
         this,
         [](PlaybackState new_state, void *instance) {
-            auto self = static_cast<NowPlayingList *>(instance);
+            auto self = static_cast<PlaybackList *>(instance);
 
-            LOG_INFO("NowPlayingList({}): Playback state changed to {} for {}",
+            LOG_INFO("PlaybackList({}): Playback state changed to {} for {}",
                      instance,
                      GStreamerPipeline::playback_state_to_string(new_state),
                      self->current_track() ? self->current_track()->title() :
@@ -44,7 +38,7 @@ NowPlayingList::NowPlayingList() noexcept
     pipeline_.on_playback_position_changed(
         this,
         [](Milliseconds milliseconds, void *instance) {
-            auto self = static_cast<NowPlayingList *>(instance);
+            auto self = static_cast<PlaybackList *>(instance);
             self->emit_playback_position_changed(milliseconds.count());
         },
         this);
@@ -52,7 +46,7 @@ NowPlayingList::NowPlayingList() noexcept
     pipeline_.on_track_cache_updated(
         this,
         [](std::size_t new_size, void *instance) {
-            auto self = static_cast<NowPlayingList *>(instance);
+            auto self = static_cast<PlaybackList *>(instance);
             self->emit_track_cache_updated(std::move(new_size));
         },
         this);
@@ -60,17 +54,17 @@ NowPlayingList::NowPlayingList() noexcept
     pipeline_.on_track_cached(
         this,
         [](void *instance) {
-            auto self = static_cast<NowPlayingList *>(instance);
-            LOG_INFO("NowPlayingList({}): Finished caching track {}", instance,
+            auto self = static_cast<PlaybackList *>(instance);
+            LOG_INFO("PlaybackList({}): Finished caching track {}", instance,
                      self->current_track() ? self->current_track()->title() :
                                              "");
             self->emit_track_cached();
         },
         this);
 };
-NowPlayingList::~NowPlayingList() noexcept
+PlaybackList::~PlaybackList() noexcept
 {
-    LOG_INFO("NowPlayingList({}): Destroying...", void_p(this));
+    LOG_INFO("PlaybackList({}): Destroying...", void_p(this));
 
     pipeline_.disconnect_track_cached(this);
     pipeline_.disconnect_track_cache_updated(this);
@@ -78,26 +72,26 @@ NowPlayingList::~NowPlayingList() noexcept
     pipeline_.disconnect_playback_state_changed(this);
 }
 
-const music::Track *NowPlayingList::current_track() const noexcept
+const music::Track *PlaybackList::current_track() const noexcept
 {
     return pipeline_.current_track();
 }
 
-std::size_t NowPlayingList::track_count() const noexcept
+std::size_t PlaybackList::track_count() const noexcept
 {
     return content_.size();
 }
 
-void NowPlayingList::play_from(std::size_t index) noexcept
+void PlaybackList::play_from(std::size_t index) noexcept
 {
-    LOG_INFO("NowPlayingList({}): Playing track at index {}", void_p(this),
+    LOG_INFO("PlaybackList({}): Playing track at index {}", void_p(this),
              index);
 
     pipeline_.stop();
     if (index >= content_.size())
     {
         current_index_ = content_.empty() ? 0 : content_.size() - 1;
-        LOG_WARN("NowPlayingList({}): Index out of bounds, attempt to restart "
+        LOG_WARN("PlaybackList({}): Index out of bounds, attempt to restart "
                  "playback from index 0",
                  void_p(this));
     }
@@ -108,16 +102,16 @@ void NowPlayingList::play_from(std::size_t index) noexcept
     play_pause();
 }
 
-void NowPlayingList::play_pause() noexcept
+void PlaybackList::play_pause() noexcept
 {
-    LOG_INFO("NowPlayingList({}): Play/Pause", void_p(this));
+    LOG_INFO("PlaybackList({}): Play/Pause", void_p(this));
 
     if (!content_.empty())
     {
         if (pipeline_.current_track() == nullptr)
         {
             pipeline_.play(content_.at(current_index_));
-            LOG_INFO("NowPlayingList({}): Current track is null, attempting to "
+            LOG_INFO("PlaybackList({}): Current track is null, attempting to "
                      "play {} found at index {}",
                      void_p(this),
                      current_track() ? current_track()->title() : "",
@@ -130,83 +124,81 @@ void NowPlayingList::play_pause() noexcept
     }
     else
     {
-        LOG_WARN("NowPlayingList({}): Playlist is empty, nothing to play",
+        LOG_WARN("PlaybackList({}): Playlist is empty, nothing to play",
                  void_p(this));
     }
 }
 
-void NowPlayingList::stop() noexcept
+void PlaybackList::stop() noexcept
 {
-    LOG_INFO("NowPlayingList({}): Stop playback", void_p(this));
+    LOG_INFO("PlaybackList({}): Stop playback", void_p(this));
 
     pipeline_.stop();
     current_index_ = 0;
 }
 
-void NowPlayingList::next() noexcept
+void PlaybackList::next() noexcept
 {
-    LOG_INFO("NowPlayingList({}): Skip forward", void_p(this));
+    LOG_INFO("PlaybackList({}): Skip forward", void_p(this));
 
     pipeline_.stop();
     ++current_index_;
     if (current_index_ < content_.size())
     {
-        LOG_INFO("NowPlayingList({}): Next track in bounds", void_p(this));
+        LOG_INFO("PlaybackList({}): Next track in bounds", void_p(this));
         play_pause();
     }
     else
     {
-        LOG_INFO(
-            "NowPlayingList({}): Next track out of bounds, restarting from "
-            "the first track",
-            void_p(this));
+        LOG_INFO("PlaybackList({}): Next track out of bounds, restarting from "
+                 "the first track",
+                 void_p(this));
         current_index_ = 0;
     }
 }
 
-void NowPlayingList::previous() noexcept
+void PlaybackList::previous() noexcept
 {
-    LOG_INFO("NowPlayingList({}): Skip backward", void_p(this));
+    LOG_INFO("PlaybackList({}): Skip backward", void_p(this));
 
     pipeline_.stop();
     if (current_index_ > 0)
     {
-        LOG_INFO("NowPlayingList({}): Previous track in bounds", void_p(this));
+        LOG_INFO("PlaybackList({}): Previous track in bounds", void_p(this));
         --current_index_;
     }
     else
     {
-        LOG_INFO(
-            "NowPlayingList({}): Previous track out of bounds, starting the "
-            "last track",
-            void_p(this));
+        LOG_INFO("PlaybackList({}): Previous track out of bounds, starting the "
+                 "last track",
+                 void_p(this));
         current_index_ = !content_.empty() ? content_.size() - 1 : 0;
     }
 
     play_pause();
 }
 
-void NowPlayingList::shuffle() noexcept
+void PlaybackList::shuffle() noexcept
 {
-    LOG_INFO("NowPlayingList({}): Shuffle", void_p(this));
+    LOG_INFO("PlaybackList({}): Shuffle", void_p(this));
 }
 
-void NowPlayingList::clear() noexcept
+void PlaybackList::clear() noexcept
 {
-    LOG_INFO("NowPlayingList({}): Clear", void_p(this));
+    LOG_INFO("PlaybackList({}): Clear", void_p(this));
     pipeline_.stop();
     content_.clear();
 }
 
-void NowPlayingList::enqueue(const music::Track &track) noexcept
+void PlaybackList::enqueue(const music::Track &track) noexcept
 {
-    LOG_INFO("NowPlayingList({}): Enqueue (non-owning) {}", void_p(this),
+    LOG_INFO("PlaybackList({}): Enqueue (non-owning) {}", void_p(this),
              track.title());
 }
 
-const music::Track &NowPlayingList::enqueue(music::Track &&track) noexcept
+const music::Track &PlaybackList::enqueue(music::Track &&track) noexcept
 {
-    LOG_INFO("NowPlayingList({}): Enqueue (owning) {}", void_p(this),
+    LOG_INFO("PlaybackList({}): Enqueue (owning) {}", void_p(this),
              track.title());
 
     content_.push_back(std::move(track));
