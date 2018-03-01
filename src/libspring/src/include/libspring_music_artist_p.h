@@ -90,14 +90,15 @@ namespace spring
             ~ArtistPrivate() noexcept;
 
         private:
-            std::string key_;
-            std::string name_;
-            std::string summary_;
-            std::string country_;
-            std::string genre_;
-            std::string thumbnailPath_;
+            std::string key_{};
+            std::string id_{};
+            std::string name_{};
+            std::string summary_{};
+            std::string country_{};
+            std::string genre_{};
+            std::string thumbnailPath_{};
 
-            std::weak_ptr<PlexMediaServerPrivate> pms_;
+            std::weak_ptr<PlexMediaServerPrivate> pms_{};
 
         private:
             DISABLE_COPY(ArtistPrivate)

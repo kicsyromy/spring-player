@@ -379,14 +379,35 @@
                             <property name="can_focus">False</property>
                             <property name="shadow_type">none</property>
                             <child>
-                              <object class="GtkFlowBox" id="artists_content">
+                              <object class="GtkOverlay">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
-                                <property name="column_spacing">10</property>
-                                <property name="row_spacing">10</property>
-                                <property name="min_children_per_line">3</property>
-                                <property name="max_children_per_line">10</property>
-                                <property name="selection_mode">none</property>
+                                <child>
+                                  <object class="GtkFlowBox" id="artists_content">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="column_spacing">10</property>
+                                    <property name="row_spacing">10</property>
+                                    <property name="min_children_per_line">3</property>
+                                    <property name="max_children_per_line">10</property>
+                                    <property name="selection_mode">none</property>
+                                  </object>
+                                  <packing>
+                                    <property name="index">-1</property>
+                                  </packing>
+                                </child>
+                                <child type="overlay">
+                                  <object class="GtkSpinner" id="artists_loading_spinner">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="halign">center</property>
+                                    <property name="valign">center</property>
+                                    <property name="active">True</property>
+                                  </object>
+                                  <packing>
+                                    <property name="pass_through">True</property>
+                                  </packing>
+                                </child>
                               </object>
                             </child>
                           </object>

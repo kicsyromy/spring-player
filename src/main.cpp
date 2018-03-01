@@ -1,5 +1,4 @@
 #include <cstdio>
-
 #include <string>
 
 #include <gtk/gtk.h>

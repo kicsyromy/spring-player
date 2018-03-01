@@ -43,8 +43,8 @@ PageStack::PageStack(GtkBuilder *builder,
 
     albums_page_ =
         std::make_unique<AlbumsPage>(builder, music_library_, playback_list);
+    artists_page_ = std::make_unique<ArtistsPage>(builder, music_library_);
     /* weak_ptr instead of ref */
-    artists_page_ = std::make_unique<ArtistsPage>(builder, *music_library_);
     genres_page_ = std::make_unique<GenresPage>(builder, *music_library_);
     songs_page_ = std::make_unique<SongsPage>(builder, *music_library_);
 

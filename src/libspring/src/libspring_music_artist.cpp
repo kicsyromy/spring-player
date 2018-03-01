@@ -36,6 +36,9 @@ using namespace spring::music;
 ArtistPrivate::ArtistPrivate(RawArtistMetadata &&metadata,
                              std::weak_ptr<PlexMediaServerPrivate> pms) noexcept
   : key_(std::move(metadata.get_key()))
+  /* This micro-algorithm assumes that each key starts with '/library/metadata'*/
+  /* and has exactly 5 charactes... there should be better ways to do this     */
+  , id_(key_.c_str() + 18, 5)
   , name_(std::move(metadata.get_title()))
   , summary_(std::move(metadata.get_summary()))
   , country_(metadata.get_Country().size() > 0 ?
@@ -54,6 +57,22 @@ ArtistPrivate::~ArtistPrivate() noexcept = default;
 Artist::Artist(ArtistPrivate *priv) noexcept
   : priv_(priv)
 {
+}
+
+Artist::Artist(Artist &&other) noexcept
+  : priv_(std::move(other.priv_))
+{
+}
+
+Artist &Artist::operator=(Artist &&other) noexcept
+{
+    priv_ = std::move(other.priv_);
+    return *this;
+}
+
+const std::string &Artist::id() const noexcept
+{
+    return priv_->id_;
 }
 
 Artist::~Artist() noexcept = default;
@@ -95,5 +114,5 @@ std::string Artist::thumbnail() const noexcept
                   "instance was deleted!");
     }
 
-    return std::move(result);
+    return result;
 }

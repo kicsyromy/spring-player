@@ -1,9 +1,13 @@
 #ifndef SPRING_PLAYER_ARTISTS_PAGE_H
 #define SPRING_PLAYER_ARTISTS_PAGE_H
 
+#include <memory>
+
 #include <gtk/gtk.h>
 
 #include <libspring_music_library.h>
+
+#include "artist_widget.h"
 
 namespace spring
 {
@@ -12,9 +16,9 @@ namespace spring
         class ArtistsPage
         {
         public:
-            ArtistsPage(GtkBuilder *builder,
-                        /* weak_ptr instead of ref */
-                        const MusicLibrary &music_library) noexcept;
+            ArtistsPage(
+                GtkBuilder *builder,
+                std::weak_ptr<const MusicLibrary> music_library) noexcept;
             ~ArtistsPage() noexcept = default;
 
         public:
@@ -26,8 +30,10 @@ namespace spring
         private:
             GtkScrolledWindow *artists_page_{ nullptr };
             GtkFlowBox *artists_content_{ nullptr };
+            GtkSpinner *artists_loading_spinner_{ nullptr };
 
-            const MusicLibrary &music_library_;
+            std::weak_ptr<const MusicLibrary> music_library_{};
+            std::vector<std::unique_ptr<ArtistWidget>> artists_{};
 
         private:
             DISABLE_COPY(ArtistsPage)

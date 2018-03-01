@@ -43,7 +43,11 @@ namespace spring
             Artist(ArtistPrivate *priv) noexcept;
             ~Artist() noexcept;
 
+            Artist(Artist &&other) noexcept;
+            Artist &operator=(Artist &&other) noexcept;
+
         public:
+            const std::string &id() const noexcept;
             const std::string &name() const noexcept;
             const std::string &summary() const noexcept;
             const std::string &country() const noexcept;

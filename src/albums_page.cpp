@@ -61,8 +61,6 @@ void AlbumsPage::activated() noexcept
                         album_widgets->push_back(std::make_unique<AlbumWidget>(
                             std::move(album), playback_list_));
                     }
-                    //                    album_widgets->push_back(
-                    //                        std::make_unique<AlbumWidget>(std::move(albums[0])));
 
                     async_queue::post_response(new async_queue::Response{
                         "albums_ready", [this, album_widgets]() {
