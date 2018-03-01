@@ -27,7 +27,11 @@
 #include "libspring_music_artist.h"
 #include "libspring_music_artist_p.h"
 
+#include <json_format.h>
+
 #include "libspring_logger.h"
+#include "libspring_music_album_p.h"
+#include "libspring_music_track_p.h"
 #include "libspring_plex_media_server_p.h"
 
 using namespace spring;
@@ -50,6 +54,8 @@ ArtistPrivate::ArtistPrivate(RawArtistMetadata &&metadata,
   , thumbnailPath_(std::move(metadata.get_thumb()))
   , pms_(pms)
 {
+    auto index = key_.rfind('/');
+    key_.replace(index, std::string::npos, "");
 }
 
 ArtistPrivate::~ArtistPrivate() noexcept = default;
@@ -95,6 +101,91 @@ const std::string &Artist::country() const noexcept
 const std::string &Artist::genre() const noexcept
 {
     return priv_->genre_;
+}
+
+std::vector<Album> Artist::albums() const noexcept
+{
+    using namespace sequential_formats;
+
+    std::vector<AlbumPrivate *> result{};
+
+    auto pms = priv_->pms_.lock();
+    if (pms != nullptr)
+    {
+        /* TODO: Error handling */
+        auto r = pms->request(priv_->key_ + "/children");
+        auto body = std::move(r.response.text);
+
+        JsonFormat format{ body };
+        auto container =
+            sequential::from_format<AlbumPrivate::LibraryContainer>(format);
+
+        auto &metadata = container.get_MediaContainer().get_Metadata();
+        result.reserve(metadata.size());
+        for (auto &m : metadata)
+        {
+            result.push_back(new AlbumPrivate{ std::move(m), priv_->pms_ });
+        }
+    }
+    else
+    {
+        LOG_ERROR("Artist: Invalid connection handle. PlexMediaServer "
+                  "instance was deleted!");
+    }
+
+    return { result.begin(), result.end() };
+}
+
+std::vector<Track> Artist::tracks() const noexcept
+{
+    using namespace sequential_formats;
+
+    std::vector<TrackPrivate *> result{};
+
+    auto pms = priv_->pms_.lock();
+    if (pms != nullptr)
+    {
+        /* TODO: Error handling */
+        auto r = pms->request(priv_->key_ + "/allLeaves");
+        auto body = std::move(r.response.text);
+
+        JsonFormat format{ body };
+        auto container =
+            sequential::from_format<TrackPrivate::LibraryContainer>(format);
+
+        auto &metadata = container.get_MediaContainer().get_Metadata();
+        result.reserve(metadata.size());
+        for (auto &m : metadata)
+        {
+            result.push_back(new TrackPrivate{ std::move(m), priv_->pms_ });
+        }
+    }
+    else
+    {
+        LOG_ERROR("Artist: Invalid connection handle. PlexMediaServer "
+                  "instance was deleted!");
+    }
+
+    return { result.begin(), result.end() };
+}
+
+std::vector<Track> Artist::popularTracks() const noexcept
+{
+    using namespace sequential_formats;
+
+    std::vector<music::TrackPrivate *> result{};
+
+    auto pms = priv_->pms_.lock();
+    if (pms != nullptr)
+    {
+    }
+    else
+    {
+        LOG_ERROR("Artist: Invalid connection handle. PlexMediaServer "
+                  "instance was deleted!");
+    }
+
+    return { result.begin(), result.end() };
 }
 
 std::string Artist::thumbnail() const noexcept

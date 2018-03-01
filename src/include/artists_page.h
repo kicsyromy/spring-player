@@ -16,13 +16,18 @@ namespace spring
         class ArtistsPage
         {
         public:
-            ArtistsPage(
-                GtkBuilder *builder,
-                std::weak_ptr<const MusicLibrary> music_library) noexcept;
+            ArtistsPage(GtkBuilder *builder,
+                        std::weak_ptr<const MusicLibrary> music_library,
+                        std::weak_ptr<PlaybackList> playback_list) noexcept;
             ~ArtistsPage() noexcept = default;
 
         public:
             void activated() noexcept;
+
+        private:
+            static void on_child_activated(GtkFlowBox *,
+                                           GtkFlowBoxChild *element,
+                                           ArtistsPage *self) noexcept;
 
         public:
             operator GtkWidget *() noexcept;
@@ -34,6 +39,8 @@ namespace spring
 
             std::weak_ptr<const MusicLibrary> music_library_{};
             std::vector<std::unique_ptr<ArtistWidget>> artists_{};
+
+            std::weak_ptr<PlaybackList> playback_list_{};
 
         private:
             DISABLE_COPY(ArtistsPage)

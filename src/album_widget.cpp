@@ -27,11 +27,13 @@ AlbumWidget::AlbumWidget(music::Album &&album,
     get_widget_from_builder_simple(cover);
     get_widget_from_builder_simple(artist);
     get_widget_from_builder_simple(title);
+    g_object_unref(builder);
 
+    builder = gtk_builder_new_from_resource(APPLICATION_PREFIX
+                                            "/track_list_popover.ui");
     get_guarded_widget_from_builder(track_list_popover);
     get_widget_from_builder_simple(track_list);
     get_widget_from_builder_simple(tracks_loading_spinner);
-
     g_object_unref(builder);
 
     connect_g_signal(track_list_, "row-activated", &on_track_activated, this);
@@ -198,7 +200,7 @@ void AlbumWidget::on_track_activated(GtkListBox *,
     auto playlist = self->playback_list_.lock();
     if (playlist != nullptr)
     {
-        playlist->enqueue(std::move(self->tracks_.at(element_index)));
+        playlist->enqueue(self->tracks_.at(element_index));
     }
 }
 

@@ -30,6 +30,8 @@
 #include <memory>
 
 #include <libspring_global.h>
+#include <libspring_music_album.h>
+#include <libspring_music_track.h>
 
 namespace spring
 {
@@ -52,6 +54,9 @@ namespace spring
             const std::string &summary() const noexcept;
             const std::string &country() const noexcept;
             const std::string &genre() const noexcept;
+            std::vector<Album> albums() const noexcept;
+            std::vector<Track> tracks() const noexcept;
+            std::vector<Track> popularTracks() const noexcept;
             std::string thumbnail() const noexcept;
 
         private:
