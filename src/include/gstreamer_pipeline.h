@@ -117,14 +117,15 @@ namespace spring
             std::uint32_t progress_update_source_id_{ 0 };
 
         private:
-            const std::array<PlaybackState (*)(GStreamerPipeline &), 5>
-                gst_state_change_handlers_{
-                    &GStreamerPipeline::on_gst_state_change_void_pending,
-                    &GStreamerPipeline::on_gst_state_change_null,
-                    &GStreamerPipeline::on_gst_state_change_ready,
-                    &GStreamerPipeline::on_gst_state_change_paused,
-                    &GStreamerPipeline::on_gst_state_change_playing,
-                };
+            using gst_state_change_handler_t =
+                PlaybackState (*)(GStreamerPipeline &);
+            gst_state_change_handler_t gst_state_change_handlers_[5]{
+                &GStreamerPipeline::on_gst_state_change_void_pending,
+                &GStreamerPipeline::on_gst_state_change_null,
+                &GStreamerPipeline::on_gst_state_change_ready,
+                &GStreamerPipeline::on_gst_state_change_paused,
+                &GStreamerPipeline::on_gst_state_change_playing,
+            };
 
         private:
             DISABLE_COPY(GStreamerPipeline)
