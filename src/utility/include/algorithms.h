@@ -39,7 +39,7 @@ namespace spring
             {
                 auto pixbuf = load_pixbuf_from_data(data);
                 auto scaled_pixbuf = gdk_pixbuf_scale_simple(
-                    pixbuf, width, height, GDK_INTERP_HYPER);
+                    pixbuf, width, height, GDK_INTERP_TILES);
 
                 g_object_unref(pixbuf);
 
