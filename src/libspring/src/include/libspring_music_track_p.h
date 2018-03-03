@@ -73,13 +73,8 @@ namespace spring
                         ATTRIBUTE(std::string, parentTitle) /* album */
                         ATTRIBUTE(std::string, thumb)
                         ATTRIBUTE(std::string, title)
-                        INIT_ATTRIBUTES(Media,
-                                        duration,
-                                        grandparentTitle,
-                                        key,
-                                        parentTitle,
-                                        thumb,
-                                        title)
+                        INIT_ATTRIBUTES(
+                            Media, duration, grandparentTitle, key, parentTitle, thumb, title)
                     };
 
                     ATTRIBUTE(std::vector<metadata_t>, Metadata)
@@ -91,8 +86,7 @@ namespace spring
             };
 
         private:
-            using RawTrackMetadata =
-                LibraryContainer::media_container_t::metadata_t;
+            using RawTrackMetadata = LibraryContainer::media_container_t::metadata_t;
 
         public:
             TrackPrivate(RawTrackMetadata &&metadata,

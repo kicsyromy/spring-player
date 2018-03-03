@@ -48,9 +48,8 @@ namespace
     };
 }
 
-LibrarySectionPrivate::LibrarySectionPrivate(
-    MediaDirectory &&container,
-    std::weak_ptr<PlexMediaServerPrivate> pms) noexcept
+LibrarySectionPrivate::LibrarySectionPrivate(MediaDirectory &&container,
+                                             std::weak_ptr<PlexMediaServerPrivate> pms) noexcept
   : key(std::move(container.get_key()))
   , title(std::move(container.get_title()))
   , type(MEDIA_TYPE.at(container.get_type()))
@@ -83,15 +82,13 @@ MediaLibrary LibrarySection::content() const noexcept
 
     if (priv_->type == Type::Music)
     {
-        mediaLibrary = new MediaLibraryPrivate{
-            static_cast<MusicLibrary *>(nullptr), priv_->type,
-            new MusicLibraryPrivate{ priv_->key, priv_->pms_ }
-        };
+        mediaLibrary =
+            new MediaLibraryPrivate{ static_cast<MusicLibrary *>(nullptr), priv_->type,
+                                     new MusicLibraryPrivate{ priv_->key, priv_->pms_ } };
     }
     else
     {
-        LOG_WARN("MediaLibrary: Unimplemented type: {}",
-                 static_cast<int>(type()));
+        LOG_WARN("MediaLibrary: Unimplemented type: {}", static_cast<int>(type()));
     }
 
     return { mediaLibrary };

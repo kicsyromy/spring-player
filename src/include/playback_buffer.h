@@ -30,11 +30,9 @@ namespace spring
                 signal(buffer_updated, std::uint8_t *, std::size_t);
 
             public:
-                void start_buffering(
-                    std::shared_ptr<const music::Track> track) noexcept;
+                void start_buffering(std::shared_ptr<const music::Track> track) noexcept;
                 void stop_buffering() noexcept;
-                utility::string_view buffer_range(std::size_t index,
-                                                  std::size_t count) const
+                utility::string_view buffer_range(std::size_t index, std::size_t count) const
                     noexcept;
                 std::string &take() noexcept;
 

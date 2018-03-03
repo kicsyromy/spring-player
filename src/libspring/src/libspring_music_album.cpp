@@ -44,9 +44,7 @@ AlbumPrivate::AlbumPrivate(RawAlbumMetadata &&metadata,
   , id_(key_.c_str() + 18, 5)
   , title_(std::move(metadata.get_title()))
   , artist_(std::move(metadata.get_parentTitle()))
-  , genre_(metadata.get_Genre().size() > 0 ?
-               std::move(metadata.get_Genre().at(0).get_tag()) :
-               "")
+  , genre_(metadata.get_Genre().size() > 0 ? std::move(metadata.get_Genre().at(0).get_tag()) : "")
   , songCount_(metadata.get_leafCount())
   , artworkPath_(std::move(metadata.get_thumb()))
   , pms_(pms)
@@ -133,16 +131,13 @@ std::vector<Track> Album::tracks() const noexcept
         auto body = std::move(r.response.text);
 
         JsonFormat format{ body };
-        auto container =
-            sequential::from_format<music::TrackPrivate::LibraryContainer>(
-                format);
+        auto container = sequential::from_format<music::TrackPrivate::LibraryContainer>(format);
 
         auto &metadata = container.get_MediaContainer().get_Metadata();
         result.reserve(metadata.size());
         for (auto &m : metadata)
         {
-            result.push_back(
-                new music::TrackPrivate{ std::move(m), priv_->pms_ });
+            result.push_back(new music::TrackPrivate{ std::move(m), priv_->pms_ });
         }
     }
     else

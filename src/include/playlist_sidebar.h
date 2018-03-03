@@ -18,9 +18,8 @@ namespace spring
         class PlaylistSidebar
         {
         public:
-            PlaylistSidebar(
-                GtkBuilder *builder,
-                std::shared_ptr<PlaybackList> playback_list) noexcept;
+            PlaylistSidebar(GtkBuilder *builder,
+                            std::shared_ptr<PlaybackList> playback_list) noexcept;
             ~PlaylistSidebar() noexcept;
 
         public:
@@ -28,8 +27,7 @@ namespace spring
             void hide() noexcept;
 
         private:
-            static void toggled(GtkToggleButton *toggle_button,
-                                PlaylistSidebar *self) noexcept;
+            static void toggled(GtkToggleButton *toggle_button, PlaylistSidebar *self) noexcept;
 
             static void on_track_activated(GtkListBox *,
                                            GtkListBoxRow *element,

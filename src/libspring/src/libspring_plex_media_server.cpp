@@ -36,9 +36,7 @@
 
 using namespace spring;
 
-const char *PlexMediaServerPrivate::USER_AGENT{
-    "libspriNG/" LIBSPRING_VERSION_STR
-};
+const char *PlexMediaServerPrivate::USER_AGENT{ "libspriNG/" LIBSPRING_VERSION_STR };
 
 const char *PlexMediaServerPrivate::PLEX_HEADER_AUTH_KEY{ "X-Plex-Token" };
 
@@ -97,8 +95,7 @@ PlexMediaServerPrivate::PlexMediaServerPrivate(const char *serverAddress,
     http_.setHost(serverAddress);
     http_.setPort(port);
     http_.disableAuthentication();
-    http_.setSSLErrorHandling(
-        static_cast<HttpClient::SSLErrorHandling>(errorHandling));
+    http_.setSSLErrorHandling(static_cast<HttpClient::SSLErrorHandling>(errorHandling));
 
     url_ = http_.url();
 }
@@ -110,21 +107,18 @@ HttpClient::Request PlexMediaServerPrivate::request() const noexcept
     auto request = http_.createRequest();
 
     request.setHeaders(PlexMediaServerPrivate::PLEX_HEADERS);
-    request.setHeader(
-        { PlexMediaServerPrivate::PLEX_HEADER_AUTH_KEY, authenticationToken_ });
+    request.setHeader({ PlexMediaServerPrivate::PLEX_HEADER_AUTH_KEY, authenticationToken_ });
 
     return request;
 }
 
-HttpClient::RequestResult PlexMediaServerPrivate::request(
-    std::string &&path) const noexcept
+HttpClient::RequestResult PlexMediaServerPrivate::request(std::string &&path) const noexcept
 {
     auto request = http_.createRequest();
 
     request.setPath(path);
     request.setHeaders(PlexMediaServerPrivate::PLEX_HEADERS);
-    request.setHeader(
-        { PlexMediaServerPrivate::PLEX_HEADER_AUTH_KEY, authenticationToken_ });
+    request.setHeader({ PlexMediaServerPrivate::PLEX_HEADER_AUTH_KEY, authenticationToken_ });
 
 #ifdef LIBSPRING_LOG_DEBUG
     auto result = request.send();
@@ -132,21 +126,17 @@ HttpClient::RequestResult PlexMediaServerPrivate::request(
     ss << "Request:\n  Headers:";
     for (const auto &header : PlexMediaServerPrivate::PLEX_HEADERS)
     {
-        ss << fmt::format("\n    {}: {}", header.first.c_str(),
-                          header.second.c_str());
+        ss << fmt::format("\n    {}: {}", header.first.c_str(), header.second.c_str());
     }
-    ss << fmt::format("\n    {}: {}",
-                      PlexMediaServerPrivate::PLEX_HEADER_AUTH_KEY,
+    ss << fmt::format("\n    {}: {}", PlexMediaServerPrivate::PLEX_HEADER_AUTH_KEY,
                       authenticationToken_.c_str());
     ss << fmt::format("\n  Path: {}", path);
 
     ss << "\n\nResponse:\n  Headers:";
-    ss << fmt::format("\n    {} {}", static_cast<int>(result.status.code()),
-                      result.status.name());
+    ss << fmt::format("\n    {} {}", static_cast<int>(result.status.code()), result.status.name());
     for (const auto &header : result.response.headers)
     {
-        ss << fmt::format("\n    {}: {}", header.first.c_str(),
-                          header.second.c_str());
+        ss << fmt::format("\n    {}: {}", header.first.c_str(), header.second.c_str());
     }
     ss << "\n  Body:";
 
@@ -168,18 +158,13 @@ HttpClient::RequestResult PlexMediaServerPrivate::request(
 #endif
 }
 
-PlexMediaServer::PlexMediaServer(
-    const char *serverAddress,
-    int32_t port,
-    const char *username,
-    const char *password,
-    PlexMediaServer::SSLErrorHandling errorHandling) noexcept
+PlexMediaServer::PlexMediaServer(const char *serverAddress,
+                                 int32_t port,
+                                 const char *username,
+                                 const char *password,
+                                 PlexMediaServer::SSLErrorHandling errorHandling) noexcept
   : priv_(std::make_shared<PlexMediaServerPrivate>(
-        serverAddress,
-        port,
-        username,
-        password,
-        static_cast<bool>(errorHandling)))
+        serverAddress, port, username, password, static_cast<bool>(errorHandling)))
 {
 }
 
@@ -206,18 +191,15 @@ std::vector<LibrarySection> PlexMediaServer::sections() const noexcept
 
     JsonFormat format{ result.response.text };
     auto mediaContainer =
-        sequential::from_format<LibrarySectionPrivate::LibrarySectionContainer>(
-            format);
+        sequential::from_format<LibrarySectionPrivate::LibrarySectionContainer>(format);
 
     std::vector<LibrarySectionPrivate *> libraries;
-    libraries.reserve(
-        mediaContainer.get_MediaContainer().get_Directory().size());
+    libraries.reserve(mediaContainer.get_MediaContainer().get_Directory().size());
 
     auto &directories = mediaContainer.get_MediaContainer().get_Directory();
     for (auto &directory : directories)
     {
-        libraries.push_back(
-            new LibrarySectionPrivate{ std::move(directory), priv_ });
+        libraries.push_back(new LibrarySectionPrivate{ std::move(directory), priv_ });
     }
 
     return { libraries.begin(), libraries.end() };

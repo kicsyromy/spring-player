@@ -13,24 +13,20 @@ using namespace spring::player::utility;
 
 #include <libspring_logger.h>
 
-AlbumWidget::AlbumWidget(music::Album &&album,
-                         std::weak_ptr<PlaybackList> playback_list) noexcept
+AlbumWidget::AlbumWidget(music::Album &&album, std::weak_ptr<PlaybackList> playback_list) noexcept
   : album_(std::move(album))
   , playback_list_(playback_list)
 {
-    LOG_INFO("AlbumWidget({}): Creating album widget for album {}",
-             void_p(this), album_.title());
+    LOG_INFO("AlbumWidget({}): Creating album widget for album {}", void_p(this), album_.title());
 
-    auto builder =
-        gtk_builder_new_from_resource(APPLICATION_PREFIX "/album_widget.ui");
+    auto builder = gtk_builder_new_from_resource(APPLICATION_PREFIX "/album_widget.ui");
     get_guarded_widget_from_builder(album_widget);
     get_widget_from_builder_simple(cover);
     get_widget_from_builder_simple(artist);
     get_widget_from_builder_simple(title);
     g_object_unref(builder);
 
-    builder = gtk_builder_new_from_resource(APPLICATION_PREFIX
-                                            "/track_list_popover.ui");
+    builder = gtk_builder_new_from_resource(APPLICATION_PREFIX "/track_list_popover.ui");
     get_guarded_widget_from_builder(track_list_popover);
     get_widget_from_builder_simple(track_list);
     get_widget_from_builder_simple(tracks_loading_spinner);
@@ -53,8 +49,7 @@ AlbumWidget::AlbumWidget(music::Album &&album,
                 /* File is not cached, load it from the server and cache it */
                 if (result.first.empty())
                 {
-                    pixbuf = load_pixbuf_from_data_scaled<200, 200>(
-                        album_.artwork());
+                    pixbuf = load_pixbuf_from_data_scaled<200, 200>(album_.artwork());
                     rc.to_cache("album_artwork", album_.id(), pixbuf);
                 }
                 else /* File is cached and read, create a pixbuf out of it */
@@ -62,16 +57,16 @@ AlbumWidget::AlbumWidget(music::Album &&album,
                     pixbuf = load_pixbuf_from_data(result.first);
                 }
 
-                async_queue::post_response(new async_queue::Response{
-                    "album_artwork_ready", [this, pixbuf] {
-                        gtk_image_set_from_pixbuf(cover_, pixbuf);
-                        g_object_unref(pixbuf);
-                    } });
+                async_queue::post_response(
+                    new async_queue::Response{ "album_artwork_ready", [this, pixbuf] {
+                                                  gtk_image_set_from_pixbuf(cover_, pixbuf);
+                                                  g_object_unref(pixbuf);
+                                              } });
             }
             else
             {
-                LOG_ERROR("AlbumWidget({}): Failed to grab artwork for {}",
-                          void_p(this), album_.title());
+                LOG_ERROR("AlbumWidget({}): Failed to grab artwork for {}", void_p(this),
+                          album_.title());
             }
         } });
 }
@@ -88,16 +83,14 @@ const std::string &AlbumWidget::artist() const noexcept
 
 void AlbumWidget::activated() noexcept
 {
-    LOG_INFO("AlbumWidget({}): Activated album {}", void_p(this),
-             album_.title());
+    LOG_INFO("AlbumWidget({}): Activated album {}", void_p(this), album_.title());
 
     gtk_spinner_start(tracks_loading_spinner_);
 
     async_queue::push_front_request(new async_queue::Request{
         "get_tracks_for_album", [this]() {
 
-            LOG_INFO("AlbumWidget({}): Loading tracks for {}", void_p(this),
-                     album_.title());
+            LOG_INFO("AlbumWidget({}): Loading tracks for {}", void_p(this), album_.title());
 
             auto tracks = new std::vector<music::Track>();
             *tracks = album_.tracks();
@@ -106,8 +99,7 @@ void AlbumWidget::activated() noexcept
 
             for (const auto &track : *tracks)
             {
-                auto builder = gtk_builder_new_from_resource(
-                    APPLICATION_PREFIX "/track_widget.ui");
+                auto builder = gtk_builder_new_from_resource(APPLICATION_PREFIX "/track_widget.ui");
 
                 get_widget_from_builder_new(GtkBox, track_list_entry);
                 get_widget_from_builder_new(GtkLabel, artist_name);
@@ -120,11 +112,9 @@ void AlbumWidget::activated() noexcept
                 auto duration_seconds = track.duration().count() / 1000;
                 auto minutes = duration_seconds / 60;
                 auto seconds = duration_seconds % 60;
-                gtk_label_set_text(
-                    duration,
-                    seconds < 10 ?
-                        fmt::format("{}:0{}", minutes, seconds).c_str() :
-                        fmt::format("{}:{}", minutes, seconds).c_str());
+                gtk_label_set_text(duration, seconds < 10 ?
+                                                 fmt::format("{}:0{}", minutes, seconds).c_str() :
+                                                 fmt::format("{}:{}", minutes, seconds).c_str());
 
                 track_list_entries.emplace_back(track_list_entry);
 
@@ -191,8 +181,7 @@ void AlbumWidget::on_track_activated(GtkListBox *,
                                      GtkListBoxRow *element,
                                      AlbumWidget *self) noexcept
 {
-    std::size_t element_index =
-        static_cast<std::size_t>(gtk_list_box_row_get_index(element));
+    std::size_t element_index = static_cast<std::size_t>(gtk_list_box_row_get_index(element));
 
     LOG_INFO("AlbumWidget({}): Track {} activated from album {}", void_p(self),
              self->tracks_.at(element_index)->title(), self->album_.title());
@@ -206,10 +195,8 @@ void AlbumWidget::on_track_activated(GtkListBox *,
 
 void AlbumWidget::on_popover_closed(GtkPopover *, AlbumWidget *self) noexcept
 {
-    gtk_container_foreach(
-        gtk_cast<GtkContainer>(self->track_list_),
-        [](GtkWidget *widget, gpointer) { gtk_widget_destroy(widget); },
-        nullptr);
+    gtk_container_foreach(gtk_cast<GtkContainer>(self->track_list_),
+                          [](GtkWidget *widget, gpointer) { gtk_widget_destroy(widget); }, nullptr);
 }
 
 AlbumWidget::operator GtkWidget *() noexcept

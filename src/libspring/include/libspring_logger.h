@@ -40,67 +40,62 @@ extern thread_local fmt::MemoryWriter output;
 #define PATH_SEPARATOR '/'
 #endif // _MSC_VER
 
-#define LOG(...)                                                               \
-    do                                                                         \
-    {                                                                          \
-        output.write("   INFO: {:<20}: {:<4} ** {:<20} **: ",                  \
-                     strrchr(__FILE__, PATH_SEPARATOR) + 1, __LINE__,          \
-                     __func__);                                                \
-        output.write(__VA_ARGS__);                                             \
-        output.write("\n");                                                    \
-        std::fputs(output.c_str(), stderr);                                    \
-        output.clear();                                                        \
+#define LOG(...)                                                                                   \
+    do                                                                                             \
+    {                                                                                              \
+        output.write("   INFO: {:<20}: {:<4} ** {:<20} **: ",                                      \
+                     strrchr(__FILE__, PATH_SEPARATOR) + 1, __LINE__, __func__);                   \
+        output.write(__VA_ARGS__);                                                                 \
+        output.write("\n");                                                                        \
+        std::fputs(output.c_str(), stderr);                                                        \
+        output.clear();                                                                            \
     } while (0)
 
 #define LOG_INFO(...) LOG(__VA_ARGS__)
 
-#define LOG_WARN(...)                                                          \
-    do                                                                         \
-    {                                                                          \
-        output.write("WARNING: {:<20}: {:<4} ** {:<20} **: ",                  \
-                     strrchr(__FILE__, PATH_SEPARATOR) + 1, __LINE__,          \
-                     __func__);                                                \
-        output.write(__VA_ARGS__);                                             \
-        output.write("\n");                                                    \
-        std::fputs(output.c_str(), stderr);                                    \
-        output.clear();                                                        \
+#define LOG_WARN(...)                                                                              \
+    do                                                                                             \
+    {                                                                                              \
+        output.write("WARNING: {:<20}: {:<4} ** {:<20} **: ",                                      \
+                     strrchr(__FILE__, PATH_SEPARATOR) + 1, __LINE__, __func__);                   \
+        output.write(__VA_ARGS__);                                                                 \
+        output.write("\n");                                                                        \
+        std::fputs(output.c_str(), stderr);                                                        \
+        output.clear();                                                                            \
     } while (0)
 
-#define LOG_ERROR(...)                                                         \
-    do                                                                         \
-    {                                                                          \
-        output.write("  ERROR: {:<20}: {:<4} ** {:<20} **: ",                  \
-                     strrchr(__FILE__, PATH_SEPARATOR) + 1, __LINE__,          \
-                     __func__);                                                \
-        output.write(__VA_ARGS__);                                             \
-        output.write("\n");                                                    \
-        std::fputs(output.c_str(), stderr);                                    \
-        output.clear();                                                        \
+#define LOG_ERROR(...)                                                                             \
+    do                                                                                             \
+    {                                                                                              \
+        output.write("  ERROR: {:<20}: {:<4} ** {:<20} **: ",                                      \
+                     strrchr(__FILE__, PATH_SEPARATOR) + 1, __LINE__, __func__);                   \
+        output.write(__VA_ARGS__);                                                                 \
+        output.write("\n");                                                                        \
+        std::fputs(output.c_str(), stderr);                                                        \
+        output.clear();                                                                            \
     } while (0)
 
-#define LOG_FATAL(...)                                                         \
-    do                                                                         \
-    {                                                                          \
-        output.write("  FATAL: {:<20}: {:<4} ** {:<20} **: ",                  \
-                     strrchr(__FILE__, PATH_SEPARATOR) + 1, __LINE__,          \
-                     __func__);                                                \
-        output.write(__VA_ARGS__);                                             \
-        output.write("\n");                                                    \
-        std::fputs(output.c_str(), stderr);                                    \
-        std::exit(EXIT_FAILURE);                                               \
+#define LOG_FATAL(...)                                                                             \
+    do                                                                                             \
+    {                                                                                              \
+        output.write("  FATAL: {:<20}: {:<4} ** {:<20} **: ",                                      \
+                     strrchr(__FILE__, PATH_SEPARATOR) + 1, __LINE__, __func__);                   \
+        output.write(__VA_ARGS__);                                                                 \
+        output.write("\n");                                                                        \
+        std::fputs(output.c_str(), stderr);                                                        \
+        std::exit(EXIT_FAILURE);                                                                   \
     } while (0)
 
 #ifdef LIBSPRING_LOG_DEBUG
-#define LOG_DEBUG(...)                                                         \
-    do                                                                         \
-    {                                                                          \
-        output.write("  DEBUG: {:<20}: {:<4} ** {:<20} **: ",                  \
-                     strrchr(__FILE__, PATH_SEPARATOR) + 1, __LINE__,          \
-                     __func__);                                                \
-        output.write(__VA_ARGS__);                                             \
-        output.write("\n");                                                    \
-        std::fputs(output.c_str(), stderr);                                    \
-        output.clear();                                                        \
+#define LOG_DEBUG(...)                                                                             \
+    do                                                                                             \
+    {                                                                                              \
+        output.write("  DEBUG: {:<20}: {:<4} ** {:<20} **: ",                                      \
+                     strrchr(__FILE__, PATH_SEPARATOR) + 1, __LINE__, __func__);                   \
+        output.write(__VA_ARGS__);                                                                 \
+        output.write("\n");                                                                        \
+        std::fputs(output.c_str(), stderr);                                                        \
+        output.clear();                                                                            \
     } while (0)
 #else
 #define LOG_DEBUG(...)

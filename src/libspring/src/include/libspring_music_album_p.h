@@ -63,8 +63,7 @@ namespace spring
                         ATTRIBUTE(std::string, thumb)
                         ATTRIBUTE(std::size_t, leafCount)
                         ATTRIBUTE(std::vector<genre_t>, Genre)
-                        INIT_ATTRIBUTES(
-                            key, title, parentTitle, thumb, leafCount, Genre)
+                        INIT_ATTRIBUTES(key, title, parentTitle, thumb, leafCount, Genre)
                     };
 
                     ATTRIBUTE(std::vector<metadata_t>, Metadata)
@@ -76,8 +75,7 @@ namespace spring
             };
 
         private:
-            using RawAlbumMetadata =
-                LibraryContainer::media_container_t::metadata_t;
+            using RawAlbumMetadata = LibraryContainer::media_container_t::metadata_t;
 
         public:
             AlbumPrivate(RawAlbumMetadata &&metadata,

@@ -27,19 +27,17 @@ namespace spring
             void activated() noexcept;
 
         private:
-            std::pair<std::vector<music::Track> *,
-                      std::vector<utility::GtkRefGuard<GtkBox>> *>
+            std::pair<std::vector<music::Track> *, std::vector<utility::GtkRefGuard<GtkBox>> *>
             load_tracks() const noexcept;
-            void on_tracks_loaded(std::vector<music::Track> *tracks,
-                                  std::vector<utility::GtkRefGuard<GtkBox>>
-                                      *track_widgets) noexcept;
+            void on_tracks_loaded(
+                std::vector<music::Track> *tracks,
+                std::vector<utility::GtkRefGuard<GtkBox>> *track_widgets) noexcept;
 
         private:
             static void on_track_activated(GtkListBox *list_box,
                                            GtkListBoxRow *element,
                                            ArtistWidget *self) noexcept;
-            static void on_popover_closed(GtkPopover *popover,
-                                          ArtistWidget *self) noexcept;
+            static void on_popover_closed(GtkPopover *popover, ArtistWidget *self) noexcept;
 
         private:
             utility::GtkRefGuard<GtkBox> artist_widget_{ nullptr };

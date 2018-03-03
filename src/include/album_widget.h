@@ -20,8 +20,7 @@ namespace spring
         class AlbumWidget
         {
         public:
-            AlbumWidget(music::Album &&album,
-                        std::weak_ptr<PlaybackList> playback_list) noexcept;
+            AlbumWidget(music::Album &&album, std::weak_ptr<PlaybackList> playback_list) noexcept;
             ~AlbumWidget() noexcept = default;
 
         public:
@@ -36,8 +35,7 @@ namespace spring
             static void on_track_activated(GtkListBox *list_box,
                                            GtkListBoxRow *element,
                                            AlbumWidget *self) noexcept;
-            static void on_popover_closed(GtkPopover *popover,
-                                          AlbumWidget *self) noexcept;
+            static void on_popover_closed(GtkPopover *popover, AlbumWidget *self) noexcept;
 
         private:
             utility::GtkRefGuard<GtkBox> album_widget_{ nullptr };

@@ -8,8 +8,7 @@ using namespace spring;
 using namespace spring::player;
 using namespace spring::player::utility;
 
-GenresPage::GenresPage(GtkBuilder *builder,
-                       const MusicLibrary &music_library) noexcept
+GenresPage::GenresPage(GtkBuilder *builder, const MusicLibrary &music_library) noexcept
   : music_library_(music_library)
 {
     LOG_INFO("GenresPage({}): Creating...", void_p(this));

@@ -41,8 +41,7 @@ namespace spring
             std::unique_ptr<GenresPage> genres_page_{ nullptr };
             std::unique_ptr<SongsPage> songs_page_{ nullptr };
 
-            std::shared_ptr<MusicLibrary> music_library_{ new MusicLibrary{
-                nullptr } };
+            std::shared_ptr<MusicLibrary> music_library_{ new MusicLibrary{ nullptr } };
 
         private:
             DISABLE_COPY(PageStack)

@@ -23,8 +23,7 @@ ArtistsPage::ArtistsPage(GtkBuilder *builder,
     get_widget_from_builder_simple(artists_content);
     get_widget_from_builder_simple(artists_loading_spinner);
 
-    connect_g_signal(artists_content_, "child-activated", &on_child_activated,
-                     this);
+    connect_g_signal(artists_content_, "child-activated", &on_child_activated, this);
 }
 
 void ArtistsPage::activated() noexcept
@@ -47,31 +46,27 @@ void ArtistsPage::activated() noexcept
 
                 if (music_library != nullptr)
                 {
-                    auto artist_widgets =
-                        new std::vector<std::unique_ptr<ArtistWidget>>{};
+                    auto artist_widgets = new std::vector<std::unique_ptr<ArtistWidget>>{};
                     auto artists = music_library->artists();
 
                     for (auto &artist : artists)
                     {
                         artist_widgets->push_back(
-                            std::make_unique<ArtistWidget>(std::move(artist),
-                                                           playback_list_));
+                            std::make_unique<ArtistWidget>(std::move(artist), playback_list_));
                     }
 
                     async_queue::post_response(new async_queue::Response{
                         "artists_ready", [this, artist_widgets]() {
-                            LOG_INFO(
-                                "ArtistsPage({}): Content ready, populating "
-                                "GtkFlowBox",
-                                void_p(this));
+                            LOG_INFO("ArtistsPage({}): Content ready, populating "
+                                     "GtkFlowBox",
+                                     void_p(this));
 
                             artists_ = std::move(*artist_widgets);
                             delete artist_widgets;
 
                             for (auto &artist : artists_)
                             {
-                                gtk_flow_box_insert(artists_content_,
-                                                    artist->container(), -1);
+                                gtk_flow_box_insert(artists_content_, artist->container(), -1);
                             }
 
                             gtk_spinner_stop(artists_loading_spinner_);
@@ -85,11 +80,9 @@ void ArtistsPage::on_child_activated(GtkFlowBox *,
                                      GtkFlowBoxChild *element,
                                      ArtistsPage *self) noexcept
 {
-    auto index =
-        static_cast<std::size_t>(gtk_flow_box_child_get_index(element));
+    auto index = static_cast<std::size_t>(gtk_flow_box_child_get_index(element));
 
-    LOG_INFO("ArtistsPage({}): Activated artist at index {}", void_p(self),
-             index);
+    LOG_INFO("ArtistsPage({}): Activated artist at index {}", void_p(self), index);
 
     self->artists_.at(index)->activated();
 }

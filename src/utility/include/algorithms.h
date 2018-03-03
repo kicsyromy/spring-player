@@ -17,14 +17,12 @@ namespace spring
     {
         namespace utility
         {
-            inline GdkPixbuf *load_pixbuf_from_data(
-                const std::string &data) noexcept
+            inline GdkPixbuf *load_pixbuf_from_data(const std::string &data) noexcept
             {
                 auto loader = gdk_pixbuf_loader_new();
 
-                gdk_pixbuf_loader_write(
-                    loader, reinterpret_cast<const guchar *>(data.data()),
-                    data.size(), nullptr);
+                gdk_pixbuf_loader_write(loader, reinterpret_cast<const guchar *>(data.data()),
+                                        data.size(), nullptr);
 
                 auto pixbuf = gdk_pixbuf_loader_get_pixbuf(loader);
 
@@ -34,12 +32,11 @@ namespace spring
             }
 
             template <int width, int height>
-            inline GdkPixbuf *load_pixbuf_from_data_scaled(
-                const std::string &data) noexcept
+            inline GdkPixbuf *load_pixbuf_from_data_scaled(const std::string &data) noexcept
             {
                 auto pixbuf = load_pixbuf_from_data(data);
-                auto scaled_pixbuf = gdk_pixbuf_scale_simple(
-                    pixbuf, width, height, GDK_INTERP_TILES);
+                auto scaled_pixbuf =
+                    gdk_pixbuf_scale_simple(pixbuf, width, height, GDK_INTERP_TILES);
 
                 g_object_unref(pixbuf);
 
@@ -48,9 +45,8 @@ namespace spring
 
             /* Shamelessly adapted from:                                                         */
             /* https://en.wikipedia.org/wiki/Levenshtein_distance#Iterative_with_two_matrix_rows */
-            inline std::int32_t levenshtein_distance(
-                const utility::string_view &from,
-                const utility::string_view &to) noexcept
+            inline std::int32_t levenshtein_distance(const utility::string_view &from,
+                                                     const utility::string_view &to) noexcept
             {
                 std::size_t s1_size = utf8::distance(from.begin(), from.end());
                 std::size_t s2_size = utf8::distance(to.begin(), to.end());
@@ -59,8 +55,7 @@ namespace spring
                 std::string s2{};
 
                 {
-                    icu::UnicodeString s1_utf8(from.data(), from.size(),
-                                               US_INV);
+                    icu::UnicodeString s1_utf8(from.data(), from.size(), US_INV);
                     icu::UnicodeString s2_utf8(to.data(), to.size(), US_INV);
 
                     s1_utf8.toLower();
@@ -79,23 +74,17 @@ namespace spring
                 }
 
                 auto s1_code_point = s1.begin();
-                for (std::size_t it = 0; it < s1_size;
-                     ++it, utf8::next(s1_code_point))
+                for (std::size_t it = 0; it < s1_size; ++it, utf8::next(s1_code_point))
                 {
                     current_distances[0] = static_cast<std::int32_t>(it) + 1;
 
                     auto s2_code_point = s2.begin();
                     for (std::size_t jt = 0; jt < s2_size; ++jt)
                     {
-                        const std::int32_t deletion_cost{
-                            previous_distances[jt + 1] + 1
-                        };
-                        const std::int32_t insertion_cost{
-                            current_distances[jt] + 1
-                        };
+                        const std::int32_t deletion_cost{ previous_distances[jt + 1] + 1 };
+                        const std::int32_t insertion_cost{ current_distances[jt] + 1 };
                         std::int32_t substitution_cost{ 0 };
-                        if (utf8::peek_next(s1_code_point) ==
-                            utf8::next(s2_code_point))
+                        if (utf8::peek_next(s1_code_point) == utf8::next(s2_code_point))
                         {
                             substitution_cost = previous_distances[jt];
                         }
@@ -105,15 +94,12 @@ namespace spring
                         }
 
                         current_distances[jt + 1] =
-                            std::min(std::min(deletion_cost, insertion_cost),
-                                     substitution_cost);
+                            std::min(std::min(deletion_cost, insertion_cost), substitution_cost);
                     }
 
-                    for (std::size_t it = 0; it < current_distances.size();
-                         ++it)
+                    for (std::size_t it = 0; it < current_distances.size(); ++it)
                     {
-                        std::swap(previous_distances[it],
-                                  current_distances[it]);
+                        std::swap(previous_distances[it], current_distances[it]);
                     }
                 }
 
@@ -136,11 +122,9 @@ namespace spring
                     {
                         auto s2_window_end = s2_window_begin;
                         utf8::advance(s2_window_end, s1_size);
-                        utility::string_view s2_window{
-                            s2_window_begin,
-                            static_cast<std::size_t>(
-                                std::distance(s2_window_begin, s2_window_end))
-                        };
+                        utility::string_view s2_window{ s2_window_begin,
+                                                        static_cast<std::size_t>(std::distance(
+                                                            s2_window_begin, s2_window_end)) };
                         if (levenshtein_distance(s1, s2_window) <= precision)
                         {
                             return true;
@@ -156,11 +140,9 @@ namespace spring
                     {
                         auto s1_window_end = s1_window_begin;
                         utf8::advance(s1_window_end, s2_size);
-                        utility::string_view s1_window{
-                            s1_window_begin,
-                            static_cast<std::size_t>(
-                                std::distance(s1_window_begin, s1_window_end))
-                        };
+                        utility::string_view s1_window{ s1_window_begin,
+                                                        static_cast<std::size_t>(std::distance(
+                                                            s1_window_begin, s1_window_end)) };
                         if (levenshtein_distance(s2, s1_window) <= precision)
                         {
                             return true;

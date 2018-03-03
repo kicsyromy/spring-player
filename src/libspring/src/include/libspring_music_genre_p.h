@@ -64,8 +64,7 @@ namespace spring
             };
 
         private:
-            using RawGenreMetadata =
-                LibraryContainer::media_container_t::directory_t;
+            using RawGenreMetadata = LibraryContainer::media_container_t::directory_t;
 
         public:
             GenrePrivate(RawGenreMetadata &&metadata,

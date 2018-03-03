@@ -15,8 +15,8 @@ using namespace spring::player::utility;
 ResourceCache::ResourceCache() noexcept = default;
 ResourceCache::~ResourceCache() noexcept = default;
 
-std::pair<std::string, bool> ResourceCache::from_cache(
-    const string_view &prefix, const string_view &resource_id) noexcept
+std::pair<std::string, bool> ResourceCache::from_cache(const string_view &prefix,
+                                                       const string_view &resource_id) noexcept
 {
     auto path = fmt::format("{}/{}", settings::cache_directory(), prefix);
     auto full_file_path = fmt::format("{}/{}", path, resource_id);
@@ -25,14 +25,12 @@ std::pair<std::string, bool> ResourceCache::from_cache(
     char *file_content{ nullptr };
     std::size_t file_size{ 0 };
 
-    auto success = g_file_get_contents(full_file_path.c_str(), &file_content,
-                                       &file_size, &error);
+    auto success = g_file_get_contents(full_file_path.c_str(), &file_content, &file_size, &error);
     if (!success)
     {
         if (error->code != G_FILE_ERROR_NOENT)
         {
-            LOG_ERROR("ResourceCache: Failed to open file {}: {}",
-                      full_file_path, error->message);
+            LOG_ERROR("ResourceCache: Failed to open file {}: {}", full_file_path, error->message);
         }
         else
         {
@@ -42,9 +40,7 @@ std::pair<std::string, bool> ResourceCache::from_cache(
 
     g_clear_error(&error);
 
-    return { file_content ? std::string{ file_content, file_size } :
-                            std::string{ "" },
-             success };
+    return { file_content ? std::string{ file_content, file_size } : std::string{ "" }, success };
 }
 
 void ResourceCache::to_cache(const string_view &prefix,
@@ -59,19 +55,17 @@ void ResourceCache::to_cache(const string_view &prefix,
     if (result > 0)
     {
         auto err = errno;
-        LOG_ERROR("ResourceCache: Failed to create directory {}: {}", path,
-                  std::strerror(err));
+        LOG_ERROR("ResourceCache: Failed to create directory {}: {}", path, std::strerror(err));
     }
     else
     {
         GError *error{ nullptr };
-        auto success = g_file_set_contents(full_file_path.c_str(), data,
-                                           static_cast<gssize>(size), &error);
+        auto success =
+            g_file_set_contents(full_file_path.c_str(), data, static_cast<gssize>(size), &error);
 
         if (!success)
         {
-            LOG_ERROR("ResourceCache: Failed to save file {}: {}",
-                      full_file_path, error->message);
+            LOG_ERROR("ResourceCache: Failed to save file {}: {}", full_file_path, error->message);
         }
 
         g_clear_error(&error);
@@ -89,8 +83,7 @@ void ResourceCache::to_cache(const string_view &prefix,
     if (result > 0)
     {
         auto err = errno;
-        LOG_ERROR("ResourceCache: Failed to create directory {}: {}", path,
-                  std::strerror(err));
+        LOG_ERROR("ResourceCache: Failed to create directory {}: {}", path, std::strerror(err));
     }
     else
     {
@@ -98,8 +91,8 @@ void ResourceCache::to_cache(const string_view &prefix,
         gdk_pixbuf_save(pixbuf, full_file_path.c_str(), "png", &error, nullptr);
         if (error != nullptr)
         {
-            LOG_ERROR("ResourceCache: Failed to save pixbuf {} to disk: {}",
-                      full_file_path, error->message);
+            LOG_ERROR("ResourceCache: Failed to save pixbuf {} to disk: {}", full_file_path,
+                      error->message);
         }
 
         g_clear_error(&error);

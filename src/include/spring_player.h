@@ -6,8 +6,7 @@
 #include <libspring_plex_media_server.h>
 
 #define SPRING_PLAYER_TYPE (spring_player_get_type())
-G_DECLARE_FINAL_TYPE(
-    SpringPlayer, spring_player, SPRING_PLAYER, APPLICATION, GtkApplication)
+G_DECLARE_FINAL_TYPE(SpringPlayer, spring_player, SPRING_PLAYER, APPLICATION, GtkApplication)
 
 SpringPlayer *spring_player_new();
 spring::PlexMediaServer spring_player_pms();

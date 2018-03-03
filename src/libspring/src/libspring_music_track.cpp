@@ -73,8 +73,7 @@ std::string TrackPrivate::path(std::uint32_t bitrate) const noexcept
     {
         return fmt::format("{}{}&session={}&protocol=http&maxAudioBitrate={}&"
                            "directPlay=1&X-Plex-Device=Web&{}={}",
-                           MUSIC_TRANSCODE_REQUEST_PATH, path_,
-                           pms->clientUUID(), bitrate,
+                           MUSIC_TRANSCODE_REQUEST_PATH, path_, pms->clientUUID(), bitrate,
                            PlexMediaServerPrivate::PLEX_HEADER_AUTH_KEY,
                            pms->authenticationToken());
     }
@@ -172,8 +171,7 @@ std::string Track::url(std::uint32_t bitrate) const noexcept
     }
 }
 
-void Track::trackData(DataFragmentReadyCallback callback, void *userData) const
-    noexcept
+void Track::trackData(DataFragmentReadyCallback callback, void *userData) const noexcept
 {
     auto pms = priv_->pms_.lock();
     if (pms != nullptr)

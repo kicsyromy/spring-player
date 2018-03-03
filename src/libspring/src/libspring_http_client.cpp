@@ -81,8 +81,7 @@ namespace
                 err.errorCode = HttpClient::Error::Code::SSLConnectError;
                 break;
             case CURLE_PEER_FAILED_VERIFICATION:
-                err.errorCode =
-                    HttpClient::Error::Code::SSLRemoteCertificateError;
+                err.errorCode = HttpClient::Error::Code::SSLRemoteCertificateError;
                 break;
             case CURLE_GOT_NOTHING:
                 err.errorCode = HttpClient::Error::Code::ResponseInvalid;
@@ -100,8 +99,7 @@ namespace
                 err.errorCode = HttpClient::Error::Code::NetworkReceiveError;
                 break;
             case CURLE_SSL_CERTPROBLEM:
-                err.errorCode =
-                    HttpClient::Error::Code::SSLLocalCertificateError;
+                err.errorCode = HttpClient::Error::Code::SSLLocalCertificateError;
                 break;
             case CURLE_SSL_CIPHER:
                 err.errorCode = HttpClient::Error::Code::GenericSSLError;
@@ -144,8 +142,8 @@ namespace
                               std::size_t nmemb,
                               CallbackData *callback)
     {
-        return callback->function(reinterpret_cast<std::uint8_t *>(data),
-                                  size * nmemb, callback->userData);
+        return callback->function(reinterpret_cast<std::uint8_t *>(data), size * nmemb,
+                                  callback->userData);
     }
 
     /* Appends a key-value pair, represented by ptr, of length size * nmemb, to the data map. */
@@ -163,8 +161,7 @@ namespace
             if (separatorPos != std::string::npos)
             {
                 auto value = header.substr(separatorPos + 2);
-                (*data)[header.substr(0, separatorPos)] =
-                    value.substr(0, value.size() - 2);
+                (*data)[header.substr(0, separatorPos)] = value.substr(0, value.size() - 2);
                 /*                  ^^^^^^^^^^^^^^^^          */
                 /* Ignore CL/RF at the end of the header line */
             }
@@ -459,8 +456,7 @@ void HttpClient::setPort(http_port_t port) noexcept
 
 std::string HttpClient::url() const noexcept
 {
-    return fmt::format("{}{}", hostname_,
-                       port_ > 0 ? fmt::format(":{}", port_) : "");
+    return fmt::format("{}{}", hostname_, port_ > 0 ? fmt::format(":{}", port_) : "");
 }
 
 bool HttpClient::authenticationRequired() const noexcept
@@ -598,8 +594,7 @@ void spring::HttpClient::Request::setHeaders(
     }
 }
 
-void HttpClient::Request::setHeaders(
-    HttpClient::http_header_array_t &&headers) noexcept
+void HttpClient::Request::setHeaders(HttpClient::http_header_array_t &&headers) noexcept
 {
     for (auto &header : headers)
     {
@@ -607,8 +602,7 @@ void HttpClient::Request::setHeaders(
     }
 }
 
-void spring::HttpClient::Request::setHeader(
-    const HttpClient::http_header_t &header) noexcept
+void spring::HttpClient::Request::setHeader(const HttpClient::http_header_t &header) noexcept
 {
     headers_[header.first] = header.second;
 }
@@ -622,8 +616,7 @@ HttpClient::http_request_result_t HttpClient::Request::send() noexcept
 {
     std::string text{};
     auto response = send(
-        [](std::uint8_t *responseData, std::size_t responseSize,
-           void *userData) -> std::size_t {
+        [](std::uint8_t *responseData, std::size_t responseSize, void *userData) -> std::size_t {
             auto text = static_cast<std::string *>(userData);
             text->append(reinterpret_cast<char *>(responseData), responseSize);
             return responseSize;
@@ -639,8 +632,8 @@ HttpClient::http_request_result_t HttpClient::Request::send() noexcept
     return response;
 }
 
-HttpClient::http_request_result_t HttpClient::Request::send(
-    write_callback_t callback, void *userData) noexcept
+HttpClient::http_request_result_t HttpClient::Request::send(write_callback_t callback,
+                                                            void *userData) noexcept
 {
     std::int32_t httpStatus{ HttpClient::Status::Unknown };
     http_header_array_t responseHeaders{};
@@ -661,18 +654,15 @@ HttpClient::http_request_result_t HttpClient::Request::send(
     {
         std::string url = fmt::format("{}{}", url_, path_);
         curl_easy_setopt(handle_, CURLOPT_URL, url.c_str());
-        curl_easy_setopt(handle_, CURLOPT_WRITEFUNCTION,
-                         &writeCallback<CallbackData>);
+        curl_easy_setopt(handle_, CURLOPT_WRITEFUNCTION, &writeCallback<CallbackData>);
 
         curl_slist *headers = nullptr;
         std::vector<std::string> formatedHeaders;
 
         for (const auto &header : headers_)
         {
-            formatedHeaders.emplace_back(
-                fmt::format("{}: {}", header.first, header.second));
-            headers =
-                curl_slist_append(headers, formatedHeaders.back().c_str());
+            formatedHeaders.emplace_back(fmt::format("{}: {}", header.first, header.second));
+            headers = curl_slist_append(headers, formatedHeaders.back().c_str());
         }
         curl_easy_setopt(handle_, CURLOPT_HTTPHEADER, headers);
         curl_easy_setopt(handle_, CURLOPT_WRITEDATA, &callbackData);
@@ -687,10 +677,7 @@ HttpClient::http_request_result_t HttpClient::Request::send(
         curl_slist_free_all(headers);
     }
 
-    return { http_status_t(httpStatus),
-             { std::move(responseHeaders), "" },
-             elapsed,
-             err };
+    return { http_status_t(httpStatus), { std::move(responseHeaders), "" }, elapsed, err };
 }
 
 HttpClient::Request HttpClient::createRequest() const noexcept
@@ -699,10 +686,9 @@ HttpClient::Request HttpClient::createRequest() const noexcept
 
     if (authenticationEnabled_)
     {
-        curl_easy_setopt(curl, CURLOPT_USERPWD,
-                         fmt::format("{}:{}", authentication_.username,
-                                     authentication_.password)
-                             .c_str());
+        curl_easy_setopt(
+            curl, CURLOPT_USERPWD,
+            fmt::format("{}:{}", authentication_.username, authentication_.password).c_str());
     }
 
     return { curl, url() };

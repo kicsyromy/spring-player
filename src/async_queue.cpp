@@ -32,20 +32,17 @@ namespace
         {
             g_async_queue_push_front(
                 message_queue,
-                new Request{
-                    "clear_message_queue", []() {
-                        for (;;)
-                        {
-                            std::unique_ptr<Request> request{
-                                static_cast<Request *>(
-                                    g_async_queue_try_pop(message_queue))
-                            };
-                            if (request == nullptr)
-                            {
-                                break;
-                            }
-                        }
-                    } });
+                new Request{ "clear_message_queue", []() {
+                                for (;;)
+                                {
+                                    std::unique_ptr<Request> request{ static_cast<Request *>(
+                                        g_async_queue_try_pop(message_queue)) };
+                                    if (request == nullptr)
+                                    {
+                                        break;
+                                    }
+                                }
+                            } });
         }
     }
 }
@@ -56,8 +53,7 @@ void async_queue::start_processing() noexcept
     message_queue = g_async_queue_new();
     worker = std::thread{ []() {
         g_async_queue_ref(message_queue);
-        LOG_INFO("AsyncQueue: Started worker thread 0x{:x}",
-                 current_thread_id());
+        LOG_INFO("AsyncQueue: Started worker thread 0x{:x}", current_thread_id());
 
         for (;;)
         {
@@ -114,8 +110,7 @@ void async_queue::push_back_request(Request *request) noexcept
     }
     else
     {
-        LOG_WARN("AsyncQueue: Queue is not running, message \"{}\" lost",
-                 request->id);
+        LOG_WARN("AsyncQueue: Queue is not running, message \"{}\" lost", request->id);
         delete request;
     }
 }
@@ -129,8 +124,7 @@ void async_queue::push_front_request(Request *request) noexcept
     }
     else
     {
-        LOG_WARN("AsyncQueue: Queue is not running, message \"{}\" lost",
-                 request->id);
+        LOG_WARN("AsyncQueue: Queue is not running, message \"{}\" lost", request->id);
         delete request;
     }
 }
@@ -140,14 +134,13 @@ void async_queue::post_response(Response *response) noexcept
     if (message_loop_running && response->request != nullptr)
     {
         LOG_INFO("AsyncQueue: Posting reply: \"{}\"", response->id);
-        g_main_context_invoke(nullptr,
-                              [](gpointer data) -> int {
-                                  std::unique_ptr<Response> response{
-                                      static_cast<Response *>(data)
-                                  };
-                                  response->request();
-                                  return false;
-                              },
-                              response);
+        g_main_context_invoke(
+            nullptr,
+            [](gpointer data) -> int {
+                std::unique_ptr<Response> response{ static_cast<Response *>(data) };
+                response->request();
+                return false;
+            },
+            response);
     }
 }

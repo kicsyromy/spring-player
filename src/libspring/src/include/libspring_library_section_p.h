@@ -63,16 +63,14 @@ namespace spring
         };
 
     private:
-        using MediaDirectory =
-            LibrarySectionContainer::media_container_t::directory_t;
+        using MediaDirectory = LibrarySectionContainer::media_container_t::directory_t;
 
     public:
         static constexpr const char *REQUEST_PATH{ "/library/sections" };
 
     public:
-        LibrarySectionPrivate(
-            MediaDirectory &&container,
-            std::weak_ptr<PlexMediaServerPrivate> pms) noexcept;
+        LibrarySectionPrivate(MediaDirectory &&container,
+                              std::weak_ptr<PlexMediaServerPrivate> pms) noexcept;
 
         ~LibrarySectionPrivate() noexcept;
 

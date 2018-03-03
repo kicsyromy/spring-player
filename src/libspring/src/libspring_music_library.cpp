@@ -39,8 +39,8 @@
 
 using namespace spring;
 
-MusicLibraryPrivate::MusicLibraryPrivate(
-    std::string key, std::weak_ptr<PlexMediaServerPrivate> pms) noexcept
+MusicLibraryPrivate::MusicLibraryPrivate(std::string key,
+                                         std::weak_ptr<PlexMediaServerPrivate> pms) noexcept
   : key_(key)
   , pms_(pms)
 {
@@ -76,21 +76,17 @@ std::vector<MusicLibrary::Album> MusicLibrary::albums() const noexcept
     if (pms != nullptr)
     {
         /* TODO: Error handling */
-        auto r =
-            pms->request(std::string{ LibrarySectionPrivate::REQUEST_PATH } +
-                         "/" + priv_->key_ + "/albums");
+        auto r = pms->request(std::string{ LibrarySectionPrivate::REQUEST_PATH } + "/" +
+                              priv_->key_ + "/albums");
         auto body = std::move(r.response.text);
 
         JsonFormat format{ body };
-        auto container =
-            sequential::from_format<music::AlbumPrivate::LibraryContainer>(
-                format);
+        auto container = sequential::from_format<music::AlbumPrivate::LibraryContainer>(format);
         auto &metadata = container.get_MediaContainer().get_Metadata();
         result.reserve(metadata.size());
         for (auto &m : metadata)
         {
-            result.push_back(
-                new music::AlbumPrivate{ std::move(m), priv_->pms_ });
+            result.push_back(new music::AlbumPrivate{ std::move(m), priv_->pms_ });
         }
     }
     else
@@ -112,21 +108,17 @@ std::vector<MusicLibrary::Artist> MusicLibrary::artists() const noexcept
     if (pms != nullptr)
     {
         /* TODO: Error handling */
-        auto r =
-            pms->request(std::string{ LibrarySectionPrivate::REQUEST_PATH } +
-                         "/" + priv_->key_ + "/all");
+        auto r = pms->request(std::string{ LibrarySectionPrivate::REQUEST_PATH } + "/" +
+                              priv_->key_ + "/all");
         auto body = std::move(r.response.text);
 
         JsonFormat format{ body };
-        auto container =
-            sequential::from_format<music::ArtistPrivate::LibraryContainer>(
-                format);
+        auto container = sequential::from_format<music::ArtistPrivate::LibraryContainer>(format);
         auto &metadata = container.get_MediaContainer().get_Metadata();
         result.reserve(metadata.size());
         for (auto &m : metadata)
         {
-            result.push_back(
-                new music::ArtistPrivate{ std::move(m), priv_->pms_ });
+            result.push_back(new music::ArtistPrivate{ std::move(m), priv_->pms_ });
         }
     }
     else
@@ -148,22 +140,18 @@ std::vector<MusicLibrary::Genre> MusicLibrary::genres() const noexcept
     if (pms != nullptr)
     {
         /* TODO: Error handling */
-        auto r =
-            pms->request(std::string{ LibrarySectionPrivate::REQUEST_PATH } +
-                         "/" + priv_->key_ + "/genre");
+        auto r = pms->request(std::string{ LibrarySectionPrivate::REQUEST_PATH } + "/" +
+                              priv_->key_ + "/genre");
         auto body = std::move(r.response.text);
 
         JsonFormat format{ body };
-        auto container =
-            sequential::from_format<music::GenrePrivate::LibraryContainer>(
-                format);
+        auto container = sequential::from_format<music::GenrePrivate::LibraryContainer>(format);
 
         auto &metadata = container.get_MediaContainer().get_Directory();
         result.reserve(metadata.size());
         for (auto &m : metadata)
         {
-            result.push_back(
-                new music::GenrePrivate{ std::move(m), priv_->pms_ });
+            result.push_back(new music::GenrePrivate{ std::move(m), priv_->pms_ });
         }
     }
     else
@@ -185,22 +173,18 @@ std::vector<MusicLibrary::Track> MusicLibrary::tracks() const noexcept
     if (pms != nullptr)
     {
         /* TODO: Error handling */
-        auto r =
-            pms->request(std::string{ LibrarySectionPrivate::REQUEST_PATH } +
-                         "/" + priv_->key_ + "/all?type=10");
+        auto r = pms->request(std::string{ LibrarySectionPrivate::REQUEST_PATH } + "/" +
+                              priv_->key_ + "/all?type=10");
         auto body = std::move(r.response.text);
 
         JsonFormat format{ body };
-        auto container =
-            sequential::from_format<music::TrackPrivate::LibraryContainer>(
-                format);
+        auto container = sequential::from_format<music::TrackPrivate::LibraryContainer>(format);
 
         auto &metadata = container.get_MediaContainer().get_Metadata();
         result.reserve(metadata.size());
         for (auto &m : metadata)
         {
-            result.push_back(
-                new music::TrackPrivate{ std::move(m), priv_->pms_ });
+            result.push_back(new music::TrackPrivate{ std::move(m), priv_->pms_ });
         }
     }
     else

@@ -64,8 +64,7 @@ namespace spring
                 TVShowLibrary tvShows;
                 VideoLibrary video;
 
-                alignas(alignof(
-                    MusicLibrary)) unsigned char data[sizeof(MusicLibrary)];
+                alignas(alignof(MusicLibrary)) unsigned char data[sizeof(MusicLibrary)];
             } data_{};
 
         private:
@@ -74,9 +73,7 @@ namespace spring
 
     public:
         template <typename Library, typename... Args>
-        MediaLibraryPrivate(Library *l,
-                            MediaLibrary::Type t,
-                            Args &&... args) noexcept
+        MediaLibraryPrivate(Library *l, MediaLibrary::Type t, Args &&... args) noexcept
           : content_(l, t, std::forward<Args>(args)...)
         {
         }

@@ -53,26 +53,27 @@
 #define SPRING_API
 #endif
 
-#define DEFAULT_COPY(klass)                                                    \
-    klass(const klass &) noexcept = default;                                   \
+#define DEFAULT_COPY(klass)                                                                        \
+    klass(const klass &) noexcept = default;                                                       \
     klass &operator=(const klass &) noexcept = default;
 
-#define DISABLE_COPY(klass)                                                    \
-    klass(const klass &) noexcept = delete;                                    \
+#define DISABLE_COPY(klass)                                                                        \
+    klass(const klass &) noexcept = delete;                                                        \
     klass &operator=(const klass &) noexcept = delete;
 
-#define DEFAULT_MOVE(klass)                                                    \
-    klass(klass &&) noexcept = default;                                        \
+#define DEFAULT_MOVE(klass)                                                                        \
+    klass(klass &&) noexcept = default;                                                            \
     klass &operator=(klass &&) noexcept = default;
 
-#define DISABLE_MOVE(klass)                                                    \
-    klass(klass &&) noexcept = delete;                                         \
+#define DISABLE_MOVE(klass)                                                                        \
+    klass(klass &&) noexcept = delete;                                                             \
     klass &operator=(klass &&) noexcept = delete;
 
 namespace spring
 {
-    using DataFragmentReadyCallback = std::size_t (*)(
-        std::uint8_t *responseData, std::size_t responseSize, void *userData);
+    using DataFragmentReadyCallback = std::size_t (*)(std::uint8_t *responseData,
+                                                      std::size_t responseSize,
+                                                      void *userData);
 }
 
 #endif // LIBSPRING_GLOBAL_H

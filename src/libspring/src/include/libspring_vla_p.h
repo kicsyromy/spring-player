@@ -35,7 +35,7 @@
 #include <alloca.h>
 #endif
 
-#define make_vla_impl(type, size)                                              \
+#define make_vla_impl(type, size)                                                                  \
     new (static_cast<type *>(alloca(sizeof(type) * size))) type[size], size
 #define make_vla(type, size) ::spring::Array<type>(make_vla_impl(type, size))
 

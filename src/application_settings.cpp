@@ -25,18 +25,16 @@ namespace
         GSettings *handle_{ nullptr };
     } app_settings;
 
-    constexpr std::array<const char *,
-                         static_cast<std::size_t>(settings::Page::Count)>
-        PAGES{ "Page::Albums", "Page::Artists", "Page::Genres", "Page::Songs" };
+    constexpr std::array<const char *, static_cast<std::size_t>(settings::Page::Count)> PAGES{
+        "Page::Albums", "Page::Artists", "Page::Genres", "Page::Songs"
+    };
 
     enum Properties : std::size_t
     {
         PropertyCurrentPage,
         PropertyCount
     };
-    constexpr std::array<const char *, PropertyCount> properties{
-        "current-page"
-    };
+    constexpr std::array<const char *, PropertyCount> properties{ "current-page" };
 
     std::string home_directory{};
     std::string data_directory{};
@@ -49,8 +47,7 @@ void settings::set_current_page(settings::Page page) noexcept
     LOG_INFO("ApplicationSettings: Saving selected page {} to settings",
              PAGES[static_cast<std::size_t>(page)]);
 
-    g_settings_set_enum(app_settings, properties[PropertyCurrentPage],
-                        static_cast<gint>(page));
+    g_settings_set_enum(app_settings, properties[PropertyCurrentPage], static_cast<gint>(page));
 }
 
 settings::Page settings::get_current_page() noexcept
@@ -89,8 +86,7 @@ const std::string &settings::data_directory() noexcept
             }
             else
             {
-                return fmt::format("{}/.local/share/" APPLICATION_ID,
-                                   home_directory());
+                return fmt::format("{}/.local/share/" APPLICATION_ID, home_directory());
             }
         }();
     }
@@ -110,8 +106,7 @@ const std::string &settings::config_directory() noexcept
             }
             else
             {
-                return fmt::format("{}/.config/" APPLICATION_ID,
-                                   home_directory());
+                return fmt::format("{}/.config/" APPLICATION_ID, home_directory());
             }
         }();
     }
@@ -131,8 +126,7 @@ const std::string &settings::cache_directory() noexcept
             }
             else
             {
-                return fmt::format("{}/.cache/" APPLICATION_ID,
-                                   home_directory());
+                return fmt::format("{}/.cache/" APPLICATION_ID, home_directory());
             }
         }();
     }

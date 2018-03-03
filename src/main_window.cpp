@@ -20,18 +20,17 @@ namespace
         css_provider = gtk_css_provider_new();
 
         GError *error{ nullptr };
-        gtk_css_provider_load_from_resource(css_provider, APPLICATION_PREFIX
-                                            "/application_style.css");
+        gtk_css_provider_load_from_resource(css_provider,
+                                            APPLICATION_PREFIX "/application_style.css");
         if (error != nullptr)
         {
-            LOG_ERROR("MainWindow: Internal: Failed to apply CSS styling: {}",
-                      error->message);
+            LOG_ERROR("MainWindow: Internal: Failed to apply CSS styling: {}", error->message);
             g_error_free(error);
         }
 
-        gtk_style_context_add_provider_for_screen(
-            gdk_screen_get_default(), gtk_cast<GtkStyleProvider>(css_provider),
-            GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+        gtk_style_context_add_provider_for_screen(gdk_screen_get_default(),
+                                                  gtk_cast<GtkStyleProvider>(css_provider),
+                                                  GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
     }
 }
 
@@ -42,8 +41,7 @@ MainWindow::MainWindow(SpringPlayer &application,
 {
     LOG_INFO("MainWindow({}): Creating...", void_p(this));
 
-    auto builder =
-        gtk_builder_new_from_resource(APPLICATION_PREFIX "/main_window.ui");
+    auto builder = gtk_builder_new_from_resource(APPLICATION_PREFIX "/main_window.ui");
 
     get_widget_from_builder_simple(main_window);
     g_object_set(main_window_, "application", &application, nullptr);
@@ -55,16 +53,14 @@ MainWindow::MainWindow(SpringPlayer &application,
 
     connect_g_signal(search_button_, "toggled", &on_search_toggled, this);
 
-    playlist_sidebar_ =
-        std::make_unique<PlaylistSidebar>(builder, playback_list);
+    playlist_sidebar_ = std::make_unique<PlaylistSidebar>(builder, playback_list);
     playlist_sidebar_->show();
 
     playback_footer_ = std::make_unique<PlaybackHeader>(builder, playback_list);
 
     auto library = pms_.sections().at(2).content();
     page_stack_ = std::make_unique<PageStack>(
-        builder, std::move(static_cast<spring::MusicLibrary &>(library)),
-        playback_list);
+        builder, std::move(static_cast<spring::MusicLibrary &>(library)), playback_list);
 
     g_object_unref(builder);
 
@@ -80,11 +76,10 @@ MainWindow::MainWindow(SpringPlayer &application,
             {
                 auto playlist = self->playback_list_.lock();
                 const auto &track = playlist->current_track();
-                gtk_label_set_text(
-                    self->window_title_,
-                    fmt::format("{} - {} - {}", track.second->artist(),
-                                track.second->album(), track.second->title())
-                        .c_str());
+                gtk_label_set_text(self->window_title_,
+                                   fmt::format("{} - {} - {}", track.second->artist(),
+                                               track.second->album(), track.second->title())
+                                       .c_str());
             }
             else
             {
@@ -121,8 +116,7 @@ void MainWindow::hide() noexcept
     gtk_widget_set_visible(gtk_cast<GtkWidget>(main_window_), false);
 }
 
-void MainWindow::on_search_toggled(GtkToggleButton *toggle_button,
-                                   MainWindow *self) noexcept
+void MainWindow::on_search_toggled(GtkToggleButton *toggle_button, MainWindow *self) noexcept
 {
     LOG_INFO("MainWindow({}): Search toggled", void_p(self));
 

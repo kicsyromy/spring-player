@@ -3,10 +3,13 @@
 
 #if __has_include(<string_view>)
 #include <string_view>
+#define SPRING_PLAYER_STRING_VIEW_T std::string_view
 #elif __has_include(<experimental/string_view>)
 #include <experimental/string_view>
+#define SPRING_PLAYER_STRING_VIEW_T std::experimental::string_view
 #else
 #error Missing string_view header
+#define SPRING_PLAYER_STRING_VIEW_T
 #endif
 
 namespace spring
@@ -15,11 +18,7 @@ namespace spring
     {
         namespace utility
         {
-#if __has_include(<string_view>)
-            using string_view = std::string_view;
-#else
-            using string_view = std::experimental::string_view;
-#endif
+            using string_view = SPRING_PLAYER_STRING_VIEW_T;
         }
     }
 }

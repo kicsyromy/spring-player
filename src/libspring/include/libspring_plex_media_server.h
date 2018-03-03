@@ -53,8 +53,7 @@ namespace spring
                         std::int32_t port,
                         const char *username,
                         const char *password,
-                        SSLErrorHandling errorHandling =
-                            SSLErrorHandling::Acknowledge) noexcept;
+                        SSLErrorHandling errorHandling = SSLErrorHandling::Acknowledge) noexcept;
         ~PlexMediaServer() noexcept;
 
         PlexMediaServer(PlexMediaServer &&other) noexcept;

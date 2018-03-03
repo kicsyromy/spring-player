@@ -27,8 +27,7 @@ namespace spring
             ~PlaybackList() noexcept;
 
         public:
-            std::pair<std::int32_t, const music::Track *> current_track() const
-                noexcept;
+            std::pair<std::int32_t, const music::Track *> current_track() const noexcept;
             std::size_t track_count() const noexcept;
 
         public:

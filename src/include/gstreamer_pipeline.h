@@ -45,8 +45,7 @@ namespace spring
             PlaybackState playback_state() const noexcept;
 
         public:
-            static const char *playback_state_to_string(
-                PlaybackState state) noexcept;
+            static const char *playback_state_to_string(PlaybackState state) noexcept;
 
         public:
             signal(playback_state_changed, PlaybackState);
@@ -59,39 +58,29 @@ namespace spring
                                               GstMessage *message,
                                               GStreamerPipeline *self) noexcept;
 
-            static void gst_playback_state_changed(
-                GstBus *bus,
-                GstMessage *message,
-                GStreamerPipeline *self) noexcept;
+            static void gst_playback_state_changed(GstBus *bus,
+                                                   GstMessage *message,
+                                                   GStreamerPipeline *self) noexcept;
 
-            static PlaybackState on_gst_state_change_void_pending(
-                GStreamerPipeline &self) noexcept;
-            static PlaybackState on_gst_state_change_null(
-                GStreamerPipeline &self) noexcept;
-            static PlaybackState on_gst_state_change_ready(
-                GStreamerPipeline &self) noexcept;
-            static PlaybackState on_gst_state_change_paused(
-                GStreamerPipeline &self) noexcept;
-            static PlaybackState on_gst_state_change_playing(
-                GStreamerPipeline &self) noexcept;
+            static PlaybackState on_gst_state_change_void_pending(GStreamerPipeline &self) noexcept;
+            static PlaybackState on_gst_state_change_null(GStreamerPipeline &self) noexcept;
+            static PlaybackState on_gst_state_change_ready(GStreamerPipeline &self) noexcept;
+            static PlaybackState on_gst_state_change_paused(GStreamerPipeline &self) noexcept;
+            static PlaybackState on_gst_state_change_playing(GStreamerPipeline &self) noexcept;
 
             static void gst_playback_error(GstBus *bus,
                                            GstMessage *message,
                                            GStreamerPipeline *self) noexcept;
 
-            static gboolean update_playback_position(
-                GStreamerPipeline *self) noexcept;
+            static gboolean update_playback_position(GStreamerPipeline *self) noexcept;
 
             static void gst_appsrc_setup(GstElement *pipeline,
                                          GstElement *source,
                                          GStreamerPipeline *self) noexcept;
 
-            static void gst_appsrc_need_data(GstAppSrc *src,
-                                             guint length,
-                                             void *instance) noexcept;
+            static void gst_appsrc_need_data(GstAppSrc *src, guint length, void *instance) noexcept;
 
-            static void gst_appsrc_enough_data(GstAppSrc *src,
-                                               void *instance) noexcept;
+            static void gst_appsrc_enough_data(GstAppSrc *src, void *instance) noexcept;
 
             static gboolean gst_appsrc_seek_data(GstAppSrc *src,
                                                  guint64 offset,
@@ -107,18 +96,15 @@ namespace spring
             PlaybackBuffer playback_buffer_{};
             const PlaybackList &playback_list_;
 
-            GstAppSrcCallbacks gst_appsrc_callbacks_{
-                &GStreamerPipeline::gst_appsrc_need_data,
-                &GStreamerPipeline::gst_appsrc_enough_data,
-                &GStreamerPipeline::gst_appsrc_seek_data,
-                {}
-            };
+            GstAppSrcCallbacks gst_appsrc_callbacks_{ &GStreamerPipeline::gst_appsrc_need_data,
+                                                      &GStreamerPipeline::gst_appsrc_enough_data,
+                                                      &GStreamerPipeline::gst_appsrc_seek_data,
+                                                      {} };
 
             std::uint32_t progress_update_source_id_{ 0 };
 
         private:
-            using gst_state_change_handler_t =
-                PlaybackState (*)(GStreamerPipeline &);
+            using gst_state_change_handler_t = PlaybackState (*)(GStreamerPipeline &);
             gst_state_change_handler_t gst_state_change_handlers_[5]{
                 &GStreamerPipeline::on_gst_state_change_void_pending,
                 &GStreamerPipeline::on_gst_state_change_null,

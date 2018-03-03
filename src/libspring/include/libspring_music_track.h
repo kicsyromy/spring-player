@@ -60,8 +60,7 @@ namespace spring
             std::size_t fileSize() const noexcept;
             const std::string &artwork() const noexcept;
             std::string url(std::uint32_t bitrate = 320) const noexcept;
-            void trackData(DataFragmentReadyCallback callback,
-                           void *userData) const noexcept;
+            void trackData(DataFragmentReadyCallback callback, void *userData) const noexcept;
 
         private:
             std::unique_ptr<TrackPrivate> priv_;

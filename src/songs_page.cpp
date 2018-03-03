@@ -8,8 +8,7 @@ using namespace spring;
 using namespace spring::player;
 using namespace spring::player::utility;
 
-SongsPage::SongsPage(GtkBuilder *builder,
-                     const MusicLibrary &music_library) noexcept
+SongsPage::SongsPage(GtkBuilder *builder, const MusicLibrary &music_library) noexcept
   : music_library_(music_library)
 {
     get_widget_from_builder_simple(songs_page);

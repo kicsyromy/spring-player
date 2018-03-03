@@ -45,12 +45,9 @@ ArtistPrivate::ArtistPrivate(RawArtistMetadata &&metadata,
   , id_(key_.c_str() + 18, 5)
   , name_(std::move(metadata.get_title()))
   , summary_(std::move(metadata.get_summary()))
-  , country_(metadata.get_Country().size() > 0 ?
-                 std::move(metadata.get_Country().at(0).get_tag()) :
-                 "")
-  , genre_(metadata.get_Genre().size() > 0 ?
-               std::move(metadata.get_Genre().at(0).get_tag()) :
-               "")
+  , country_(metadata.get_Country().size() > 0 ? std::move(metadata.get_Country().at(0).get_tag()) :
+                                                 "")
+  , genre_(metadata.get_Genre().size() > 0 ? std::move(metadata.get_Genre().at(0).get_tag()) : "")
   , thumbnailPath_(std::move(metadata.get_thumb()))
   , pms_(pms)
 {
@@ -117,8 +114,7 @@ std::vector<Album> Artist::albums() const noexcept
         auto body = std::move(r.response.text);
 
         JsonFormat format{ body };
-        auto container =
-            sequential::from_format<AlbumPrivate::LibraryContainer>(format);
+        auto container = sequential::from_format<AlbumPrivate::LibraryContainer>(format);
 
         auto &metadata = container.get_MediaContainer().get_Metadata();
         result.reserve(metadata.size());
@@ -150,8 +146,7 @@ std::vector<Track> Artist::tracks() const noexcept
         auto body = std::move(r.response.text);
 
         JsonFormat format{ body };
-        auto container =
-            sequential::from_format<TrackPrivate::LibraryContainer>(format);
+        auto container = sequential::from_format<TrackPrivate::LibraryContainer>(format);
 
         auto &metadata = container.get_MediaContainer().get_Metadata();
         result.reserve(metadata.size());

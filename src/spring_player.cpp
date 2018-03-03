@@ -21,23 +21,18 @@ struct _SpringPlayer
 
 G_DEFINE_TYPE(SpringPlayer, spring_player, GTK_TYPE_APPLICATION)
 
-static void preferences_activated(GSimpleAction *action,
-                                  GVariant *parameter,
-                                  gpointer app)
+static void preferences_activated(GSimpleAction *action, GVariant *parameter, gpointer app)
 {
 }
 
-static void quit_activated(GSimpleAction *action,
-                           GVariant *parameter,
-                           gpointer app)
+static void quit_activated(GSimpleAction *action, GVariant *parameter, gpointer app)
 {
     g_application_quit(G_APPLICATION(app));
 }
 
-static GActionEntry app_entries[] = {
-    { "preferences", &preferences_activated, nullptr, nullptr, nullptr },
-    { "quit", &quit_activated, nullptr, nullptr, nullptr }
-};
+static GActionEntry app_entries[] = { { "preferences", &preferences_activated, nullptr, nullptr,
+                                        nullptr },
+                                      { "quit", &quit_activated, nullptr, nullptr, nullptr } };
 
 static void spring_player_startup(GApplication *app)
 {
@@ -45,13 +40,10 @@ static void spring_player_startup(GApplication *app)
 
     G_APPLICATION_CLASS(spring_player_parent_class)->startup(app);
 
-    g_action_map_add_action_entries(G_ACTION_MAP(app), app_entries,
-                                    G_N_ELEMENTS(app_entries), app);
-    gtk_application_set_accels_for_action(GTK_APPLICATION(app), "app.quit",
-                                          quit_accels);
+    g_action_map_add_action_entries(G_ACTION_MAP(app), app_entries, G_N_ELEMENTS(app_entries), app);
+    gtk_application_set_accels_for_action(GTK_APPLICATION(app), "app.quit", quit_accels);
 
-    auto builder =
-        gtk_builder_new_from_resource(APPLICATION_PREFIX "/app_menu.ui");
+    auto builder = gtk_builder_new_from_resource(APPLICATION_PREFIX "/app_menu.ui");
     auto app_menu = G_MENU_MODEL(gtk_builder_get_object(builder, "appmenu"));
     gtk_application_set_app_menu(GTK_APPLICATION(app), app_menu);
     g_object_unref(builder);
@@ -72,8 +64,8 @@ static void spring_player_activate(GApplication *app)
 
         self->playback_list = std::make_shared<spring::player::PlaybackList>();
 
-        self->main_window = std::make_unique<spring::player::MainWindow>(
-            *self, self->playback_list);
+        self->main_window =
+            std::make_unique<spring::player::MainWindow>(*self, self->playback_list);
         self->main_window->show();
     }
 }
@@ -98,16 +90,15 @@ static void spring_player_class_init(SpringPlayerClass *klass)
 
 SpringPlayer *spring_player_new()
 {
-    return static_cast<SpringPlayer *>(
-        g_object_new(SPRING_PLAYER_TYPE, "application-id", APPLICATION_ID,
-                     "flags", G_APPLICATION_HANDLES_OPEN, nullptr));
+    return static_cast<SpringPlayer *>(g_object_new(SPRING_PLAYER_TYPE, "application-id",
+                                                    APPLICATION_ID, "flags",
+                                                    G_APPLICATION_HANDLES_OPEN, nullptr));
 }
 
 spring::PlexMediaServer spring_player_pms()
 {
     char host[100];
-    auto path = fmt::format("{}/workspace/host.txt",
-                            spring::player::settings::home_directory());
+    auto path = fmt::format("{}/workspace/host.txt", spring::player::settings::home_directory());
     FILE *f = fopen(path.c_str(), "r");
     fscanf(f, "%s", host);
     fclose(f);

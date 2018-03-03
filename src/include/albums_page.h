@@ -28,8 +28,7 @@ namespace spring
 
         private:
             static gboolean filter(GtkFlowBoxChild *child, void *self) noexcept;
-            static void on_search_changed(GtkSearchEntry *element,
-                                          AlbumsPage *self) noexcept;
+            static void on_search_changed(GtkSearchEntry *element, AlbumsPage *self) noexcept;
 
         public:
             operator GtkWidget *() noexcept;

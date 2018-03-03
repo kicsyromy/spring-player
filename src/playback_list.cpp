@@ -16,41 +16,35 @@ PlaybackList::PlaybackList() noexcept
         [](PlaybackState new_state, void *instance) {
             auto self = static_cast<PlaybackList *>(instance);
 
-            LOG_INFO("PlaybackList({}): Playback state changed to {} for {}",
-                     instance,
+            LOG_INFO("PlaybackList({}): Playback state changed to {} for {}", instance,
                      GStreamerPipeline::playback_state_to_string(new_state),
-                     self->current_track().second ?
-                         self->current_track().second->title() :
-                         "");
+                     self->current_track().second ? self->current_track().second->title() : "");
 
             self->emit_playback_state_changed(std::move(new_state));
         },
         this);
 
-    pipeline_.on_playback_position_changed(
-        this,
-        [](Milliseconds milliseconds, void *instance) {
-            auto self = static_cast<PlaybackList *>(instance);
-            self->emit_playback_position_changed(milliseconds.count());
-        },
-        this);
+    pipeline_.on_playback_position_changed(this,
+                                           [](Milliseconds milliseconds, void *instance) {
+                                               auto self = static_cast<PlaybackList *>(instance);
+                                               self->emit_playback_position_changed(
+                                                   milliseconds.count());
+                                           },
+                                           this);
 
-    pipeline_.on_track_cache_updated(
-        this,
-        [](std::size_t new_size, void *instance) {
-            auto self = static_cast<PlaybackList *>(instance);
-            self->emit_track_cache_updated(std::move(new_size));
-        },
-        this);
+    pipeline_.on_track_cache_updated(this,
+                                     [](std::size_t new_size, void *instance) {
+                                         auto self = static_cast<PlaybackList *>(instance);
+                                         self->emit_track_cache_updated(std::move(new_size));
+                                     },
+                                     this);
 
     pipeline_.on_track_cached(
         this,
         [](void *instance) {
             auto self = static_cast<PlaybackList *>(instance);
             LOG_INFO("PlaybackList({}): Finished caching track {}", instance,
-                     self->current_track().second ?
-                         self->current_track().second->title() :
-                         "");
+                     self->current_track().second ? self->current_track().second->title() : "");
             self->emit_track_cached();
         },
         this);
@@ -66,8 +60,7 @@ PlaybackList::~PlaybackList() noexcept
     pipeline_.disconnect_playback_state_changed(this);
 }
 
-std::pair<int32_t, const music::Track *> PlaybackList::current_track() const
-    noexcept
+std::pair<int32_t, const music::Track *> PlaybackList::current_track() const noexcept
 {
     music::Track *result{ nullptr };
     if (current_index_ >= 0)
@@ -85,8 +78,7 @@ std::size_t PlaybackList::track_count() const noexcept
 
 void PlaybackList::play(std::size_t index) noexcept
 {
-    LOG_INFO("PlaybackList({}): Playing track at index {}", void_p(this),
-             index);
+    LOG_INFO("PlaybackList({}): Playing track at index {}", void_p(this), index);
 
     if (index < content_.size())
     {
@@ -127,9 +119,8 @@ void PlaybackList::next() noexcept
 {
     LOG_INFO("PlaybackList({}): Skip forward", void_p(this));
 
-    std::size_t new_index = current_index_ > -1 ?
-                                static_cast<std::size_t>(current_index_ + 1) :
-                                content_.size() > 0 ? content_.size() - 1 : 0;
+    std::size_t new_index = current_index_ > -1 ? static_cast<std::size_t>(current_index_ + 1) :
+                                                  content_.size() > 0 ? content_.size() - 1 : 0;
     play(new_index);
 }
 
@@ -137,8 +128,7 @@ void PlaybackList::previous() noexcept
 {
     LOG_INFO("PlaybackList({}): Skip backward", void_p(this));
 
-    std::size_t new_index =
-        current_index_ > 0 ? static_cast<std::size_t>(current_index_ - 1) : 0;
+    std::size_t new_index = current_index_ > 0 ? static_cast<std::size_t>(current_index_ - 1) : 0;
     play(new_index);
 }
 

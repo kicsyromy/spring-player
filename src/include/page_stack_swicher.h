@@ -21,9 +21,8 @@ namespace spring
             using ToggleButton = settings::Page;
 
         public:
-            PageStackSwitcher(
-                GtkBuilder *builder,
-                std::function<void(ToggleButton)> &&toggled_handler) noexcept;
+            PageStackSwitcher(GtkBuilder *builder,
+                              std::function<void(ToggleButton)> &&toggled_handler) noexcept;
             ~PageStackSwitcher() noexcept;
 
         public:

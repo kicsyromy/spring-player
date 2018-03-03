@@ -16,9 +16,8 @@ namespace spring
         class PlaybackHeader
         {
         public:
-            PlaybackHeader(
-                GtkBuilder *builder,
-                std::shared_ptr<PlaybackList> playback_list) noexcept;
+            PlaybackHeader(GtkBuilder *builder,
+                           std::shared_ptr<PlaybackList> playback_list) noexcept;
             ~PlaybackHeader() noexcept;
 
         private:
@@ -33,12 +32,11 @@ namespace spring
             GtkImage *play_pause_button_icon_{ nullptr };
 
         private:
-            static void on_play_pause_button_clicked(
-                GtkButton *button, PlaybackHeader *self) noexcept;
-            static void on_next_button_clicked(GtkButton *button,
-                                               PlaybackHeader *self) noexcept;
-            static void on_previous_button_clicked(
-                GtkButton *button, PlaybackHeader *self) noexcept;
+            static void on_play_pause_button_clicked(GtkButton *button,
+                                                     PlaybackHeader *self) noexcept;
+            static void on_next_button_clicked(GtkButton *button, PlaybackHeader *self) noexcept;
+            static void on_previous_button_clicked(GtkButton *button,
+                                                   PlaybackHeader *self) noexcept;
 
         private:
             std::weak_ptr<PlaybackList> playback_list_{};

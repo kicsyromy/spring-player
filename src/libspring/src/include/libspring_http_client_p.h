@@ -44,8 +44,8 @@ namespace spring
     public:
         using milliseconds_t = decltype(std::chrono::milliseconds(0));
         using http_header_t = std::pair<std::string, std::string>;
-        using http_header_array_t = std::
-            map<std::string, std::string, utilities::CaseInsensitiveCompare>;
+        using http_header_array_t =
+            std::map<std::string, std::string, utilities::CaseInsensitiveCompare>;
         using http_port_t = std::int32_t;
 
     public:
@@ -138,18 +138,14 @@ namespace spring
             {
                 return code == static_cast<std::int32_t>(statusCode_);
             }
-            inline bool operator==(Status::Code code) const noexcept
-            {
-                return code == statusCode_;
-            }
+            inline bool operator==(Status::Code code) const noexcept { return code == statusCode_; }
             inline operator std::int32_t() const noexcept
             {
                 return static_cast<std::int32_t>(statusCode_);
             }
             inline operator std::string() const noexcept
             {
-                return fmt::format("'{} {}'", static_cast<int>(statusCode_),
-                                   name_);
+                return fmt::format("'{} {}'", static_cast<int>(statusCode_), name_);
             }
 
         private:
@@ -188,14 +184,10 @@ namespace spring
             };
             Error::Code errorCode;
             const char *message;
-            inline operator bool() const noexcept
-            {
-                return errorCode != Error::Code::NoError;
-            }
+            inline operator bool() const noexcept { return errorCode != Error::Code::NoError; }
             inline operator std::string() const noexcept
             {
-                return fmt::format("'{} {}'", static_cast<int>(errorCode),
-                                   message);
+                return fmt::format("'{} {}'", static_cast<int>(errorCode), message);
             }
         };
 
@@ -278,8 +270,7 @@ namespace spring
             using write_callback_t = std::size_t (*)(std::uint8_t *responseData,
                                                      std::size_t responseSize,
                                                      void *userData);
-            http_request_result_t send(write_callback_t callback,
-                                       void *userData) noexcept;
+            http_request_result_t send(write_callback_t callback, void *userData) noexcept;
 
         private:
             CURL *handle_{ nullptr };

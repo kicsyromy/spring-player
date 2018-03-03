@@ -41,18 +41,15 @@ PageStack::PageStack(GtkBuilder *builder,
         }
     };
 
-    albums_page_ =
-        std::make_unique<AlbumsPage>(builder, music_library_, playback_list);
-    artists_page_ =
-        std::make_unique<ArtistsPage>(builder, music_library_, playback_list);
+    albums_page_ = std::make_unique<AlbumsPage>(builder, music_library_, playback_list);
+    artists_page_ = std::make_unique<ArtistsPage>(builder, music_library_, playback_list);
     /* weak_ptr instead of ref */
     genres_page_ = std::make_unique<GenresPage>(builder, *music_library_);
     songs_page_ = std::make_unique<SongsPage>(builder, *music_library_);
 
     switch_page(settings::get_current_page());
 
-    page_stack_switcher_ =
-        std::make_unique<PageStackSwitcher>(builder, switch_page);
+    page_stack_switcher_ = std::make_unique<PageStackSwitcher>(builder, switch_page);
 }
 
 PageStack::~PageStack() noexcept
