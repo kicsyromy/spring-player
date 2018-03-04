@@ -19,12 +19,15 @@ PlaylistSidebar::PlaylistSidebar(GtkBuilder *builder,
     LOG_INFO("PlaylistSidebar({}): Creating...", void_p(this));
 
     get_widget_from_builder_simple(playlist_sidebar);
-    get_widget_from_builder_simple(current_track_cover);
+    get_widget_from_builder_simple(artwork_container);
     get_widget_from_builder_simple(playback_list_box);
     get_widget_from_builder_simple(toggle_sidebar_button);
 
+    gtk_container_add(artwork_container_, artwork_());
+
     connect_g_signal(playback_list_box_, "row-activated", &on_track_activated, this);
     connect_g_signal(toggle_sidebar_button_, "toggled", &toggled, this);
+    connect_g_signal(playback_list_box_, "draw", &on_list_bow_draw_requested, this);
 
     playback_list->on_track_queued(
         this,
@@ -56,6 +59,23 @@ PlaylistSidebar::PlaylistSidebar(GtkBuilder *builder,
 
             gtk_widget_set_visible(gtk_cast<GtkWidget>(track_list_entry), true);
 
+            auto dominant_color = self->artwork_.dominant_color();
+
+            auto attributes = pango_attr_list_new();
+            auto foreground_color = pango_attr_foreground_new(
+                dominant_color.red * std::numeric_limits<std::int16_t>::max() /
+                    std::numeric_limits<std::uint8_t>::max(),
+                dominant_color.green * std::numeric_limits<std::int16_t>::max() /
+                    std::numeric_limits<std::uint8_t>::max(),
+                dominant_color.blue * std::numeric_limits<std::int16_t>::max() /
+                    std::numeric_limits<std::uint8_t>::max());
+            pango_attr_list_insert(attributes, foreground_color);
+            gtk_label_set_attributes(artist_name, attributes);
+            gtk_label_set_attributes(song_title, attributes);
+            gtk_label_set_attributes(duration, attributes);
+
+            pango_attr_list_unref(attributes);
+
             g_object_unref(builder);
         },
         this);
@@ -75,8 +95,16 @@ PlaylistSidebar::PlaylistSidebar(GtkBuilder *builder,
                 if (playlist != nullptr)
                 {
                     const auto &artwork = playlist->current_track().second->artwork();
-                    auto pixbuf = load_pixbuf_from_data_scaled<200, 200>(artwork);
-                    gtk_image_set_from_pixbuf(self->current_track_cover_, pixbuf);
+                    self->artwork_.set_image(artwork, Thumbnail::BackgroundType::FromImage);
+                    gtk_widget_queue_draw(gtk_cast<GtkWidget>(self->playback_list_box_));
+
+                    auto background_color = self->artwork_.dominant_color();
+                    GdkRGBA gdk_color{ static_cast<gdouble>(background_color.red) / 255,
+                                       static_cast<gdouble>(background_color.green) / 255,
+                                       static_cast<gdouble>(background_color.blue) / 255, 1.0 };
+                    gtk_widget_override_background_color(
+                        gtk_cast<GtkWidget>(self->playback_list_box_), GTK_STATE_FLAG_NORMAL,
+                        &gdk_color);
                 }
                 else
                 {
@@ -133,4 +161,28 @@ void PlaylistSidebar::on_track_activated(GtkListBox *,
     {
         playlist->play(index);
     }
+}
+
+int32_t PlaylistSidebar::on_list_bow_draw_requested(GtkWidget *,
+                                                    cairo_t *cairo_context,
+                                                    PlaylistSidebar *self) noexcept
+{
+    //    auto list_box_width =
+    //        gtk_widget_get_allocated_width(gtk_cast<GtkWidget>(self->playback_list_box_));
+    //    auto list_box_height =
+    //        gtk_widget_get_allocated_height(gtk_cast<GtkWidget>(self->playback_list_box_));
+
+    //    //    auto context = gtk_widget_get_style_context(gtk_cast<GtkWidget>(self->playback_list_box_));
+    //    //    gtk_render_background(context, cairo_context, 0, 0, list_box_width, list_box_height);
+
+    //    auto background_color = self->artwork_.dominant_color();
+    //    GdkRGBA gdk_color{ static_cast<gdouble>(background_color.red) / 255,
+    //                       static_cast<gdouble>(background_color.green) / 255,
+    //                       static_cast<gdouble>(background_color.blue) / 255, 1.0 };
+
+    //    gdk_cairo_set_source_rgba(cairo_context, &gdk_color);
+
+    //    cairo_fill(cairo_context);
+
+    return false;
 }

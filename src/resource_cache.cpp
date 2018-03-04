@@ -40,7 +40,11 @@ std::pair<std::string, bool> ResourceCache::from_cache(const string_view &prefix
 
     g_clear_error(&error);
 
-    return { file_content ? std::string{ file_content, file_size } : std::string{ "" }, success };
+    auto content = file_content ? std::string{ file_content, file_size } : std::string{ "" };
+
+    g_free(file_content);
+
+    return { std::move(content), success };
 }
 
 void ResourceCache::to_cache(const string_view &prefix,

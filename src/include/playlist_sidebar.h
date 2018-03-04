@@ -10,11 +10,14 @@
 #include <libspring_music_track.h>
 
 #include "playback_list.h"
+#include "thumbnail.h"
 
 namespace spring
 {
     namespace player
     {
+        class Thumbnail;
+
         class PlaylistSidebar
         {
         public:
@@ -33,11 +36,17 @@ namespace spring
                                            GtkListBoxRow *element,
                                            PlaylistSidebar *self) noexcept;
 
+            static std::int32_t on_list_bow_draw_requested(GtkWidget *,
+                                                           cairo_t *cairo_context,
+                                                           PlaylistSidebar *self) noexcept;
+
         private:
             GtkBox *playlist_sidebar_{ nullptr };
-            GtkImage *current_track_cover_{ nullptr };
+            GtkContainer *artwork_container_{ nullptr };
             GtkListBox *playback_list_box_{ nullptr };
             GtkToggleButton *toggle_sidebar_button_{ nullptr };
+
+            Thumbnail artwork_{};
 
             std::weak_ptr<PlaybackList> playback_list_{};
             std::vector<const music::Track *> playlist_{};

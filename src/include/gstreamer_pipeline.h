@@ -91,7 +91,7 @@ namespace spring
             GstAppSrc *appsrc_{ nullptr };
             GstBus *bus_{ nullptr };
             PlaybackState current_state_{ PlaybackState::Stopped };
-            GstState gst_state_;
+            GstState gst_state_{ GST_STATE_VOID_PENDING };
 
             PlaybackBuffer playback_buffer_{};
             const PlaybackList &playback_list_;
