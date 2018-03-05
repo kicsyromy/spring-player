@@ -149,7 +149,7 @@ void PlaybackList::enqueue(std::shared_ptr<music::Track> track) noexcept
     LOG_INFO("PlaybackList({}): Enqueue {}", void_p(this), track->title());
 
     content_.push_back(track);
-    const auto &t = content_.back();
+    auto &t = content_.back();
 
-    emit_track_queued(*t);
+    emit_track_queued(t);
 }

@@ -76,10 +76,13 @@ MainWindow::MainWindow(SpringPlayer &application,
             {
                 auto playlist = self->playback_list_.lock();
                 const auto &track = playlist->current_track();
-                gtk_label_set_text(self->window_title_,
-                                   fmt::format("{} - {} - {}", track.second->artist(),
-                                               track.second->album(), track.second->title())
-                                       .c_str());
+                gtk_label_set_markup(
+                    self->window_title_,
+                    fmt::format("<span weight=\"bold\">{}</span> by <span "
+                                "weight=\"bold\">{}</span> from <span weight=\"bold\">{}</span>",
+                                track.second->title(), track.second->artist(),
+                                track.second->album())
+                        .c_str());
             }
             else
             {
