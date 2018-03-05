@@ -78,19 +78,36 @@ PlaylistSidebar::PlaylistSidebar(GtkBuilder *builder,
                     gtk_widget_queue_draw(gtk_cast<GtkWidget>(self->playback_list_box_));
 
                     auto background_color = self->artwork_.dominant_color();
-                    const std::uint8_t color_increase = 50;
 
-                    std::uint16_t red_channel = background_color.red + color_increase;
-                    background_color.red =
-                        red_channel > 255 ? 255 : static_cast<std::uint8_t>(red_channel);
+                    for (auto &track_item : self->playlist_)
+                    {
+                        const auto color =
+                            std::make_tuple((255 - background_color.red) *
+                                                std::numeric_limits<std::uint16_t>::max() /
+                                                std::numeric_limits<std::uint8_t>::max(),
+                                            (255 - background_color.green) *
+                                                std::numeric_limits<std::uint16_t>::max() /
+                                                std::numeric_limits<std::uint8_t>::max(),
+                                            (255 - background_color.blue) *
+                                                std::numeric_limits<std::uint16_t>::max() /
+                                                std::numeric_limits<std::uint8_t>::max());
 
-                    std::uint16_t green_channel = background_color.green + color_increase;
-                    background_color.green =
-                        green_channel > 255 ? 255 : static_cast<std::uint8_t>(green_channel);
+                        track_item.second->set_text_color(color);
+                    }
 
-                    std::uint16_t blue_channel = background_color.blue + color_increase;
-                    background_color.blue =
-                        blue_channel > 255 ? 255 : static_cast<std::uint8_t>(blue_channel);
+                    // const std::uint8_t color_increase = 0;
+
+                    // std::uint16_t red_channel = background_color.red + color_increase;
+                    // background_color.red =
+                    //     red_channel > 255 ? 255 : static_cast<std::uint8_t>(red_channel);
+
+                    // std::uint16_t green_channel = background_color.green + color_increase;
+                    // background_color.green =
+                    //     green_channel > 255 ? 255 : static_cast<std::uint8_t>(green_channel);
+
+                    // std::uint16_t blue_channel = background_color.blue + color_increase;
+                    // background_color.blue =
+                    //     blue_channel > 255 ? 255 : static_cast<std::uint8_t>(blue_channel);
 
                     GdkRGBA gdk_color{ static_cast<gdouble>(background_color.red) / 255,
                                        static_cast<gdouble>(background_color.green) / 255,
@@ -195,29 +212,27 @@ PlaylistSidebar::PlaylistItem::PlaylistItem(std::shared_ptr<music::Track> &track
     gtk_label_set_text(duration_, seconds < 10 ? fmt::format("{}:0{}", minutes, seconds).c_str() :
                                                  fmt::format("{}:{}", minutes, seconds).c_str());
 
-    //    auto dominant_color = self->artwork_.dominant_color();
-
-    //    auto attributes = pango_attr_list_new();
-    //    auto foreground_color = pango_attr_foreground_new(
-    //                dominant_color.red * std::numeric_limits<std::int16_t>::max() /
-    //                std::numeric_limits<std::uint8_t>::max(),
-    //                dominant_color.green * std::numeric_limits<std::int16_t>::max() /
-    //                std::numeric_limits<std::uint8_t>::max(),
-    //                dominant_color.blue * std::numeric_limits<std::int16_t>::max() /
-    //                std::numeric_limits<std::uint8_t>::max());
-    //    pango_attr_list_insert(attributes, foreground_color);
-    //    gtk_label_set_attributes(artist_name, attributes);
-    //    gtk_label_set_attributes(song_title, attributes);
-    //    gtk_label_set_attributes(duration, attributes);
-
-    //    pango_attr_list_unref(attributes);
-
     g_object_unref(builder);
 }
 
 void PlaylistSidebar::PlaylistItem::set_playing(bool value) noexcept
 {
     gtk_widget_set_opacity(gtk_cast<GtkWidget>(playing_icon_), value ? 1.0 : 0.0);
+}
+
+void PlaylistSidebar::PlaylistItem::set_text_color(
+    const std::tuple<uint16_t, uint16_t, uint16_t> &color) noexcept
+{
+    auto attributes = pango_attr_list_new();
+
+    auto foreground_color =
+        pango_attr_foreground_new(std::get<0>(color), std::get<1>(color), std::get<2>(color));
+    pango_attr_list_insert(attributes, foreground_color);
+
+    gtk_label_set_attributes(title_, attributes);
+    gtk_label_set_attributes(duration_, attributes);
+
+    pango_attr_list_unref(attributes);
 }
 
 GtkWidget *PlaylistSidebar::PlaylistItem::operator()() noexcept

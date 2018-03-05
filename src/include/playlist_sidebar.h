@@ -49,6 +49,8 @@ namespace spring
 
             public:
                 void set_playing(bool value) noexcept;
+                void set_text_color(
+                    const std::tuple<std::uint16_t, std::uint16_t, std::uint16_t> &color) noexcept;
 
             public:
                 GtkWidget *operator()() noexcept;

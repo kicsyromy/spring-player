@@ -114,7 +114,8 @@ void Thumbnail::set_image(const std::string &data,
     if (background == BackgroundType::FromImage)
     {
         background_ = vips_image_new();
-        vips_gaussblur(image_, &background_, 15, nullptr);
+        ;
+        vips_gaussblur(image_, &background_, 3, nullptr);
     }
 
     image_width = vips_image_get_width(image_);
