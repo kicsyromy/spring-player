@@ -12,6 +12,26 @@ using namespace spring;
 using namespace spring::player;
 using namespace spring::player::utility;
 
+namespace
+{
+    inline auto determine_text_color(const Thumbnail::pixel &background_color) noexcept
+    {
+        std::tuple<std::uint16_t, std::uint16_t, std::uint16_t> text_color{
+            std::numeric_limits<std::uint16_t>::max(), std::numeric_limits<std::uint16_t>::max(),
+            std::numeric_limits<std::uint16_t>::max()
+        };
+
+        if ((background_color.red > 120 && background_color.green > 120) ||
+            (background_color.red > 120 && background_color.blue > 120) ||
+            (background_color.blue > 120 && background_color.green > 120))
+        {
+            text_color = { 0, 0, 0 };
+        }
+
+        return text_color;
+    }
+}
+
 PlaylistSidebar::PlaylistSidebar(GtkBuilder *builder,
                                  std::shared_ptr<PlaybackList> playback_list) noexcept
   : playback_list_{ playback_list }
@@ -45,6 +65,8 @@ PlaylistSidebar::PlaylistSidebar(GtkBuilder *builder,
                 auto *widget = result.first->first;
                 gtk_container_add(gtk_cast<GtkContainer>(self->playback_list_box_), widget);
                 gtk_widget_set_visible(widget, true);
+                result.first->second->set_text_color(
+                    determine_text_color(self->artwork_.dominant_color()));
             }
         },
         this);
@@ -81,37 +103,12 @@ PlaylistSidebar::PlaylistSidebar(GtkBuilder *builder,
 
                     for (auto &track_item : self->playlist_)
                     {
-                        const auto color =
-                            std::make_tuple((255 - background_color.red) *
-                                                std::numeric_limits<std::uint16_t>::max() /
-                                                std::numeric_limits<std::uint8_t>::max(),
-                                            (255 - background_color.green) *
-                                                std::numeric_limits<std::uint16_t>::max() /
-                                                std::numeric_limits<std::uint8_t>::max(),
-                                            (255 - background_color.blue) *
-                                                std::numeric_limits<std::uint16_t>::max() /
-                                                std::numeric_limits<std::uint8_t>::max());
-
-                        track_item.second->set_text_color(color);
+                        track_item.second->set_text_color(determine_text_color(background_color));
                     }
-
-                    // const std::uint8_t color_increase = 0;
-
-                    // std::uint16_t red_channel = background_color.red + color_increase;
-                    // background_color.red =
-                    //     red_channel > 255 ? 255 : static_cast<std::uint8_t>(red_channel);
-
-                    // std::uint16_t green_channel = background_color.green + color_increase;
-                    // background_color.green =
-                    //     green_channel > 255 ? 255 : static_cast<std::uint8_t>(green_channel);
-
-                    // std::uint16_t blue_channel = background_color.blue + color_increase;
-                    // background_color.blue =
-                    //     blue_channel > 255 ? 255 : static_cast<std::uint8_t>(blue_channel);
 
                     GdkRGBA gdk_color{ static_cast<gdouble>(background_color.red) / 255,
                                        static_cast<gdouble>(background_color.green) / 255,
-                                       static_cast<gdouble>(background_color.blue) / 255, 1.0 };
+                                       static_cast<gdouble>(background_color.blue) / 255, 0.8 };
                     gtk_widget_override_background_color(
                         gtk_cast<GtkWidget>(self->playback_list_box_), GTK_STATE_FLAG_NORMAL,
                         &gdk_color);

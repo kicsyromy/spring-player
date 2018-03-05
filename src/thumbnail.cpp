@@ -2,6 +2,7 @@
 
 #include <cstring>
 #include <memory>
+#include <unordered_map>
 
 #include <cairo.h>
 #include <gtk/gtk.h>
@@ -17,6 +18,27 @@ using namespace spring::player::utility;
 
 namespace
 {
+    struct hash_pixel
+    {
+        std::size_t operator()(const Thumbnail::pixel &pixel) const noexcept
+        {
+            auto hash = std::hash<std::int32_t>{};
+            return hash(static_cast<std::int32_t>(pixel.red) +
+                        static_cast<std::int32_t>(pixel.green) +
+                        static_cast<std::int32_t>(pixel.blue));
+        }
+    };
+
+    struct eq_pixel
+    {
+        bool operator()(const Thumbnail::pixel &first, const Thumbnail::pixel &second) const
+            noexcept
+        {
+            return (first.red == second.red) && (first.green == second.green) &&
+                   (first.blue == second.blue);
+        }
+    };
+
     inline auto vips_image_to_argb(const VipsImage *image,
                                    Thumbnail::size new_size = { { -1, -1 } },
                                    Thumbnail::point image_offset = { { 0, 0 } }) noexcept
@@ -97,6 +119,11 @@ void Thumbnail::set_image(const std::string &data,
 
     image_ = vips_image_new_from_buffer(data.data(), data.size(), "", nullptr);
 
+    if (image_ == nullptr)
+    {
+        return;
+    }
+
     auto image_width = vips_image_get_width(image_);
     auto image_height = vips_image_get_height(image_);
 
@@ -127,38 +154,62 @@ void Thumbnail::set_image(const std::string &data,
 
 Thumbnail::pixel Thumbnail::dominant_color() const noexcept
 {
-    Thumbnail::pixel result{ 0, 0, 0 };
+    Thumbnail::pixel result{ 255, 255, 255 };
 
     if (image_ != nullptr)
     {
-        const auto bin_count = 10;
-        const auto bin_size = 256 / bin_count;
+        std::unordered_map<Thumbnail::pixel, std::int32_t, hash_pixel, eq_pixel> colors;
 
-        VipsImage *histogram{ nullptr };
-        vips_hist_find_ndim(image_, &histogram, "bins", bin_count, nullptr);
+        std::int32_t count{ 0 };
 
-        double max;
-        int x, y;
-        vips_max(histogram, &max, "x", &x, "y", &y, nullptr);
+        constexpr std::size_t sample_offset{ 5 };
+        constexpr std::uint8_t top_threshold{ 245 };
+        constexpr std::uint8_t bottom_threshold{ 20 };
 
-        vips_image_wio_input(histogram);
-        auto pixel = VIPS_IMAGE_ADDR(histogram, x, y);
-        auto band_count = static_cast<std::size_t>(vips_image_get_bands(histogram));
-
-        double band{ 0 };
-
-        for (std::size_t i = 0; i < band_count; ++i)
+        const auto length = static_cast<std::size_t>(vips_image_get_width(image_)) *
+                            static_cast<std::size_t>(vips_image_get_height(image_)) * 3;
+        for (std::size_t y = 0; y < length; y += 3 * sample_offset)
         {
-            if (pixel[i] = max)
+            auto pixel = *reinterpret_cast<Thumbnail::pixel *>(image_->data + y);
+
+            if ((pixel.red > top_threshold && pixel.green > top_threshold) ||
+                (pixel.red > top_threshold && pixel.blue > top_threshold) ||
+                (pixel.blue > top_threshold && pixel.green > top_threshold))
             {
-                band = pixel[i];
-                break;
+                continue;
+            }
+
+            if ((pixel.red < bottom_threshold && pixel.green < bottom_threshold) ||
+                (pixel.red < bottom_threshold && pixel.blue < bottom_threshold) ||
+                (pixel.blue < bottom_threshold && pixel.green < bottom_threshold))
+            {
+                continue;
+            }
+
+            pixel.red /= 10;
+            pixel.red *= 10;
+
+            pixel.green /= 10;
+            pixel.green *= 10;
+
+            pixel.blue /= 10;
+            pixel.blue *= 10;
+
+            auto it = colors.find(pixel);
+            if (it != colors.end())
+            {
+                ++(it->second);
+                if (it->second > count)
+                {
+                    count = it->second;
+                    result = it->first;
+                }
+            }
+            else
+            {
+                colors.insert({ pixel, 1 });
             }
         }
-
-        result = { static_cast<std::uint8_t>(x * bin_size + bin_size / 2),
-                   static_cast<std::uint8_t>(y * bin_size + bin_size / 2),
-                   static_cast<std::uint8_t>(band * bin_size + bin_size / 2) };
     }
 
     return result;
