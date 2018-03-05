@@ -131,24 +131,34 @@ Thumbnail::pixel Thumbnail::dominant_color() const noexcept
 
     if (image_ != nullptr)
     {
-        auto image_width = vips_image_get_width(image_);
-        auto image_height = vips_image_get_height(image_);
+        const auto bin_count = 10;
+        const auto bin_size = 256 / bin_count;
 
-        auto width_scale = static_cast<double>(1) / image_width;
-        auto height_scale = static_cast<double>(1) / image_height;
+        VipsImage *histogram{ nullptr };
+        vips_hist_find_ndim(image_, &histogram, "bins", bin_count, nullptr);
 
-        VipsImage *scaled_image{};
-        vips_resize(image_, &scaled_image, width_scale, "vscale", height_scale, nullptr);
+        double max;
+        int x, y;
+        vips_max(histogram, &max, "x", &x, "y", &y, nullptr);
 
-        vips_image_pio_input(scaled_image);
-        auto region = vips_region_new(scaled_image);
-        VipsRect r{ 0, 0, 1, 1 };
-        vips_region_prepare(region, &r);
+        vips_image_wio_input(histogram);
+        auto pixel = VIPS_IMAGE_ADDR(histogram, x, y);
+        auto band_count = static_cast<std::size_t>(vips_image_get_bands(histogram));
 
-        result = *reinterpret_cast<pixel *>(region->data);
+        double band{ 0 };
 
-        g_object_unref(region);
-        g_object_unref(scaled_image);
+        for (std::size_t i = 0; i < band_count; ++i)
+        {
+            if (pixel[i] = max)
+            {
+                band = pixel[i];
+                break;
+            }
+        }
+
+        result = { static_cast<std::uint8_t>(x * bin_size + bin_size / 2),
+                   static_cast<std::uint8_t>(y * bin_size + bin_size / 2),
+                   static_cast<std::uint8_t>(band * bin_size + bin_size / 2) };
     }
 
     return result;
