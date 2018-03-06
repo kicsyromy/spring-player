@@ -92,7 +92,7 @@ void ResourceCache::to_cache(const string_view &prefix,
     else
     {
         GError *error{ nullptr };
-        gdk_pixbuf_save(pixbuf, full_file_path.c_str(), "png", &error, nullptr);
+        gdk_pixbuf_save(pixbuf, full_file_path.c_str(), "jpeg", &error, nullptr);
         if (error != nullptr)
         {
             LOG_ERROR("ResourceCache: Failed to save pixbuf {} to disk: {}", full_file_path,

@@ -98,8 +98,16 @@ Thumbnail::Thumbnail() noexcept
 
 Thumbnail::~Thumbnail() noexcept
 {
-    g_object_unref(background_);
-    g_object_unref(image_);
+    if (background_ != nullptr)
+    {
+        g_object_unref(background_);
+    }
+
+    if (image_ != nullptr)
+    {
+        g_object_unref(image_);
+    }
+
     gtk_widget_destroy(container_);
 }
 
@@ -275,8 +283,15 @@ std::int32_t Thumbnail::on_draw_requested(GtkWidget *,
             cairo_buffer = vips_image_to_argb(thumbnail, { { container_width, container_height } },
                                               artwork_offset);
 
-            g_object_unref(background);
-            g_object_unref(thumbnail);
+            if (background != nullptr)
+            {
+                g_object_unref(background);
+            }
+
+            if (thumbnail != self->image_)
+            {
+                g_object_unref(thumbnail);
+            }
 
             drawing_surface = cairo_image_surface_create_for_data(
                 cairo_buffer.get(), CAIRO_FORMAT_ARGB32, container_width, container_height,
