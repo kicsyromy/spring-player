@@ -142,6 +142,8 @@ void PlaybackList::clear() noexcept
     LOG_INFO("PlaybackList({}): Clear", void_p(this));
     pipeline_.stop();
     content_.clear();
+
+    emit_list_cleared();
 }
 
 void PlaybackList::enqueue(std::shared_ptr<music::Track> track) noexcept

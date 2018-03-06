@@ -13,6 +13,28 @@ using namespace spring::player::utility;
 
 namespace
 {
+    inline std::string clean_markup(const std::string &text) noexcept
+    {
+        std::size_t ampersand_pos{ 0 };
+        std::string result = text;
+
+        for (;;)
+        {
+            ampersand_pos = result.find('&', ampersand_pos + 1);
+
+            if (ampersand_pos != std::string::npos)
+            {
+                result.replace(ampersand_pos, 1, "&amp;");
+            }
+            else
+            {
+                break;
+            }
+        }
+
+        return result;
+    }
+
     void load_css_styling(GtkCssProvider *&css_provider) noexcept
     {
         LOG_INFO("MainWindow: Internal: Loading CSS styling...");
@@ -78,10 +100,11 @@ MainWindow::MainWindow(SpringPlayer &application,
                 const auto &track = playlist->current_track();
                 gtk_label_set_markup(
                     self->window_title_,
-                    fmt::format("<span weight=\"bold\">{}</span> by <span "
-                                "weight=\"bold\">{}</span> from <span weight=\"bold\">{}</span>",
-                                track.second->title(), track.second->artist(),
-                                track.second->album())
+                    clean_markup(
+                        fmt::format(
+                            "<span weight=\"bold\">{}</span> by <span "
+                            "weight=\"bold\">{}</span> from <span weight=\"bold\">{}</span>",
+                            track.second->title(), track.second->artist(), track.second->album()))
                         .c_str());
             }
             else

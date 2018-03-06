@@ -29,6 +29,7 @@ namespace spring
         private:
             std::pair<std::vector<music::Track> *, std::vector<utility::GtkRefGuard<GtkBox>> *>
             load_tracks() const noexcept;
+
             void on_tracks_loaded(
                 std::vector<music::Track> *tracks,
                 std::vector<utility::GtkRefGuard<GtkBox>> *track_widgets) noexcept;

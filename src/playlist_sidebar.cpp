@@ -25,7 +25,7 @@ namespace
             (background_color.red > 120 && background_color.blue > 120) ||
             (background_color.blue > 120 && background_color.green > 120))
         {
-            text_color = { 0, 0, 0 };
+            text_color = std::make_tuple(0, 0, 0);
         }
 
         return text_color;
@@ -68,6 +68,19 @@ PlaylistSidebar::PlaylistSidebar(GtkBuilder *builder,
                 result.first->second->set_text_color(
                     determine_text_color(self->artwork_.dominant_color()));
             }
+        },
+        this);
+
+    playback_list->on_list_cleared(
+        this,
+        [](void *instance) {
+            auto self = static_cast<PlaylistSidebar *>(instance);
+
+            gtk_container_foreach(gtk_cast<GtkContainer>(self->playback_list_box_),
+                                  [](GtkWidget *widget, gpointer) { gtk_widget_destroy(widget); },
+                                  nullptr);
+
+            self->playlist_.clear();
         },
         this);
 
