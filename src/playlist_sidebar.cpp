@@ -14,7 +14,7 @@ using namespace spring::player::utility;
 
 namespace
 {
-    inline auto determine_text_color(const Thumbnail::pixel &background_color) noexcept
+    inline auto determine_text_color(const Thumbnail::pixel_t &background_color) noexcept
     {
         std::tuple<std::uint16_t, std::uint16_t, std::uint16_t> text_color{
             std::numeric_limits<std::uint16_t>::max(), std::numeric_limits<std::uint16_t>::max(),

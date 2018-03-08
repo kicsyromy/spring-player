@@ -3,6 +3,7 @@
 
 #include "algorithms.h"
 #include "compatibility.h"
+#include "exponential_blur.h"
 #include "gtk_helpers.h"
 #include "signals.h"
 

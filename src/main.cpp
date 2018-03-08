@@ -2,7 +2,6 @@
 #include <string>
 
 #include <gtk/gtk.h>
-#include <vips/vips.h>
 
 #include <libspring_logger.h>
 
@@ -13,9 +12,6 @@ GRESOURCE_UI_DECLARE_RESOURCE();
 int main(int argc, char *argv[])
 {
     auto ui = GRESOURCE_UI_INIT_RESOURCE();
-
-    vips_init(argv[0]);
-    vips_leak_set(TRUE);
 
     LOG_INFO("SpringPlayer: Starting up...");
 

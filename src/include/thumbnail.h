@@ -6,6 +6,7 @@
 #include <libspring_global.h>
 
 using GtkWidget = struct _GtkWidget;
+using GdkPixbuf = struct _GdkPixbuf;
 using cairo_t = struct _cairo;
 using VipsImage = struct _VipsImage;
 
@@ -16,7 +17,7 @@ namespace spring
         class Thumbnail
         {
         public:
-            union pair {
+            union pair_t {
                 struct
                 {
                     std::int32_t x;
@@ -30,10 +31,10 @@ namespace spring
                 };
             };
 
-            using point = pair;
-            using size = pair;
+            using point_t = pair_t;
+            using size_t = pair_t;
 
-            struct pixel
+            struct pixel_t
             {
                 std::uint8_t red;
                 std::uint8_t green;
@@ -53,10 +54,10 @@ namespace spring
         public:
             void set_image(const std::string &data,
                            BackgroundType background = BackgroundType::Transparent,
-                           size size = { { 200, 200 } }) noexcept;
+                           size_t size = { { 200, 200 } }) noexcept;
 
         public:
-            pixel dominant_color() const noexcept;
+            pixel_t dominant_color() const noexcept;
 
         public:
             GtkWidget *operator()() noexcept;
@@ -69,8 +70,8 @@ namespace spring
 
         private:
             GtkWidget *container_{ nullptr };
-            VipsImage *image_{ nullptr };
-            VipsImage *background_{ nullptr };
+            GdkPixbuf *image_{ nullptr };
+            GdkPixbuf *background_{ nullptr };
 
         private:
             DISABLE_COPY(Thumbnail)

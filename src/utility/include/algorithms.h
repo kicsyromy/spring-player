@@ -32,11 +32,12 @@ namespace spring
             }
 
             template <int width, int height>
-            inline GdkPixbuf *load_pixbuf_from_data_scaled(const std::string &data) noexcept
+            inline GdkPixbuf *load_pixbuf_from_data_scaled(const std::string &data,
+                                                           int w = width,
+                                                           int h = height) noexcept
             {
                 auto pixbuf = load_pixbuf_from_data(data);
-                auto scaled_pixbuf =
-                    gdk_pixbuf_scale_simple(pixbuf, width, height, GDK_INTERP_TILES);
+                auto scaled_pixbuf = gdk_pixbuf_scale_simple(pixbuf, w, h, GDK_INTERP_TILES);
 
                 g_object_unref(pixbuf);
 

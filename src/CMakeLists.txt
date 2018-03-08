@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.5)
 
 find_package (PkgConfig REQUIRED QUIET)
 pkg_check_modules (GTK REQUIRED gtk+-3.0)
-pkg_check_modules (VIPS REQUIRED vipsCC)
+pkg_check_modules (GRANITE REQUIRED granite)
 pkg_check_modules (GSTREAMER REQUIRED gstreamer-1.0)
 pkg_check_modules (GSTREAMER_AUDIO REQUIRED gstreamer-audio-1.0)
 pkg_check_modules (GSTREAMER_APP REQUIRED gstreamer-app-1.0)
@@ -24,7 +24,7 @@ target_include_directories (
     ${PROJECT_NAME} PRIVATE
     "${PROJECT_SOURCE_DIR}/include"
     ${GTK_INCLUDE_DIRS}
-    ${VIPS_INCLUDE_DIRS}
+    ${GRANITE_INCLUDE_DIRS}
     ${GSTREAMER_INCLUDE_DIRS}
     ${GSTREAMER_AUDIO_INCLUDE_DIRS}
     ${GSTREAMER_APP_INCLUDE_DIRS}
@@ -39,7 +39,7 @@ target_link_libraries (
     ${PROJECT_NAME} PUBLIC
     ${APPLICATION_ID}.ui
     ${GTK_LIBRARIES}
-    ${VIPS_LIBRARIES}
+    ${GRANITE_LIBRARIES}
     ${GSTREAMER_LIBRARIES}
     ${GSTREAMER_AUDIO_LIBRARIES}
     ${GSTREAMER_APP_LIBRARIES}
