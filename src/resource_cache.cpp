@@ -1,12 +1,14 @@
-#include "resource_cache.h"
-
 #include <cstring>
+
+#include <gdk/gdk.h>
+#include <glib-object.h>
 
 #include <fmt/format.h>
 
 #include <libspring_logger.h>
 
 #include "application_settings.h"
+#include "resource_cache.h"
 
 using namespace spring;
 using namespace spring::player;

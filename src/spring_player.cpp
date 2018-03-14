@@ -1,6 +1,6 @@
-#include "spring_player.h"
-
 #include <memory>
+
+#include <gtk/gtk.h>
 
 #include <fmt/format.h>
 
@@ -9,7 +9,7 @@
 #include "gstreamer_pipeline.h"
 #include "main_window.h"
 #include "playback_list.h"
-#include "utility.h"
+#include "spring_player.h"
 
 struct _SpringPlayer
 {
@@ -42,11 +42,6 @@ static void spring_player_startup(GApplication *app)
 
     g_action_map_add_action_entries(G_ACTION_MAP(app), app_entries, G_N_ELEMENTS(app_entries), app);
     gtk_application_set_accels_for_action(GTK_APPLICATION(app), "app.quit", quit_accels);
-
-    auto builder = gtk_builder_new_from_resource(APPLICATION_PREFIX "/app_menu.ui");
-    auto app_menu = G_MENU_MODEL(gtk_builder_get_object(builder, "appmenu"));
-    gtk_application_set_app_menu(GTK_APPLICATION(app), app_menu);
-    g_object_unref(builder);
 }
 
 static void spring_player_init(SpringPlayer *self)

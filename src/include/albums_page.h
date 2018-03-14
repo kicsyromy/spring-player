@@ -4,30 +4,32 @@
 #include <memory>
 #include <vector>
 
-#include <gtk/gtk.h>
-
 #include <libspring_music_library.h>
 
+/* TODO: Forward declare this */
 #include "album_widget.h"
-#include "playback_list.h"
+
+#include "utility/forward_declarations.h"
 
 namespace spring
 {
     namespace player
     {
+        class PlaybackList;
+
         class AlbumsPage
         {
         public:
             AlbumsPage(GtkBuilder *builder,
                        std::weak_ptr<MusicLibrary> music_library,
                        std::weak_ptr<PlaybackList> playback_list) noexcept;
-            ~AlbumsPage() noexcept = default;
+            ~AlbumsPage() noexcept;
 
         public:
             void activated() noexcept;
 
         private:
-            static gboolean filter(GtkFlowBoxChild *child, void *self) noexcept;
+            static std::int32_t filter(GtkFlowBoxChild *child, void *self) noexcept;
             static void on_search_changed(GtkSearchEntry *element, AlbumsPage *self) noexcept;
 
         public:

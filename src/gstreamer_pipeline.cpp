@@ -1,5 +1,3 @@
-#include "gstreamer_pipeline.h"
-
 #include <cstring>
 #include <thread>
 
@@ -7,9 +5,14 @@
 
 #include <libspring_logger.h>
 
+#include <gtk/gtk.h>
+
 #include "async_queue.h"
+#include "gstreamer_pipeline.h"
 #include "playback_list.h"
-#include "utility.h"
+
+#include "utility/global.h"
+#include "utility/gtk_helpers.h"
 
 using namespace spring;
 using namespace spring::player;

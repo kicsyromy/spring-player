@@ -1,10 +1,15 @@
-#include "artist_widget.h"
+#include <gtk/gtk.h>
 
 #include <libspring_logger.h>
 
+#include "artist_widget.h"
 #include "async_queue.h"
+#include "playback_list.h"
 #include "resource_cache.h"
-#include "utility.h"
+
+#include "utility/global.h"
+#include "utility/gtk_helpers.h"
+#include "utility/pixbuf_loader.h"
 
 using namespace spring;
 using namespace spring::player;
@@ -103,7 +108,7 @@ void ArtistWidget::activated() noexcept
 #endif
 }
 
-std::pair<std::vector<music::Track> *, std::vector<GtkRefGuard<GtkBox>> *> ArtistWidget::
+std::pair<std::vector<music::Track> *, std::vector<GObjectGuard<GtkBox>> *> ArtistWidget::
     load_tracks() const noexcept
 {
     LOG_INFO("ArtistWidget({}): Loading tracks for {}", static_cast<const void *>(this),
@@ -111,7 +116,7 @@ std::pair<std::vector<music::Track> *, std::vector<GtkRefGuard<GtkBox>> *> Artis
 
     auto tracks = new std::vector<music::Track>();
     *tracks = artist_.tracks();
-    auto track_list_entries = new std::vector<GtkRefGuard<GtkBox>>;
+    auto track_list_entries = new std::vector<GObjectGuard<GtkBox>>;
     track_list_entries->reserve(tracks->size());
 
     for (const auto &track : *tracks)
@@ -142,7 +147,7 @@ std::pair<std::vector<music::Track> *, std::vector<GtkRefGuard<GtkBox>> *> Artis
 }
 
 void ArtistWidget::on_tracks_loaded(std::vector<music::Track> *tracks,
-                                    std::vector<GtkRefGuard<GtkBox>> *track_widgets) noexcept
+                                    std::vector<GObjectGuard<GtkBox>> *track_widgets) noexcept
 {
     LOG_INFO("ArtistWidget({}): Tracks ready for {}", void_p(this), artist_.name());
 
@@ -151,7 +156,7 @@ void ArtistWidget::on_tracks_loaded(std::vector<music::Track> *tracks,
         on_popover_closed(track_list_popover_, this);
 
         std::unique_ptr<std::vector<music::Track>> track_list{ tracks };
-        std::unique_ptr<std::vector<GtkRefGuard<GtkBox>>> track_widget_list{ track_widgets };
+        std::unique_ptr<std::vector<GObjectGuard<GtkBox>>> track_widget_list{ track_widgets };
 
         tracks_.clear();
         std::size_t index{ 0 };

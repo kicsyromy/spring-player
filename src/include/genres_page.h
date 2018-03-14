@@ -1,9 +1,9 @@
 #ifndef SPRING_PLAYER_GENRES_PAGE_H
 #define SPRING_PLAYER_GENRES_PAGE_H
 
-#include <gtk/gtk.h>
-
 #include <libspring_music_library.h>
+
+#include <utility/forward_declarations.h>
 
 namespace spring
 {
@@ -15,7 +15,7 @@ namespace spring
             GenresPage(GtkBuilder *builder,
                        /* weak_ptr instead of ref */
                        const MusicLibrary &music_library) noexcept;
-            ~GenresPage() noexcept = default;
+            ~GenresPage() noexcept;
 
         public:
             void activated() noexcept;

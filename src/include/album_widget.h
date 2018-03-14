@@ -1,14 +1,11 @@
 #ifndef SPRING_PLAYER_ALBUM_WIDGET_H
 #define SPRING_PLAYER_ALBUM_WIDGET_H
 
-#include <gtk/gtk.h>
-
 #include <libspring_global.h>
 #include <libspring_music_album.h>
 #include <libspring_music_track.h>
 
-#include "playback_list.h"
-#include "utility.h"
+#include "utility/g_object_guard.h"
 
 struct TrackListUpdateRequest;
 struct TrackListUpdateResponse;
@@ -17,6 +14,8 @@ namespace spring
 {
     namespace player
     {
+        class PlaybackList;
+
         class AlbumWidget
         {
         public:
@@ -32,12 +31,12 @@ namespace spring
             operator GtkWidget *() noexcept;
 
         private:
-            std::pair<std::vector<music::Track> *, std::vector<utility::GtkRefGuard<GtkBox>> *>
+            std::pair<std::vector<music::Track> *, std::vector<utility::GObjectGuard<GtkBox>> *>
             load_tracks() const noexcept;
 
             void on_tracks_loaded(
                 std::vector<music::Track> *tracks,
-                std::vector<utility::GtkRefGuard<GtkBox>> *track_widgets) noexcept;
+                std::vector<utility::GObjectGuard<GtkBox>> *track_widgets) noexcept;
 
         private:
             static void on_track_activated(GtkListBox *list_box,
@@ -46,11 +45,11 @@ namespace spring
             static void on_popover_closed(GtkPopover *popover, AlbumWidget *self) noexcept;
 
         private:
-            utility::GtkRefGuard<GtkBox> album_widget_{ nullptr };
+            utility::GObjectGuard<GtkBox> album_widget_{ nullptr };
             GtkImage *cover_{ nullptr };
             GtkLabel *artist_{ nullptr };
             GtkLabel *title_{ nullptr };
-            utility::GtkRefGuard<GtkPopover> track_list_popover_{ nullptr };
+            utility::GObjectGuard<GtkPopover> track_list_popover_{ nullptr };
             GtkListBox *track_list_{ nullptr };
             GtkSpinner *tracks_loading_spinner_{ nullptr };
 

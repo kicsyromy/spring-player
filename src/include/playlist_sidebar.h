@@ -4,14 +4,14 @@
 #include <memory>
 #include <unordered_map>
 
-#include <gtk/gtk.h>
-
 #include <libspring_global.h>
 #include <libspring_music_track.h>
 
 #include "playback_list.h"
 #include "thumbnail.h"
-#include "utility.h"
+
+#include "utility/forward_declarations.h"
+#include "utility/g_object_guard.h"
 
 namespace spring
 {
@@ -22,13 +22,15 @@ namespace spring
         class PlaylistSidebar
         {
         public:
-            PlaylistSidebar(GtkBuilder *builder,
-                            std::shared_ptr<PlaybackList> playback_list) noexcept;
+            PlaylistSidebar(std::shared_ptr<PlaybackList> playback_list) noexcept;
             ~PlaylistSidebar() noexcept;
 
         public:
             void show() noexcept;
             void hide() noexcept;
+
+        public:
+            GtkWidget *operator()() noexcept;
 
         private:
             static void toggled(GtkToggleButton *toggle_button, PlaylistSidebar *self) noexcept;
@@ -56,7 +58,7 @@ namespace spring
                 GtkWidget *operator()() noexcept;
 
             private:
-                utility::GtkRefGuard<GtkBox> playlist_item_{ nullptr };
+                utility::GObjectGuard<GtkBox> playlist_item_{ nullptr };
                 GtkLabel *title_{ nullptr };
                 GtkLabel *duration_{ nullptr };
                 GtkImage *playing_icon_{ nullptr };
@@ -65,10 +67,9 @@ namespace spring
             };
 
         private:
-            GtkBox *playlist_sidebar_{ nullptr };
+            utility::GObjectGuard<GtkBox> playlist_sidebar_{ nullptr };
             GtkContainer *artwork_container_{ nullptr };
-            GtkListBox *playback_list_box_{ nullptr };
-            GtkToggleButton *toggle_sidebar_button_{ nullptr };
+            GtkListBox *track_list_container_{ nullptr };
 
             Thumbnail artwork_{};
 

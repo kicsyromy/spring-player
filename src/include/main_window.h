@@ -3,16 +3,17 @@
 
 #include <memory>
 
-#include <gtk/gtk.h>
-
 #include <libspring_global.h>
 #include <libspring_plex_media_server.h>
+
+#include "header_bar.h"
+#include "playlist_sidebar.h"
 
 #include "page_stack.h"
 #include "playback_header.h"
 #include "playback_list.h"
-#include "playlist_sidebar.h"
-#include "utility.h"
+
+#include "utility/forward_declarations.h"
 
 using SpringPlayer = struct _SpringPlayer;
 
@@ -36,14 +37,21 @@ namespace spring
                                           MainWindow *self) noexcept;
 
         private:
+            static void set_tile(PlaybackList::PlaybackState state, MainWindow *self) noexcept;
+            static void toggle_playlist(bool toggled, MainWindow *self) noexcept;
+
+        private:
             GtkApplicationWindow *main_window_{ nullptr };
+            GtkPaned *paned_{ nullptr };
+            GtkWidget *sidebar_placeholder_{ nullptr };
             GtkRevealer *search_revealer_{ nullptr };
             GtkSearchEntry *search_entry_{ nullptr };
-            GtkToggleButton *search_button_{ nullptr };
-            GtkLabel *window_title_{ nullptr };
+
             std::unique_ptr<PageStack> page_stack_{ nullptr };
-            std::unique_ptr<PlaylistSidebar> playlist_sidebar_{ nullptr };
             std::unique_ptr<PlaybackHeader> playback_footer_{ nullptr };
+
+            HeaderBar header_{ nullptr };
+            PlaylistSidebar playlist_sidebar_{ nullptr };
 
             std::weak_ptr<PlaybackList> playback_list_{};
 

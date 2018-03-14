@@ -1,8 +1,10 @@
-#include "playback_buffer.h"
-
 #include <cstring>
 
 #include <libspring_logger.h>
+
+#include "playback_buffer.h"
+
+#include "utility/global.h"
 
 using namespace spring;
 using namespace spring::player;

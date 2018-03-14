@@ -1,8 +1,11 @@
-#include "page_stack_swicher.h"
+#include <gtk/gtk.h>
 
 #include <libspring_logger.h>
 
-#include "utility.h"
+#include "page_stack_swicher.h"
+
+#include "utility/global.h"
+#include "utility/gtk_helpers.h"
 
 using namespace spring;
 using namespace spring::player;

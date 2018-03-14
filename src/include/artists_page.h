@@ -7,19 +7,22 @@
 
 #include <libspring_music_library.h>
 
+/* TODO: Forward declare this */
 #include "artist_widget.h"
 
 namespace spring
 {
     namespace player
     {
+        class PlaybackList;
+
         class ArtistsPage
         {
         public:
             ArtistsPage(GtkBuilder *builder,
                         std::weak_ptr<const MusicLibrary> music_library,
                         std::weak_ptr<PlaybackList> playback_list) noexcept;
-            ~ArtistsPage() noexcept = default;
+            ~ArtistsPage() noexcept;
 
         public:
             void activated() noexcept;

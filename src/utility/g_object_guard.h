@@ -1,7 +1,7 @@
-#ifndef SPRING_PLAYER_UTILITY_GTK_REF_GUARD_H
-#define SPRING_PLAYER_UTILITY_GTK_REF_GUARD_H
+#ifndef SPRING_PLAYER_UTILITY_G_OBJECT_GUARD_H
+#define SPRING_PLAYER_UTILITY_G_OBJECT_GUARD_H
 
-#include <gtk/gtk.h>
+#include "forward_declarations.h"
 
 namespace spring
 {
@@ -9,21 +9,21 @@ namespace spring
     {
         namespace utility
         {
-            template <typename Widget> class GtkRefGuard
+            template <typename GObject> class GObjectGuard
             {
             public:
-                using gtk_t = Widget;
+                using g_object_t = GObject;
 
             public:
-                explicit GtkRefGuard(Widget *widget) noexcept
-                  : handle_(widget)
+                explicit GObjectGuard(g_object_t *object) noexcept
+                  : handle_(object)
                 {
                     if (handle_ != nullptr)
                     {
                         g_object_ref_sink(handle_);
                     }
                 }
-                ~GtkRefGuard() noexcept
+                ~GObjectGuard() noexcept
                 {
                     if (handle_ != nullptr)
                     {
@@ -32,36 +32,36 @@ namespace spring
                     }
                 }
 
-                GtkRefGuard(const GtkRefGuard &other)
+                GObjectGuard(const GObjectGuard &other)
                   : handle_(other.handle_)
                 {
                     g_object_ref(handle_);
                 }
 
-                GtkRefGuard &operator=(const GtkRefGuard &other)
+                GObjectGuard &operator=(const GObjectGuard &other)
                 {
                     handle_ = other.handle_;
                     g_object_ref(handle_);
                 }
 
-                GtkRefGuard(GtkRefGuard &&other)
+                GObjectGuard(GObjectGuard &&other)
                   : handle_(other.handle_)
                 {
                     g_object_ref(handle_);
                 }
 
-                GtkRefGuard &operator=(GtkRefGuard &&other)
+                GObjectGuard &operator=(GObjectGuard &&other)
                 {
                     handle_ = other.handle_;
                     g_object_ref(handle_);
                 }
 
             public:
-                GtkRefGuard &operator=(Widget *widget)
+                GObjectGuard &operator=(g_object_t *object)
                 {
-                    this->~GtkRefGuard();
+                    this->~GObjectGuard();
 
-                    handle_ = widget;
+                    handle_ = object;
                     if (handle_ != nullptr)
                     {
                         g_object_ref_sink(handle_);
@@ -71,13 +71,13 @@ namespace spring
                 }
 
             public:
-                operator Widget *() { return handle_; }
+                operator g_object_t *() { return handle_; }
 
             private:
-                Widget *handle_;
+                g_object_t *handle_;
             };
         }
     }
 }
 
-#endif // !SPRING_PLAYER_UTILITY_GTK_REF_GUARD_H
+#endif // !SPRING_PLAYER_UTILITY_G_OBJECT_GUARD_H

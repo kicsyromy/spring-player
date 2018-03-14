@@ -1,17 +1,21 @@
-#include "album_widget.h"
+#include <gtk/gtk.h>
 
 #include <fmt/format.h>
 
+#include <libspring_logger.h>
+
+#include "album_widget.h"
 #include "async_queue.h"
 #include "playback_list.h"
 #include "resource_cache.h"
-#include "utility.h"
+
+#include "utility/global.h"
+#include "utility/gtk_helpers.h"
+#include "utility/pixbuf_loader.h"
 
 using namespace spring;
 using namespace spring::player;
 using namespace spring::player::utility;
-
-#include <libspring_logger.h>
 
 AlbumWidget::AlbumWidget(music::Album &&album, std::weak_ptr<PlaybackList> playback_list) noexcept
   : album_(std::move(album))
@@ -110,7 +114,7 @@ void AlbumWidget::activated() noexcept
     /* clang-format on */
 }
 
-std::pair<std::vector<music::Track> *, std::vector<utility::GtkRefGuard<GtkBox>> *> AlbumWidget::
+std::pair<std::vector<music::Track> *, std::vector<utility::GObjectGuard<GtkBox>> *> AlbumWidget::
     load_tracks() const noexcept
 {
     LOG_INFO("AlbumWidget({}): Loading tracks for {}", static_cast<const void *>(this),
@@ -118,7 +122,7 @@ std::pair<std::vector<music::Track> *, std::vector<utility::GtkRefGuard<GtkBox>>
 
     auto tracks = new std::vector<music::Track>();
     *tracks = album_.tracks();
-    auto track_list_entries = new std::vector<GtkRefGuard<GtkBox>>;
+    auto track_list_entries = new std::vector<GObjectGuard<GtkBox>>;
     track_list_entries->reserve(tracks->size());
 
     for (const auto &track : *tracks)
@@ -150,7 +154,7 @@ std::pair<std::vector<music::Track> *, std::vector<utility::GtkRefGuard<GtkBox>>
 
 void AlbumWidget::on_tracks_loaded(
     std::vector<music::Track> *tracks,
-    std::vector<utility::GtkRefGuard<GtkBox>> *track_widgets) noexcept
+    std::vector<utility::GObjectGuard<GtkBox>> *track_widgets) noexcept
 {
     LOG_INFO("AlbumWidget({}): Tracks ready for {}", void_p(this), album_.title());
 
@@ -159,7 +163,7 @@ void AlbumWidget::on_tracks_loaded(
         on_popover_closed(track_list_popover_, this);
 
         std::unique_ptr<std::vector<music::Track>> track_list{ tracks };
-        std::unique_ptr<std::vector<GtkRefGuard<GtkBox>>> track_widget_list{ track_widgets };
+        std::unique_ptr<std::vector<GObjectGuard<GtkBox>>> track_widget_list{ track_widgets };
 
         tracks_.clear();
         std::size_t index{ 0 };

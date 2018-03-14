@@ -1,5 +1,3 @@
-#include "async_queue.h"
-
 #include <pthread.h>
 
 #include <atomic>
@@ -9,6 +7,8 @@
 #include <gtk/gtk.h>
 
 #include <libspring_logger.h>
+
+#include "async_queue.h"
 
 using namespace spring;
 using namespace spring::player;

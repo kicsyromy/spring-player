@@ -1,7 +1,7 @@
 project (${APPLICATION_ID}.src.utility CXX)
 cmake_minimum_required(VERSION 3.5)
 
-file (GLOB HEADERS "${PROJECT_SOURCE_DIR}/include/*.h")
+file (GLOB HEADERS "${PROJECT_SOURCE_DIR}/*.h")
 source_group ("Headers" FILES ${HEADERS})
 
 file (GLOB SOURCES "${PROJECT_SOURCE_DIR}/*.cpp")
@@ -28,7 +28,7 @@ target_include_directories (
 
 target_include_directories (
     ${PROJECT_NAME} PUBLIC
-    "${PROJECT_SOURCE_DIR}/include"
+    "${PROJECT_SOURCE_DIR}/../"
 )
 
 target_compile_definitions (

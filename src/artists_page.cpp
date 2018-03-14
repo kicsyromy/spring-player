@@ -1,11 +1,14 @@
-#include "artists_page.h"
-
 #include <thread>
+
+#include <gtk/gtk.h>
 
 #include <libspring_logger.h>
 
+#include "artists_page.h"
 #include "async_queue.h"
-#include "utility.h"
+
+#include "utility/global.h"
+#include "utility/gtk_helpers.h"
 
 using namespace spring;
 using namespace spring::player;
@@ -24,6 +27,11 @@ ArtistsPage::ArtistsPage(GtkBuilder *builder,
     get_widget_from_builder_simple(artists_loading_spinner);
 
     connect_g_signal(artists_content_, "child-activated", &on_child_activated, this);
+}
+
+ArtistsPage::~ArtistsPage() noexcept
+{
+    LOG_INFO("ArtistsPage({}): Destroying...", void_p(this));
 }
 
 void ArtistsPage::activated() noexcept

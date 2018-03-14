@@ -1,11 +1,15 @@
-#include "albums_page.h"
-
 #include <thread>
+
+#include <gtk/gtk.h>
 
 #include <libspring_logger.h>
 
+#include "albums_page.h"
 #include "async_queue.h"
-#include "utility.h"
+
+#include "utility/fuzzy_search.h"
+#include "utility/global.h"
+#include "utility/gtk_helpers.h"
 
 using namespace spring;
 using namespace spring::player;
@@ -29,6 +33,11 @@ AlbumsPage::AlbumsPage(GtkBuilder *builder,
 
     connect_g_signal(albums_content_, "child-activated", &on_child_activated, this);
     connect_g_signal(search_entry_, "search-changed", &on_search_changed, this);
+}
+
+AlbumsPage::~AlbumsPage() noexcept
+{
+    LOG_INFO("AlbumsPage({}): Destroying...", void_p(this));
 }
 
 void AlbumsPage::activated() noexcept
@@ -81,7 +90,7 @@ void AlbumsPage::activated() noexcept
     }
 }
 
-gboolean AlbumsPage::filter(GtkFlowBoxChild *element, void *instance) noexcept
+int32_t AlbumsPage::filter(GtkFlowBoxChild *element, void *instance) noexcept
 {
     auto self = static_cast<AlbumsPage *>(instance);
     const auto searched_text =

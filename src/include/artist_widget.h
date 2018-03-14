@@ -4,18 +4,17 @@
 #include <memory>
 #include <utility>
 
-#include <gtk/gtk.h>
-
 #include <libspring_global.h>
 #include <libspring_music_artist.h>
 
-#include "playback_list.h"
-#include "utility.h"
+#include "utility/g_object_guard.h"
 
 namespace spring
 {
     namespace player
     {
+        class PlaybackList;
+
         class ArtistWidget
         {
         public:
@@ -27,12 +26,12 @@ namespace spring
             void activated() noexcept;
 
         private:
-            std::pair<std::vector<music::Track> *, std::vector<utility::GtkRefGuard<GtkBox>> *>
+            std::pair<std::vector<music::Track> *, std::vector<utility::GObjectGuard<GtkBox>> *>
             load_tracks() const noexcept;
 
             void on_tracks_loaded(
                 std::vector<music::Track> *tracks,
-                std::vector<utility::GtkRefGuard<GtkBox>> *track_widgets) noexcept;
+                std::vector<utility::GObjectGuard<GtkBox>> *track_widgets) noexcept;
 
         private:
             static void on_track_activated(GtkListBox *list_box,
@@ -41,12 +40,12 @@ namespace spring
             static void on_popover_closed(GtkPopover *popover, ArtistWidget *self) noexcept;
 
         private:
-            utility::GtkRefGuard<GtkBox> artist_widget_{ nullptr };
+            utility::GObjectGuard<GtkBox> artist_widget_{ nullptr };
             GtkImage *thumbnail_{ nullptr };
             GtkLabel *name_{ nullptr };
             GtkLabel *album_count_{ nullptr };
 
-            utility::GtkRefGuard<GtkPopover> track_list_popover_{ nullptr };
+            utility::GObjectGuard<GtkPopover> track_list_popover_{ nullptr };
             GtkListBox *track_list_{ nullptr };
             GtkSpinner *tracks_loading_spinner_{ nullptr };
 

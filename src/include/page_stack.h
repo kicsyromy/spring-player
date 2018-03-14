@@ -3,25 +3,26 @@
 
 #include <memory>
 
-#include <gtk/gtk.h>
-
 #include <libspring_global.h>
 #include <libspring_music_library.h>
 
 #include "application_settings.h"
 
-#include "page_stack_swicher.h"
-
+/* TODO: Forward declare these */
 #include "albums_page.h"
 #include "artists_page.h"
 #include "genres_page.h"
-#include "playback_list.h"
+#include "page_stack_swicher.h"
 #include "songs_page.h"
+
+#include "utility/forward_declarations.h"
 
 namespace spring
 {
     namespace player
     {
+        class PlaybackList;
+
         class PageStack
         {
         public:

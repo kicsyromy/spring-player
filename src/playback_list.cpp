@@ -1,8 +1,12 @@
-#include "playback_list.h"
+#include <gtk/gtk.h>
 
 #include <memory>
 
 #include <libspring_logger.h>
+
+#include "playback_list.h"
+
+#include "utility/global.h"
 
 using namespace spring;
 using namespace spring::player;

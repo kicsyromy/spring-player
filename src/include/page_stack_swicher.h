@@ -5,11 +5,11 @@
 #include <cstdint>
 #include <functional>
 
-#include <gtk/gtk.h>
-
 #include <libspring_global.h>
 
 #include "application_settings.h"
+
+#include "utility/forward_declarations.h"
 
 namespace spring
 {

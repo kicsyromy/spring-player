@@ -3,11 +3,10 @@
 
 #include <string>
 
-#include <gtk/gtk.h>
-
 #include <libspring_global.h>
 
-#include "utility.h"
+#include "utility/compatibility.h"
+#include "utility/forward_declarations.h"
 
 namespace spring
 {

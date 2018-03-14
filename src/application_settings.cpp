@@ -1,12 +1,12 @@
-#include "application_settings.h"
-
 #include <array>
 
 #include <gtk/gtk.h>
 
+#include <fmt/format.h>
+
 #include <libspring_logger.h>
 
-#include <fmt/format.h>
+#include "application_settings.h"
 
 using namespace spring;
 using namespace spring::player;

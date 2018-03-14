@@ -1,8 +1,11 @@
-#include "genres_page.h"
+#include <gtk/gtk.h>
 
 #include <libspring_logger.h>
 
-#include "utility.h"
+#include "genres_page.h"
+
+#include "utility/global.h"
+#include "utility/gtk_helpers.h"
 
 using namespace spring;
 using namespace spring::player;
@@ -15,6 +18,11 @@ GenresPage::GenresPage(GtkBuilder *builder, const MusicLibrary &music_library) n
 
     get_widget_from_builder_simple(genres_page);
     get_widget_from_builder_simple(genres_content);
+}
+
+GenresPage::~GenresPage() noexcept
+{
+    LOG_INFO("GenresPage({}): Destroying...", void_p(this));
 }
 
 void GenresPage::activated() noexcept
