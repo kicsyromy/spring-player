@@ -39,10 +39,12 @@ namespace
 
 MainWindow::MainWindow(SpringPlayer &application,
                        std::shared_ptr<PlaybackList> playback_list) noexcept
-  : header_(playback_list)
-  , playlist_sidebar_(playback_list)
+  : pms_{ spring_player_pms() }
+  , header_{ playback_list }
+  , playlist_sidebar_{ playback_list }
+  , page_stack_{ std::move(static_cast<MusicLibrary &>(pms_.sections().at(2).content())),
+                 playback_list }
   , playback_list_{ playback_list }
-  , pms_{ spring_player_pms() }
 {
     LOG_INFO("MainWindow({}): Creating...", void_p(this));
 
@@ -53,6 +55,8 @@ MainWindow::MainWindow(SpringPlayer &application,
 
     get_widget_from_builder_simple(paned);
     get_widget_from_builder_simple(sidebar_placeholder);
+    get_widget_from_builder_simple(main_content);
+    get_widget_from_builder_simple(page_stack_placeholder);
 
     get_widget_from_builder_simple(search_revealer);
     get_widget_from_builder_simple(search_entry);
@@ -66,15 +70,18 @@ MainWindow::MainWindow(SpringPlayer &application,
 
     //    playback_footer_ = std::make_unique<PlaybackHeader>(builder, playback_list);
 
-    auto library = pms_.sections().at(2).content();
     //    page_stack_ = std::make_unique<PageStack>(
     //        builder, std::move(static_cast<spring::MusicLibrary &>(library)), playback_list);
 
     g_object_unref(builder);
 
     gtk_window_set_titlebar(gtk_cast<GtkWindow>(main_window_), header_());
+
     gtk_widget_destroy(sidebar_placeholder_);
     gtk_paned_pack1(paned_, playlist_sidebar_(), true, false);
+
+    gtk_widget_destroy(page_stack_placeholder_);
+    gtk_box_pack_end(main_content_, page_stack_(), true, true, 0);
 
     header_.on_playlist_toggled(this, &toggle_playlist);
     playback_list->on_playback_state_changed(this, &set_tile);

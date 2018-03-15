@@ -27,7 +27,15 @@
             <property name="can_focus">False</property>
             <property name="orientation">vertical</property>
             <child>
-              <placeholder/>
+              <object class="GtkDrawingArea" id="page_stack_switcher_placeholder">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+              </packing>
             </child>
             <child>
               <object class="GtkRevealer" id="search_revealer">
@@ -53,7 +61,15 @@
               </packing>
             </child>
             <child>
-              <placeholder/>
+              <object class="GtkDrawingArea" id="page_stack_placeholder">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">2</property>
+              </packing>
             </child>
           </object>
           <packing>

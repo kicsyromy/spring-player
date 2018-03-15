@@ -57,7 +57,7 @@ namespace spring
             std::vector<Album> albums() const noexcept;
             std::vector<Track> tracks() const noexcept;
             std::vector<Track> popularTracks() const noexcept;
-            std::string thumbnail() const noexcept;
+            std::string artwork() const noexcept;
 
         private:
             std::unique_ptr<ArtistPrivate> priv_;

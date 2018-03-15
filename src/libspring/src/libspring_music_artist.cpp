@@ -183,7 +183,7 @@ std::vector<Track> Artist::popularTracks() const noexcept
     return { result.begin(), result.end() };
 }
 
-std::string Artist::thumbnail() const noexcept
+std::string Artist::artwork() const noexcept
 {
     std::string result{};
 

@@ -44,18 +44,18 @@ namespace spring
             GtkApplicationWindow *main_window_{ nullptr };
             GtkPaned *paned_{ nullptr };
             GtkWidget *sidebar_placeholder_{ nullptr };
+            GtkBox *main_content_{ nullptr };
+            GtkWidget *page_stack_placeholder_{ nullptr };
             GtkRevealer *search_revealer_{ nullptr };
             GtkSearchEntry *search_entry_{ nullptr };
 
-            std::unique_ptr<PageStack> page_stack_{ nullptr };
-            std::unique_ptr<PlaybackHeader> playback_footer_{ nullptr };
+            PlexMediaServer pms_;
 
             HeaderBar header_{ nullptr };
             PlaylistSidebar playlist_sidebar_{ nullptr };
+            PageStack page_stack_;
 
             std::weak_ptr<PlaybackList> playback_list_{};
-
-            PlexMediaServer pms_;
 
             GtkCssProvider *css_provider_{ nullptr };
 

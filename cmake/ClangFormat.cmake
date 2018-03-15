@@ -13,6 +13,7 @@ if (NOT CLANG_FORMAT MATCHES "CLANG_FORMAT-NOTFOUND")
         COMMAND ${CLANG_FORMAT}
         -style=file
         -i "${PROJECT_SOURCE_DIR}/src/include/*.h"
+           "${PROJECT_SOURCE_DIR}/src/include/*.tpp"
            "${PROJECT_SOURCE_DIR}/src/*.cpp"
            "${PROJECT_SOURCE_DIR}/src/utility/*.h"
            "${PROJECT_SOURCE_DIR}/src/utility/*.cpp"
