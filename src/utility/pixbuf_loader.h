@@ -3,7 +3,7 @@
 
 #include <string>
 
-#include "forward_declarations.h"
+#include <gdk/gdk.h>
 
 namespace spring
 {

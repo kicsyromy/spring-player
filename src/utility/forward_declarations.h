@@ -3,10 +3,6 @@
 
 #include <cstdint>
 
-#ifndef __GDK_H__
-using GdkInterpType = std::int32_t;
-#endif
-
 #ifndef __GLIB_GOBJECT_H__
 using GConnectFlags = std::int32_t;
 #endif
@@ -62,17 +58,5 @@ extern "C" std::uint64_t g_signal_connect_data(void *,
                                                void *data,
                                                void (*)(void *, struct _GClosure *),
                                                GConnectFlags);
-
-extern "C" GdkPixbufLoader *gdk_pixbuf_loader_new();
-extern "C" std::int32_t gdk_pixbuf_loader_write(GdkPixbufLoader *loader,
-                                                const std::uint8_t *buf,
-                                                std::uint64_t count,
-                                                GError **error);
-extern "C" std::int32_t gdk_pixbuf_loader_close(GdkPixbufLoader *loader, GError **error);
-extern "C" GdkPixbuf *gdk_pixbuf_scale_simple(const GdkPixbuf *src,
-                                              std::int32_t dest_width,
-                                              std::int32_t dest_height,
-                                              GdkInterpType interp_type);
-extern "C" GdkPixbuf *gdk_pixbuf_loader_get_pixbuf(GdkPixbufLoader *loader);
 
 #endif // !SPRING_PLAYER_UTILITY_FORWARD_DECLARATIONS_H

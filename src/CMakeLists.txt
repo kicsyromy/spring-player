@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.5)
 
 find_package (PkgConfig REQUIRED QUIET)
 pkg_check_modules (GTK REQUIRED gtk+-3.0)
-pkg_check_modules (GRANITE REQUIRED granite)
+#pkg_check_modules (GRANITE REQUIRED granite)
 pkg_check_modules (GSTREAMER REQUIRED gstreamer-1.0)
 pkg_check_modules (GSTREAMER_AUDIO REQUIRED gstreamer-audio-1.0)
 pkg_check_modules (GSTREAMER_APP REQUIRED gstreamer-app-1.0)
