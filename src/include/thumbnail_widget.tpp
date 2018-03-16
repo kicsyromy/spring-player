@@ -11,11 +11,12 @@ ThumbnailWidget<ContentProvider>::ThumbnailWidget(
     ContentProvider &&content_provider,
     string_view main_text,
     string_view secondary_text,
+    string_view cache_prefix,
     std::weak_ptr<PlaybackList> playback_list) noexcept
   : content_provider_(std::move(content_provider))
   , playback_list_(playback_list)
 {
-    LOG_INFO("ThumbnailWidget({}): Creating widget for", void_p(this));
+    LOG_INFO("ThumbnailWidget({}): Creating...", void_p(this));
 
     auto builder = gtk_builder_new_from_resource(APPLICATION_PREFIX "/thumbnail_widget.ui");
     thumbnail_widget_ = gtk_cast<GtkBox>(gtk_builder_get_object(builder, "thumbnail_widget"));
@@ -37,9 +38,9 @@ ThumbnailWidget<ContentProvider>::ThumbnailWidget(
     gtk_label_set_text(secondary_title_, secondary_text.data());
 
     async_queue::push_back_request(new async_queue::Request{
-        "load_album_artwork", [this] {
+        "load_artwork", [this, cache_prefix] {
             ResourceCache rc;
-            auto result = rc.from_cache("album_artwork", content_provider_.id());
+            auto result = rc.from_cache(cache_prefix, content_provider_.id());
             if (result.second)
             {
                 GdkPixbuf *pixbuf{ nullptr };
@@ -48,22 +49,34 @@ ThumbnailWidget<ContentProvider>::ThumbnailWidget(
                 if (result.first.empty())
                 {
                     pixbuf = load_pixbuf_from_data_scaled<200, 200>(content_provider_.artwork());
-                    rc.to_cache("album_artwork", content_provider_.id(), pixbuf);
+                    guint size{ 0 };
+                    auto pixel_data = gdk_pixbuf_get_pixels_with_length(pixbuf, &size);
+                    rc.to_cache(cache_prefix, content_provider_.id(),
+                                reinterpret_cast<const char *>(pixel_data), size);
                 }
                 else /* File is cached and read, create a pixbuf out of it */
                 {
-                    pixbuf = load_pixbuf_from_data(result.first);
+                    auto data = new std::string{};
+                    *data = std::move(result.first);
+                    pixbuf =
+                        gdk_pixbuf_new_from_data(reinterpret_cast<const guchar *>(data->c_str()),
+                                                 GDK_COLORSPACE_RGB, false, 8, 200, 200, 200 * 3,
+                                                 [](guchar *, void *data) {
+                                                     auto str = static_cast<std::string *>(data);
+                                                     delete str;
+                                                 },
+                                                 data);
                 }
 
                 async_queue::post_response(
-                    new async_queue::Response{ "album_artwork_ready", [this, pixbuf] {
+                    new async_queue::Response{ "artwork_ready", [this, pixbuf] {
                                                   gtk_image_set_from_pixbuf(image_, pixbuf);
                                                   g_object_unref(pixbuf);
                                               } });
             }
             else
             {
-                LOG_ERROR("AlbumWidget({}): Failed to grab artwork for {}", void_p(this),
+                LOG_ERROR("ThumbnailWidget({}): Failed to grab artwork for {}", void_p(this),
                           content_provider_.title());
             }
         } });

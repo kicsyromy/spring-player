@@ -77,30 +77,3 @@ void ResourceCache::to_cache(const string_view &prefix,
         g_clear_error(&error);
     }
 }
-
-void ResourceCache::to_cache(const string_view &prefix,
-                             const string_view &resource_id,
-                             GdkPixbuf *pixbuf) noexcept
-{
-    auto path = fmt::format("{}/{}", settings::cache_directory(), prefix);
-    auto full_file_path = fmt::format("{}/{}", path, resource_id);
-
-    auto result = g_mkdir_with_parents(path.c_str(), 0755);
-    if (result > 0)
-    {
-        auto err = errno;
-        LOG_ERROR("ResourceCache: Failed to create directory {}: {}", path, std::strerror(err));
-    }
-    else
-    {
-        GError *error{ nullptr };
-        gdk_pixbuf_save(pixbuf, full_file_path.c_str(), "jpeg", &error, nullptr);
-        if (error != nullptr)
-        {
-            LOG_ERROR("ResourceCache: Failed to save pixbuf {} to disk: {}", full_file_path,
-                      error->message);
-        }
-
-        g_clear_error(&error);
-    }
-}

@@ -10,6 +10,7 @@
 #include "playlist_sidebar.h"
 
 #include "page_stack.h"
+#include "page_stack_swicher.h"
 #include "playback_header.h"
 #include "playback_list.h"
 
@@ -33,19 +34,19 @@ namespace spring
             void hide() noexcept;
 
         private:
-            static void on_search_toggled(GtkToggleButton *toggle_button,
-                                          MainWindow *self) noexcept;
+            static void on_search_toggled(bool toggled, MainWindow *self) noexcept;
+            static void on_search_changed(GtkEntry *entry, MainWindow *self) noexcept;
+            static void on_search_finished(GtkSearchEntry *entry, MainWindow *self) noexcept;
 
         private:
-            static void set_tile(PlaybackList::PlaybackState state, MainWindow *self) noexcept;
             static void toggle_playlist(bool toggled, MainWindow *self) noexcept;
+            static void on_track_queued(std::shared_ptr<music::Track> &, MainWindow *self) noexcept;
 
         private:
             GtkApplicationWindow *main_window_{ nullptr };
             GtkPaned *paned_{ nullptr };
             GtkWidget *sidebar_placeholder_{ nullptr };
             GtkBox *main_content_{ nullptr };
-            GtkWidget *page_stack_placeholder_{ nullptr };
             GtkRevealer *search_revealer_{ nullptr };
             GtkSearchEntry *search_entry_{ nullptr };
 
@@ -53,6 +54,7 @@ namespace spring
 
             HeaderBar header_{ nullptr };
             PlaylistSidebar playlist_sidebar_{ nullptr };
+            PageStackSwitcher page_stack_switcher_{};
             PageStack page_stack_;
 
             std::weak_ptr<PlaybackList> playback_list_{};

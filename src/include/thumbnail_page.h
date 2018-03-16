@@ -32,7 +32,7 @@ namespace spring
 
         public:
             template <typename FetchFunction> void activated(FetchFunction &&f) noexcept;
-            void search_string_changed(std::string &&text) noexcept;
+            void filter(std::string &&text) noexcept;
 
         public:
             GtkWidget *operator()() noexcept;

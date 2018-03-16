@@ -28,6 +28,7 @@ namespace spring
             ThumbnailWidget(ContentProvider &&content_provider,
                             utility::string_view main_text,
                             utility::string_view secondary_text,
+                            utility::string_view cache_prefix,
                             std::weak_ptr<PlaybackList> playback_list) noexcept;
 
         public:

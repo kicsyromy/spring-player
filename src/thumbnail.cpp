@@ -26,9 +26,9 @@ namespace
         std::size_t operator()(const Thumbnail::pixel_t &pixel) const noexcept
         {
             auto hash = std::hash<std::int32_t>{};
-            return hash(static_cast<std::int32_t>(pixel.red) +
+            return hash(255 - static_cast<std::int32_t>(pixel.red) +
                         static_cast<std::int32_t>(pixel.green) +
-                        static_cast<std::int32_t>(pixel.blue));
+                        static_cast<std::int32_t>(pixel.blue) * 2);
         }
     };
 

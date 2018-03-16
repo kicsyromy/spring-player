@@ -36,15 +36,11 @@ void ThumbnailPage<ContentProvider>::activated(FetchFunction &&f) noexcept
 
         async_queue::push_front_request(new async_queue::Request{
             "load_content", [f, this]() {
-                /* TODOD: There is a crash at start-up if we start fetching   */
-                /*        album data immediately so we add an artificial delay*/
-                std::this_thread::sleep_for(std::chrono::milliseconds(500));
                 LOG_INFO("ThumbnailPage({}): Loading content...", void_p(this));
                 auto r = f();
                 async_queue::post_response(new async_queue::Response{
                     "albums_ready", [this, r]() {
-                        LOG_INFO("ThumbnailPage({}): Content ready, populating "
-                                 "GtkFlowBox",
+                        LOG_INFO("ThumbnailPage({}): Content ready, populating GtkFlowBox",
                                  void_p(this));
 
                         children_ = std::move(*r);
@@ -62,12 +58,11 @@ void ThumbnailPage<ContentProvider>::activated(FetchFunction &&f) noexcept
 }
 
 template <typename ContentProvider>
-void ThumbnailPage<ContentProvider>::search_string_changed(std::string &&text) noexcept
+void ThumbnailPage<ContentProvider>::filter(std::string &&text) noexcept
 {
     LOG_INFO("ThumbnailPage({}): Search string changed, resetting filter", void_p(this));
-    gtk_flow_box_invalidate_filter(content_);
-
     search_string_ = std::move(text);
+    gtk_flow_box_invalidate_filter(content_);
 }
 
 template <typename ContentProvider> GtkWidget *ThumbnailPage<ContentProvider>::operator()() noexcept
@@ -104,7 +99,7 @@ void ThumbnailPage<ContentProvider>::on_child_activated(GtkFlowBox *,
 {
     auto index = static_cast<std::size_t>(gtk_flow_box_child_get_index(element));
 
-    LOG_INFO("AlbumsPage({}): Activated album at index {}", void_p(self), index);
+    LOG_INFO("ThumbnailPage({}): Activated element at index {}", void_p(self), index);
 
     self->children_.at(index)->activated();
 }

@@ -24,10 +24,6 @@ namespace spring
                           const char *data,
                           std::size_t size) noexcept;
 
-            void to_cache(const utility::string_view &prefix,
-                          const utility::string_view &resource_id,
-                          GdkPixbuf *pixbuf) noexcept;
-
             std::pair<std::string, bool> from_cache(
                 const utility::string_view &prefix,
                 const utility::string_view &resource_id) noexcept;
