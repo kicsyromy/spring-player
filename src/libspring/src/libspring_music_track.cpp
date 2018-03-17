@@ -27,11 +27,14 @@
 #include "libspring_music_track.h"
 #include "libspring_music_track_p.h"
 
-using namespace spring;
-using namespace spring::music;
+#include <json_format.h>
 
 #include "libspring_logger.h"
+#include "libspring_music_album_p.h"
 #include "libspring_plex_media_server_p.h"
+
+using namespace spring;
+using namespace spring::music;
 
 namespace
 {
@@ -45,6 +48,7 @@ TrackPrivate::TrackPrivate(RawTrackMetadata &&metadata,
   : path_(std::move(metadata.get_key()))
   , title_(std::move(metadata.get_title()))
   , album_(std::move(metadata.get_parentTitle()))
+  , album_key_(std::move(metadata.get_parentKey()))
   , artist_(std::move(metadata.get_grandparentTitle()))
   , duration_(metadata.get_duration())
   , artworkPath_(std::move(metadata.get_thumb()))
@@ -143,8 +147,23 @@ const std::string &Track::artwork() const noexcept
         if (pms != nullptr)
         {
             /* TODO: Error handling */
-            auto r = pms->request(priv_->artworkPath_.c_str());
-            priv_->artworkData_ = std::move(r.response.text);
+            if (!priv_->artworkPath_.empty())
+            {
+                auto r = pms->request(priv_->artworkPath_.c_str());
+                priv_->artworkData_ = std::move(r.response.text);
+            }
+            else /* some tracks don't have artwork so use album artwork instead */
+            {
+                using namespace sequential_formats;
+
+                auto r = pms->request(priv_->album_key_.c_str());
+                JsonFormat format{ r.response.text };
+                auto mediaContainer =
+                    sequential::from_format<music::AlbumPrivate::LibraryContainer>(format);
+                r = pms->request(
+                    mediaContainer.get_MediaContainer().get_Metadata().at(0).get_thumb().c_str());
+                priv_->artworkData_ = std::move(r.response.text);
+            }
         }
         else
         {
