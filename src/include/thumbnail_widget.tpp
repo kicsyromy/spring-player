@@ -37,35 +37,52 @@ ThumbnailWidget<ContentProvider>::ThumbnailWidget(
     gtk_label_set_text(main_title_, main_text.data());
     gtk_label_set_text(secondary_title_, secondary_text.data());
 
+    std::string text{ secondary_text };
+
     async_queue::push_back_request(new async_queue::Request{
-        "load_artwork", [this, cache_prefix] {
-            ResourceCache rc;
+        "load_artwork", [this, cache_prefix, text] {
+
+            struct header_t
+            {
+                std::int32_t alpha;
+                std::int32_t bits_per_sample;
+                std::int32_t width;
+                std::int32_t height;
+                std::int32_t rowstride;
+            };
+
+            using cache_t = ResourceCache<5 * sizeof(header_t)>;
+            cache_t rc;
+
             auto result = rc.from_cache(cache_prefix, content_provider_.id());
             if (result.second)
             {
                 GdkPixbuf *pixbuf{ nullptr };
 
                 /* File is not cached, load it from the server and cache it */
-                if (result.first.empty())
+                if (!result.first)
                 {
                     pixbuf = load_pixbuf_from_data_scaled<200, 200>(content_provider_.artwork());
+
+                    auto header = reinterpret_cast<header_t *>(result.first.header.data());
+                    header->alpha = gdk_pixbuf_get_has_alpha(pixbuf);
+                    header->bits_per_sample = gdk_pixbuf_get_bits_per_sample(pixbuf);
+                    header->width = gdk_pixbuf_get_width(pixbuf);
+                    header->height = gdk_pixbuf_get_height(pixbuf);
+                    header->rowstride = gdk_pixbuf_get_rowstride(pixbuf);
                     guint size{ 0 };
-                    auto pixel_data = gdk_pixbuf_get_pixels_with_length(pixbuf, &size);
-                    rc.to_cache(cache_prefix, content_provider_.id(),
-                                reinterpret_cast<const char *>(pixel_data), size);
+                    result.first.buffer.data = gdk_pixbuf_get_pixels_with_length(pixbuf, &size);
+                    result.first.buffer.size = size;
+
+                    rc.to_cache(cache_prefix, content_provider_.id(), result.first);
                 }
                 else /* File is cached and read, create a pixbuf out of it */
                 {
-                    auto data = new std::string{};
-                    *data = std::move(result.first);
-                    pixbuf =
-                        gdk_pixbuf_new_from_data(reinterpret_cast<const guchar *>(data->c_str()),
-                                                 GDK_COLORSPACE_RGB, false, 8, 200, 200, 200 * 3,
-                                                 [](guchar *, void *data) {
-                                                     auto str = static_cast<std::string *>(data);
-                                                     delete str;
-                                                 },
-                                                 data);
+                    auto header = reinterpret_cast<header_t *>(result.first.header.data());
+                    pixbuf = gdk_pixbuf_new_from_data(
+                        result.first.buffer.data, GDK_COLORSPACE_RGB, header->alpha,
+                        header->bits_per_sample, header->width, header->height, header->rowstride,
+                        [](guchar *data, void *) { delete data; }, nullptr);
                 }
 
                 async_queue::post_response(
