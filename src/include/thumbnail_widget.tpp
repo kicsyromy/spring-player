@@ -39,7 +39,7 @@ ThumbnailWidget<ContentProvider>::ThumbnailWidget(
 
     std::string text{ secondary_text };
 
-    async_queue::push_back_request(new async_queue::Request{
+    async_queue::push_back_request(async_queue::Request{
         "load_artwork", [this, cache_prefix, text] {
 
             struct header_t
@@ -85,11 +85,11 @@ ThumbnailWidget<ContentProvider>::ThumbnailWidget(
                         [](guchar *data, void *) { delete data; }, nullptr);
                 }
 
-                async_queue::post_response(
-                    new async_queue::Response{ "artwork_ready", [this, pixbuf] {
-                                                  gtk_image_set_from_pixbuf(image_, pixbuf);
-                                                  g_object_unref(pixbuf);
-                                              } });
+                async_queue::post_response(async_queue::Response{ "artwork_ready", [this, pixbuf] {
+                                                                     gtk_image_set_from_pixbuf(
+                                                                         image_, pixbuf);
+                                                                     g_object_unref(pixbuf);
+                                                                 } });
             }
             else
             {
@@ -117,12 +117,12 @@ template <typename ContentProvider> void ThumbnailWidget<ContentProvider>::activ
 
     gtk_spinner_start(loading_spinner_);
 
-    async_queue::push_front_request(new async_queue::Request{
+    async_queue::push_front_request(async_queue::Request{
         "load_tracks_for_album", [this] {
             auto tracks = load_tracks();
             auto callback = std::bind(&ThumbnailWidget<ContentProvider>::on_tracks_loaded, this,
                                       tracks.first, tracks.second);
-            async_queue::post_response(new async_queue::Response{ "tracks_ready", callback });
+            async_queue::post_response(async_queue::Response{ "tracks_ready", callback });
         } });
 
     if (gtk_popover_get_relative_to(listbox_popover_) == nullptr)

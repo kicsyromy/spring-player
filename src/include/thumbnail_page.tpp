@@ -34,11 +34,11 @@ void ThumbnailPage<ContentProvider>::activated(FetchFunction &&f) noexcept
     {
         gtk_spinner_start(loading_spinner_);
 
-        async_queue::push_front_request(new async_queue::Request{
+        async_queue::push_front_request(async_queue::Request{
             "load_content", [f, this]() {
                 LOG_INFO("ThumbnailPage({}): Loading content...", void_p(this));
                 auto r = f();
-                async_queue::post_response(new async_queue::Response{
+                async_queue::post_response(async_queue::Response{
                     "albums_ready", [this, r]() {
                         LOG_INFO("ThumbnailPage({}): Content ready, populating GtkFlowBox",
                                  void_p(this));
