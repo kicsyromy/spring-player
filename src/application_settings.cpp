@@ -1,12 +1,12 @@
-#include "application_settings.h"
-
 #include <array>
 
 #include <gtk/gtk.h>
 
+#include <fmt/format.h>
+
 #include <libspring_logger.h>
 
-#include <fmt/format.h>
+#include "application_settings.h"
 
 using namespace spring;
 using namespace spring::player;
@@ -26,7 +26,7 @@ namespace
     } app_settings;
 
     constexpr std::array<const char *, static_cast<std::size_t>(settings::Page::Count)> PAGES{
-        "Page::Albums", "Page::Artists", "Page::Genres", "Page::Songs"
+        "Page::Albums", "Page::Artists", "Page::Songs"
     };
 
     enum Properties : std::size_t

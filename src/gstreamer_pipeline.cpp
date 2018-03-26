@@ -1,5 +1,3 @@
-#include "gstreamer_pipeline.h"
-
 #include <cstring>
 #include <thread>
 
@@ -7,9 +5,14 @@
 
 #include <libspring_logger.h>
 
+#include <gtk/gtk.h>
+
 #include "async_queue.h"
+#include "gstreamer_pipeline.h"
 #include "playback_list.h"
-#include "utility.h"
+
+#include "utility/global.h"
+#include "utility/gtk_helpers.h"
 
 using namespace spring;
 using namespace spring::player;
@@ -131,7 +134,7 @@ void GStreamerPipeline::stop() noexcept
 {
     LOG_INFO("GStreamerPipeline({}): Stop", void_p(this));
 
-    gst_element_set_state(playbin_, GST_STATE_READY);
+    gst_element_set_state(playbin_, GST_STATE_NULL);
     emit_playback_position_changed(Milliseconds{ 0 });
 }
 
@@ -157,7 +160,9 @@ void GStreamerPipeline::gst_playback_finished(GstBus *,
                                               GStreamerPipeline *self) noexcept
 {
     LOG_INFO("GStreamerPipeline({}): Internal: Playback finished", void_p(self));
-    gst_element_set_state(self->playbin_, GST_STATE_READY);
+    gst_element_set_state(self->playbin_, GST_STATE_NULL);
+    self->current_state_ = PlaybackState::Stopped;
+    self->emit_playback_state_changed(PlaybackState::Stopped);
 }
 
 void GStreamerPipeline::gst_playback_state_changed(GstBus *,
@@ -214,7 +219,8 @@ GStreamerPipeline::PlaybackState GStreamerPipeline::on_gst_state_change_null(
 GStreamerPipeline::PlaybackState GStreamerPipeline::on_gst_state_change_ready(
     GStreamerPipeline &self) noexcept
 {
-    return on_gst_state_change_null(self);
+    on_gst_state_change_void_pending(self);
+    return PlaybackState::Pending;
 }
 
 GStreamerPipeline::PlaybackState GStreamerPipeline::on_gst_state_change_paused(
@@ -239,7 +245,7 @@ void GStreamerPipeline::gst_playback_error(GstBus *,
                                            GstMessage *message,
                                            GStreamerPipeline *self) noexcept
 {
-    gst_element_set_state(self->playbin_, GST_STATE_READY);
+    gst_element_set_state(self->playbin_, GST_STATE_NULL);
     gchar *error_message;
     gst_message_parse_error(message, nullptr, &error_message);
     LOG_ERROR("GStreamerPipeline({}): Internal: Playbin error: {}", void_p(self), error_message);
@@ -276,6 +282,9 @@ void GStreamerPipeline::gst_appsrc_setup(GstElement *,
     if (current_track != nullptr)
     {
         gst_app_src_set_size(self->appsrc_, static_cast<gint64>(current_track->fileSize()));
+    }
+    else
+    {
         LOG_WARN("GStreamerPipeline({}): Internal: Starting playback on a null "
                  "track, this most likely indicates a logic error",
                  void_p(self));

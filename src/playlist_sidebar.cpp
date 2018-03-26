@@ -1,4 +1,4 @@
-#include "playlist_sidebar.h"
+#include <gtk/gtk.h>
 
 #include <fmt/format.h>
 
@@ -6,7 +6,10 @@
 #include <libspring_music_track.h>
 
 #include "playback_list.h"
-#include "utility.h"
+#include "playlist_sidebar.h"
+
+#include "utility/global.h"
+#include "utility/gtk_helpers.h"
 
 using namespace spring;
 using namespace spring::player;
@@ -32,22 +35,21 @@ namespace
     }
 }
 
-PlaylistSidebar::PlaylistSidebar(GtkBuilder *builder,
-                                 std::shared_ptr<PlaybackList> playback_list) noexcept
+PlaylistSidebar::PlaylistSidebar(std::shared_ptr<PlaybackList> playback_list) noexcept
   : playback_list_{ playback_list }
 {
     LOG_INFO("PlaylistSidebar({}): Creating...", void_p(this));
 
-    get_widget_from_builder_simple(playlist_sidebar);
+    auto builder = gtk_builder_new_from_resource(APPLICATION_PREFIX "/playlist_sidebar.ui");
+
+    get_guarded_widget_from_builder(playlist_sidebar);
     get_widget_from_builder_simple(artwork_container);
-    get_widget_from_builder_simple(playback_list_box);
-    get_widget_from_builder_simple(toggle_sidebar_button);
+    get_widget_from_builder_simple(track_list_container);
 
     gtk_container_add(artwork_container_, artwork_());
 
-    connect_g_signal(playback_list_box_, "row-activated", &on_track_activated, this);
-    connect_g_signal(toggle_sidebar_button_, "toggled", &toggled, this);
-    connect_g_signal(playback_list_box_, "draw", &on_list_bow_draw_requested, this);
+    connect_g_signal(track_list_container_, "row-activated", &on_track_activated, this);
+    connect_g_signal(track_list_container_, "draw", &on_list_bow_draw_requested, this);
 
     playback_list->on_track_queued(
         this,
@@ -63,7 +65,7 @@ PlaylistSidebar::PlaylistSidebar(GtkBuilder *builder,
             if (result.second)
             {
                 auto *widget = result.first->first;
-                gtk_container_add(gtk_cast<GtkContainer>(self->playback_list_box_), widget);
+                gtk_container_add(gtk_cast<GtkContainer>(self->track_list_container_), widget);
                 gtk_widget_set_visible(widget, true);
                 result.first->second->set_text_color(
                     determine_text_color(self->artwork_.dominant_color()));
@@ -76,7 +78,7 @@ PlaylistSidebar::PlaylistSidebar(GtkBuilder *builder,
         [](void *instance) {
             auto self = static_cast<PlaylistSidebar *>(instance);
 
-            gtk_container_foreach(gtk_cast<GtkContainer>(self->playback_list_box_),
+            gtk_container_foreach(gtk_cast<GtkContainer>(self->track_list_container_),
                                   [](GtkWidget *widget, gpointer) { gtk_widget_destroy(widget); },
                                   nullptr);
 
@@ -100,7 +102,7 @@ PlaylistSidebar::PlaylistSidebar(GtkBuilder *builder,
                 {
                     auto current_track = playlist->current_track();
 
-                    auto element = gtk_list_box_get_row_at_index(self->playback_list_box_,
+                    auto element = gtk_list_box_get_row_at_index(self->track_list_container_,
                                                                  current_track.first);
                     auto it = self->playlist_.find(gtk_bin_get_child(gtk_cast<GtkBin>(element)));
                     if (it != self->playlist_.end())
@@ -110,7 +112,7 @@ PlaylistSidebar::PlaylistSidebar(GtkBuilder *builder,
 
                     const auto &artwork = current_track.second->artwork();
                     self->artwork_.set_image(artwork, Thumbnail::BackgroundType::FromImage);
-                    gtk_widget_queue_draw(gtk_cast<GtkWidget>(self->playback_list_box_));
+                    gtk_widget_queue_draw(gtk_cast<GtkWidget>(self->track_list_container_));
 
                     auto background_color = self->artwork_.dominant_color();
 
@@ -123,7 +125,7 @@ PlaylistSidebar::PlaylistSidebar(GtkBuilder *builder,
                                        static_cast<gdouble>(background_color.green) / 255,
                                        static_cast<gdouble>(background_color.blue) / 255, 0.8 };
                     gtk_widget_override_background_color(
-                        gtk_cast<GtkWidget>(self->playback_list_box_), GTK_STATE_FLAG_NORMAL,
+                        gtk_cast<GtkWidget>(self->track_list_container_), GTK_STATE_FLAG_NORMAL,
                         &gdk_color);
                 }
                 else
@@ -153,20 +155,18 @@ PlaylistSidebar::~PlaylistSidebar() noexcept
 void PlaylistSidebar::show() noexcept
 {
     LOG_INFO("PlaylistSidebar({}): Toggle show", void_p(this));
-    gtk_toggle_button_set_active(toggle_sidebar_button_, true);
+    gtk_widget_set_visible(gtk_cast<GtkWidget>(playlist_sidebar_), true);
 }
 
 void PlaylistSidebar::hide() noexcept
 {
     LOG_INFO("PlaylistSidebar({}): Toggle hide", void_p(this));
-    gtk_toggle_button_set_active(toggle_sidebar_button_, false);
+    gtk_widget_set_visible(gtk_cast<GtkWidget>(playlist_sidebar_), false);
 }
 
-void PlaylistSidebar::toggled(GtkToggleButton *toggle_button, PlaylistSidebar *self) noexcept
+GtkWidget *PlaylistSidebar::operator()() noexcept
 {
-    LOG_INFO("PlaylistSidebar({}): Toggle button toggled", void_p(self));
-    auto visible = gtk_toggle_button_get_active(toggle_button);
-    gtk_widget_set_visible(gtk_cast<GtkWidget>(self->playlist_sidebar_), visible);
+    return gtk_cast<GtkWidget>(playlist_sidebar_);
 }
 
 void PlaylistSidebar::on_track_activated(GtkListBox *,
@@ -184,7 +184,7 @@ void PlaylistSidebar::on_track_activated(GtkListBox *,
         if (current_track.first > -1)
         {
             auto current_element =
-                gtk_list_box_get_row_at_index(self->playback_list_box_, current_track.first);
+                gtk_list_box_get_row_at_index(self->track_list_container_, current_track.first);
             auto it = self->playlist_.find(gtk_bin_get_child(gtk_cast<GtkBin>(current_element)));
             if (it != self->playlist_.end())
             {
@@ -197,8 +197,8 @@ void PlaylistSidebar::on_track_activated(GtkListBox *,
 }
 
 int32_t PlaylistSidebar::on_list_bow_draw_requested(GtkWidget *,
-                                                    cairo_t *cairo_context,
-                                                    PlaylistSidebar *self) noexcept
+                                                    cairo_t * /*cairo_context*/,
+                                                    PlaylistSidebar * /*self*/) noexcept
 {
     return false;
 }

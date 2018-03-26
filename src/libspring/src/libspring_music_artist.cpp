@@ -183,22 +183,23 @@ std::vector<Track> Artist::popularTracks() const noexcept
     return { result.begin(), result.end() };
 }
 
-std::string Artist::thumbnail() const noexcept
+const std::string &Artist::artwork() const noexcept
 {
-    std::string result{};
-
-    auto pms = priv_->pms_.lock();
-    if (pms != nullptr)
+    if (priv_->artworkData_.empty())
     {
-        /* TODO: Error handling */
-        auto r = pms->request(priv_->thumbnailPath_.c_str());
-        result = std::move(r.response.text);
-    }
-    else
-    {
-        LOG_ERROR("Artist: Invalid connection handle. PlexMediaServer "
-                  "instance was deleted!");
+        auto pms = priv_->pms_.lock();
+        if (pms != nullptr)
+        {
+            /* TODO: Error handling */
+            auto r = pms->request(priv_->thumbnailPath_.c_str());
+            priv_->artworkData_ = std::move(r.response.text);
+        }
+        else
+        {
+            LOG_ERROR("Artist: Invalid connection handle. PlexMediaServer "
+                      "instance was deleted!");
+        }
     }
 
-    return result;
+    return priv_->artworkData_;
 }

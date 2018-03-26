@@ -1,6 +1,4 @@
-﻿#include "thumbnail.h"
-
-#include <chrono>
+﻿#include <chrono>
 #include <cstring>
 #include <memory>
 #include <unordered_map>
@@ -10,7 +8,12 @@
 
 #include <libspring_logger.h>
 
-#include "utility.h"
+#include "thumbnail.h"
+
+#include "utility/exponential_blur.h"
+#include "utility/global.h"
+#include "utility/gtk_helpers.h"
+#include "utility/pixbuf_loader.h"
 
 using namespace spring;
 using namespace spring::player;
@@ -23,9 +26,9 @@ namespace
         std::size_t operator()(const Thumbnail::pixel_t &pixel) const noexcept
         {
             auto hash = std::hash<std::int32_t>{};
-            return hash(static_cast<std::int32_t>(pixel.red) +
+            return hash(255 - static_cast<std::int32_t>(pixel.red) +
                         static_cast<std::int32_t>(pixel.green) +
-                        static_cast<std::int32_t>(pixel.blue));
+                        static_cast<std::int32_t>(pixel.blue) * 2);
         }
     };
 
@@ -207,7 +210,6 @@ std::int32_t Thumbnail::on_draw_requested(GtkWidget *,
         const auto y_scale = static_cast<double>(container_size.height) / background_size.height;
 
         double background_scale{ 0.0 };
-        point_t background_offset{ { 0, 0 } };
         if (x_scale > y_scale)
         {
             background_scale = x_scale;

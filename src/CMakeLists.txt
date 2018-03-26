@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.5)
 
 find_package (PkgConfig REQUIRED QUIET)
 pkg_check_modules (GTK REQUIRED gtk+-3.0)
-pkg_check_modules (GRANITE REQUIRED granite)
+#pkg_check_modules (GRANITE REQUIRED granite)
 pkg_check_modules (GSTREAMER REQUIRED gstreamer-1.0)
 pkg_check_modules (GSTREAMER_AUDIO REQUIRED gstreamer-audio-1.0)
 pkg_check_modules (GSTREAMER_APP REQUIRED gstreamer-app-1.0)
@@ -12,12 +12,15 @@ pkg_check_modules (LIBICU REQUIRED icu-i18n)
 file (GLOB HEADERS "${PROJECT_SOURCE_DIR}/include/*.h")
 source_group ("Headers" FILES ${HEADERS})
 
+file (GLOB INLINE_SOURCES "${PROJECT_SOURCE_DIR}/include/*.tpp")
+source_group ("Inline Sources" FILES ${HEADERS})
+
 file (GLOB SOURCES "${PROJECT_SOURCE_DIR}/*.cpp")
 source_group ("Sources" FILES ${SOURCES})
 
 add_library (
     ${PROJECT_NAME} STATIC
-    ${HEADERS} ${SOURCES}
+    ${HEADERS} ${INLINE_SOURCES} ${SOURCES}
 )
 
 target_include_directories (

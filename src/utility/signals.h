@@ -1,13 +1,14 @@
 #ifndef SPRING_PLAYER_UTILITY_SIGNALS_H
 #define SPRING_PLAYER_UTILITY_SIGNALS_H
 
+#include <cstdint>
 #include <functional>
 #include <memory>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
-#include <gtk/gtk.h>
+#include "forward_declarations.h"
 
 #define signal(name, ...)                                                                          \
 private:                                                                                           \
@@ -23,13 +24,13 @@ private:                                                                        
                                                                                                    \
 public:                                                                                            \
     using signal_##name##_t = decltype(signal_##name##_);                                          \
-    template <typename CalleeType>                                                                 \
-    inline void on_##name(CalleeType *callee, signal_##name##_t::signature_t handler,              \
-                          void *user_data) noexcept                                                \
+    template <typename CalleeType, typename CallbackT, typename UserDataT = void>                  \
+    inline void on_##name(CalleeType *callee, CallbackT handler,                                   \
+                          UserDataT *user_data = nullptr) noexcept                                 \
     {                                                                                              \
-        signal_##name##_.connect(callee, handler, user_data);                                      \
+        signal_##name##_.connect(callee, handler, user_data ? user_data : callee);                 \
     }                                                                                              \
-    template <typename CalleeType> inline void disconnect_##name(CalleeType *callee)               \
+    template <typename CalleeType> inline void disconnect_##name(CalleeType *callee) noexcept      \
     {                                                                                              \
         signal_##name##_.disconnect(callee);                                                       \
     }
@@ -72,11 +73,12 @@ namespace spring
                 inline ~Signal() noexcept {}
 
             public:
-                template <typename CalleeType>
-                void connect(CalleeType *callee, signature_t callback, void *user_data) noexcept
+                template <typename CalleeType, typename CallbackT, typename UserDataT>
+                void connect(CalleeType *callee, CallbackT callback, UserDataT *user_data) noexcept
                 {
                     clients_.emplace(callee, connections_.size());
-                    connections_.emplace_back(callback, user_data);
+                    connections_.emplace_back((signature_t)callback,
+                                              static_cast<void *>(user_data));
                 }
 
                 template <typename CalleeType> void disconnect(CalleeType *callee) noexcept

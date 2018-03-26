@@ -3,16 +3,16 @@
 
 #include <memory>
 
-#include <gtk/gtk.h>
-
 #include <libspring_global.h>
 
-#include "playback_list.h"
+#include "utility/forward_declarations.h"
 
 namespace spring
 {
     namespace player
     {
+        class PlaybackList;
+
         class PlaybackHeader
         {
         public:

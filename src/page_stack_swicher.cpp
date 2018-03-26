@@ -1,8 +1,11 @@
-#include "page_stack_swicher.h"
+#include <gtk/gtk.h>
 
 #include <libspring_logger.h>
 
-#include "utility.h"
+#include "page_stack_swicher.h"
+
+#include "utility/global.h"
+#include "utility/gtk_helpers.h"
 
 using namespace spring;
 using namespace spring::player;
@@ -20,16 +23,21 @@ namespace
     }
 }
 
-PageStackSwitcher::PageStackSwitcher(GtkBuilder *builder,
-                                     std::function<void(ToggleButton)> &&toggled_handler) noexcept
-  : toggle_buttons_{ get_widget_from_builder(GtkToggleButton, albums_toggle_button),
-                     get_widget_from_builder(GtkToggleButton, artists_toggle_button),
-                     get_widget_from_builder(GtkToggleButton, genres_toggle_button),
-                     get_widget_from_builder(GtkToggleButton, songs_toggle_button) }
-  , toggled_handler_(std::move(toggled_handler))
-  , toggled_button_(settings::get_current_page())
+PageStackSwitcher::PageStackSwitcher() noexcept
+  : toggled_button_(settings::get_current_page())
 {
     LOG_INFO("PageStackSwitcher({}): Creating...", void_p(this));
+
+    auto builder = gtk_builder_new_from_resource(APPLICATION_PREFIX "/page_stack_switcher.ui");
+    get_guarded_widget_from_builder(container);
+    toggle_buttons_[static_cast<std::size_t>(ToggleButton::Albums)] =
+        utility::gtk_cast<GtkToggleButton>(gtk_builder_get_object(builder, "albums_toggle_button"));
+    toggle_buttons_[static_cast<std::size_t>(ToggleButton::Artists)] =
+        utility::gtk_cast<GtkToggleButton>(
+            gtk_builder_get_object(builder, "artists_toggle_button"));
+    toggle_buttons_[static_cast<std::size_t>(ToggleButton::Songs)] =
+        utility::gtk_cast<GtkToggleButton>(gtk_builder_get_object(builder, "songs_toggle_button"));
+    g_object_unref(builder);
 
     gtk_toggle_button_set_active(toggle_buttons_[static_cast<std::size_t>(toggled_button_)], true);
 
@@ -43,8 +51,6 @@ PageStackSwitcher::PageStackSwitcher(GtkBuilder *builder,
                      &button_toggled, this);
     connect_g_signal(toggle_buttons_[static_cast<std::size_t>(ToggleButton::Artists)], "toggled",
                      &button_toggled, this);
-    connect_g_signal(toggle_buttons_[static_cast<std::size_t>(ToggleButton::Genres)], "toggled",
-                     &button_toggled, this);
     connect_g_signal(toggle_buttons_[static_cast<std::size_t>(ToggleButton::Songs)], "toggled",
                      &button_toggled, this);
 }
@@ -57,6 +63,11 @@ PageStackSwitcher::~PageStackSwitcher() noexcept
 PageStackSwitcher::ToggleButton PageStackSwitcher::toggled_button() const noexcept
 {
     return toggled_button_;
+}
+
+GtkWidget *PageStackSwitcher::operator()() noexcept
+{
+    return gtk_cast<GtkWidget>(container_);
 }
 
 void PageStackSwitcher::button_toggled(GtkToggleButton *toggle_button,
@@ -80,5 +91,5 @@ void PageStackSwitcher::button_toggled(GtkToggleButton *toggle_button,
 
     settings::set_current_page(self->toggled_button_);
 
-    self->toggled_handler_(self->toggled_button_);
+    self->emit_page_requested(self->toggled_button());
 }

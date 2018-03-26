@@ -5,10 +5,7 @@
 
 #include <libspring_global.h>
 
-using GtkWidget = struct _GtkWidget;
-using GdkPixbuf = struct _GdkPixbuf;
-using cairo_t = struct _cairo;
-using VipsImage = struct _VipsImage;
+#include "utility/forward_declarations.h"
 
 namespace spring
 {

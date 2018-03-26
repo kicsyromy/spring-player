@@ -10,7 +10,8 @@
 #include <libspring_global.h>
 #include <libspring_music_track.h>
 
-#include "utility.h"
+#include "utility/compatibility.h"
+#include "utility/signals.h"
 
 namespace spring
 {

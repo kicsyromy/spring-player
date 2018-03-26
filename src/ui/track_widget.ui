@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Generated with glade 3.20.2 -->
 <interface>
   <requires lib="gtk+" version="3.18"/>
   <object class="GtkBox" id="track_list_entry">
@@ -8,13 +7,13 @@
     <property name="can_focus">False</property>
     <property name="orientation">vertical</property>
     <child>
-      <object class="GtkBox">
+      <object class="GtkBox" id="content">
         <property name="visible">True</property>
         <property name="can_focus">True</property>
         <property name="margin_left">7</property>
         <property name="margin_right">7</property>
         <child>
-          <object class="GtkBox">
+          <object class="GtkBox" id="artist_song_container">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <property name="halign">start</property>
@@ -84,7 +83,7 @@
       </packing>
     </child>
     <child>
-      <object class="GtkSeparator">
+      <object class="GtkSeparator" id="separator">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
       </object>

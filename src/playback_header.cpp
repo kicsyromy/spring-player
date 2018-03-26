@@ -1,9 +1,12 @@
-#include "playback_header.h"
+#include <gtk/gtk.h>
 
 #include <fmt/format.h>
 
+#include "playback_header.h"
 #include "playback_list.h"
-#include "utility.h"
+
+#include "utility/global.h"
+#include "utility/gtk_helpers.h"
 
 using namespace spring;
 using namespace spring::player;

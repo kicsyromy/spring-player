@@ -1,11 +1,14 @@
-#include "main_window.h"
+#include <gtk/gtk.h>
 
 #include <fmt/format.h>
 
 #include <libspring_logger.h>
 
+#include "main_window.h"
 #include "spring_player.h"
-#include "utility.h"
+
+#include "utility/global.h"
+#include "utility/gtk_helpers.h"
 
 using namespace spring;
 using namespace spring::player;
@@ -13,28 +16,6 @@ using namespace spring::player::utility;
 
 namespace
 {
-    inline std::string clean_markup(const std::string &text) noexcept
-    {
-        std::size_t ampersand_pos{ 0 };
-        std::string result = text;
-
-        for (;;)
-        {
-            ampersand_pos = result.find('&', ampersand_pos + 1);
-
-            if (ampersand_pos != std::string::npos)
-            {
-                result.replace(ampersand_pos, 1, "&amp;");
-            }
-            else
-            {
-                break;
-            }
-        }
-
-        return result;
-    }
-
     void load_css_styling(GtkCssProvider *&css_provider) noexcept
     {
         LOG_INFO("MainWindow: Internal: Loading CSS styling...");
@@ -58,8 +39,12 @@ namespace
 
 MainWindow::MainWindow(SpringPlayer &application,
                        std::shared_ptr<PlaybackList> playback_list) noexcept
-  : playback_list_{ playback_list }
-  , pms_{ spring_player_pms() }
+  : pms_{ spring_player_pms() }
+  , header_{ playback_list }
+  , playlist_sidebar_{ playback_list }
+  , page_stack_{ std::move(static_cast<MusicLibrary &>(pms_.sections().at(2).content())),
+                 page_stack_switcher_, playback_list }
+  , playback_list_{ playback_list }
 {
     LOG_INFO("MainWindow({}): Creating...", void_p(this));
 
@@ -68,51 +53,33 @@ MainWindow::MainWindow(SpringPlayer &application,
     get_widget_from_builder_simple(main_window);
     g_object_set(main_window_, "application", &application, nullptr);
 
+    get_widget_from_builder_simple(paned);
+    get_widget_from_builder_simple(sidebar_placeholder);
+    get_widget_from_builder_simple(main_content);
+
     get_widget_from_builder_simple(search_revealer);
     get_widget_from_builder_simple(search_entry);
-    get_widget_from_builder_simple(search_button);
-    get_widget_from_builder_simple(window_title);
-
-    connect_g_signal(search_button_, "toggled", &on_search_toggled, this);
-
-    playlist_sidebar_ = std::make_unique<PlaylistSidebar>(builder, playback_list);
-    playlist_sidebar_->show();
-
-    playback_footer_ = std::make_unique<PlaybackHeader>(builder, playback_list);
-
-    auto library = pms_.sections().at(2).content();
-    page_stack_ = std::make_unique<PageStack>(
-        builder, std::move(static_cast<spring::MusicLibrary &>(library)), playback_list);
 
     g_object_unref(builder);
 
-    playback_list->on_playback_state_changed(
-        this,
-        [](auto state, void *instance) {
-            auto self = static_cast<MainWindow *>(instance);
+    gtk_window_set_titlebar(gtk_cast<GtkWindow>(main_window_), header_());
 
-            LOG_INFO("MainWindow({}): Playback state changed to {}", instance,
-                     GStreamerPipeline::playback_state_to_string(state));
+    gtk_widget_destroy(sidebar_placeholder_);
+    gtk_paned_pack1(paned_, playlist_sidebar_(), true, false);
 
-            if (state == PlaybackList::PlaybackState::Playing)
-            {
-                auto playlist = self->playback_list_.lock();
-                const auto &track = playlist->current_track();
-                gtk_label_set_markup(
-                    self->window_title_,
-                    clean_markup(
-                        fmt::format(
-                            "<span weight=\"bold\">{}</span> by <span "
-                            "weight=\"bold\">{}</span> from <span weight=\"bold\">{}</span>",
-                            track.second->title(), track.second->artist(), track.second->album()))
-                        .c_str());
-            }
-            else
-            {
-                gtk_label_set_text(self->window_title_, "Spring Player");
-            }
-        },
-        this);
+    auto switcher = page_stack_switcher_();
+    gtk_box_pack_start(main_content_, switcher, false, false, 0);
+    gtk_container_child_set(gtk_cast<GtkContainer>(main_content_), switcher, "position", 0,
+                            nullptr);
+
+    gtk_box_pack_end(main_content_, page_stack_(), true, true, 0);
+
+    connect_g_signal(search_entry_, "search-changed", &on_search_changed, this);
+    connect_g_signal(search_entry_, "stop-search", &on_search_finished, this);
+
+    header_.on_playlist_toggled(this, &toggle_playlist);
+    header_.on_search_toggled(this, &on_search_toggled);
+    playback_list->on_track_queued(this, &on_track_queued);
 
     load_css_styling(css_provider_);
 }
@@ -124,8 +91,9 @@ MainWindow::~MainWindow() noexcept
     auto playlist = playback_list_.lock();
     if (playlist != nullptr)
     {
-        playlist->disconnect_playback_state_changed(this);
+        playlist->on_track_queued(this, &on_track_queued);
     }
+    header_.disconnect_playlist_toggled(this);
 
     g_object_unref(css_provider_);
 }
@@ -142,19 +110,44 @@ void MainWindow::hide() noexcept
     gtk_widget_set_visible(gtk_cast<GtkWidget>(main_window_), false);
 }
 
-void MainWindow::on_search_toggled(GtkToggleButton *toggle_button, MainWindow *self) noexcept
+void MainWindow::on_search_toggled(bool toggled, MainWindow *self) noexcept
 {
     LOG_INFO("MainWindow({}): Search toggled", void_p(self));
 
-    auto reveal = gtk_toggle_button_get_active(toggle_button);
-    gtk_revealer_set_reveal_child(self->search_revealer_, reveal);
+    gtk_revealer_set_reveal_child(self->search_revealer_, toggled);
 
-    if (!reveal)
+    if (!toggled)
     {
         gtk_entry_set_text(gtk_cast<GtkEntry>(self->search_entry_), "");
     }
     else
     {
         gtk_widget_grab_focus(gtk_cast<GtkWidget>(self->search_entry_));
+    }
+}
+
+void MainWindow::on_search_changed(GtkEntry *entry, MainWindow *self) noexcept
+{
+    LOG_INFO("MainWindow({}), Search string changed, passing to current page", void_p(self));
+
+    self->page_stack_.filter_current_page(gtk_entry_get_text(entry));
+}
+
+void MainWindow::on_search_finished(GtkSearchEntry *, MainWindow *self) noexcept
+{
+    self->page_stack_.filter_current_page("");
+    self->header_.toggle_search();
+}
+
+void MainWindow::toggle_playlist(bool toggled, MainWindow *self) noexcept
+{
+    toggled ? self->playlist_sidebar_.show() : self->playlist_sidebar_.hide();
+}
+
+void MainWindow::on_track_queued(std::shared_ptr<music::Track> &, MainWindow *self) noexcept
+{
+    if (!gtk_widget_get_visible(self->playlist_sidebar_()))
+    {
+        self->header_.toggle_sidebar();
     }
 }

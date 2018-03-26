@@ -95,6 +95,7 @@ namespace spring
             std::string country_{};
             std::string genre_{};
             std::string thumbnailPath_{};
+            std::string artworkData_{};
 
             std::weak_ptr<PlexMediaServerPrivate> pms_{};
 

@@ -71,10 +71,17 @@ namespace spring
                         ATTRIBUTE(std::string, grandparentTitle) /* artist */
                         ATTRIBUTE(std::string, key)
                         ATTRIBUTE(std::string, parentTitle) /* album */
+                        ATTRIBUTE(std::string, parentKey)   /* album id */
                         ATTRIBUTE(std::string, thumb)
                         ATTRIBUTE(std::string, title)
-                        INIT_ATTRIBUTES(
-                            Media, duration, grandparentTitle, key, parentTitle, thumb, title)
+                        INIT_ATTRIBUTES(Media,
+                                        duration,
+                                        grandparentTitle,
+                                        key,
+                                        parentTitle,
+                                        parentKey,
+                                        thumb,
+                                        title)
                     };
 
                     ATTRIBUTE(std::vector<metadata_t>, Metadata)
@@ -100,6 +107,7 @@ namespace spring
             std::string path_{};
             std::string title_{};
             std::string album_{};
+            std::string album_key_{};
             std::string artist_{};
             Track::Milliseconds duration_{ 0 };
             std::string filePath_{};

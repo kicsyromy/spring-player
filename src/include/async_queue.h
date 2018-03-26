@@ -20,9 +20,9 @@ namespace spring
 
             void start_processing() noexcept;
             void stop_processing() noexcept;
-            void push_back_request(Request *request) noexcept;
-            void push_front_request(Request *request) noexcept;
-            void post_response(Response *response) noexcept;
+            void push_back_request(Request &&request) noexcept;
+            void push_front_request(Request &&request) noexcept;
+            void post_response(Response &&response) noexcept;
         }
     }
 }

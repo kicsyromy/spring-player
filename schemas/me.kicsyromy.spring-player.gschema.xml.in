@@ -1,11 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <schemalist>
-
   <enum id="@APPLICATION_ID@.current-page">
     <value nick="albums_page" value="0"/>
     <value nick="artists_page" value="1"/>
-    <value nick="genres_page" value="2"/>
-    <value nick="songs_page" value="3"/>
+    <value nick="songs_page" value="2"/>
   </enum>
 
   <schema path="@APPLICATION_PREFIX@/" id="@APPLICATION_ID@">
@@ -13,5 +11,4 @@
       <default>'albums_page'</default>
     </key>
   </schema>
-
 </schemalist>

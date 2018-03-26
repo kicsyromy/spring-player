@@ -5,11 +5,13 @@
 #include <cstdint>
 #include <functional>
 
-#include <gtk/gtk.h>
-
 #include <libspring_global.h>
 
 #include "application_settings.h"
+
+#include "utility/forward_declarations.h"
+#include "utility/g_object_guard.h"
+#include "utility/signals.h"
 
 namespace spring
 {
@@ -21,20 +23,28 @@ namespace spring
             using ToggleButton = settings::Page;
 
         public:
-            PageStackSwitcher(GtkBuilder *builder,
-                              std::function<void(ToggleButton)> &&toggled_handler) noexcept;
+            PageStackSwitcher() noexcept;
             ~PageStackSwitcher() noexcept;
 
         public:
             ToggleButton toggled_button() const noexcept;
+
+        public:
+            signal(page_requested, settings::Page);
+
+        public:
+            GtkWidget *operator()() noexcept;
 
         private:
             static void button_toggled(GtkToggleButton *toggle_button,
                                        PageStackSwitcher *self) noexcept;
 
         private:
-            std::array<GtkToggleButton *, 4> toggle_buttons_{};
-            std::function<void(ToggleButton)> toggled_handler_{};
+            static constexpr auto TOGGLE_BUTTON_COUNT{ static_cast<std::size_t>(
+                ToggleButton::Count) };
+
+            utility::GObjectGuard<GtkButtonBox> container_{ nullptr };
+            std::array<GtkToggleButton *, TOGGLE_BUTTON_COUNT> toggle_buttons_{};
             ToggleButton toggled_button_{ ToggleButton::Albums };
 
         private:

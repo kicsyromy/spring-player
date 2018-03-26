@@ -3,16 +3,18 @@
 
 #include <memory>
 
-#include <gtk/gtk.h>
-
 #include <libspring_global.h>
 #include <libspring_plex_media_server.h>
 
+#include "header_bar.h"
+#include "playlist_sidebar.h"
+
 #include "page_stack.h"
+#include "page_stack_swicher.h"
 #include "playback_header.h"
 #include "playback_list.h"
-#include "playlist_sidebar.h"
-#include "utility.h"
+
+#include "utility/forward_declarations.h"
 
 using SpringPlayer = struct _SpringPlayer;
 
@@ -32,22 +34,30 @@ namespace spring
             void hide() noexcept;
 
         private:
-            static void on_search_toggled(GtkToggleButton *toggle_button,
-                                          MainWindow *self) noexcept;
+            static void on_search_toggled(bool toggled, MainWindow *self) noexcept;
+            static void on_search_changed(GtkEntry *entry, MainWindow *self) noexcept;
+            static void on_search_finished(GtkSearchEntry *entry, MainWindow *self) noexcept;
+
+        private:
+            static void toggle_playlist(bool toggled, MainWindow *self) noexcept;
+            static void on_track_queued(std::shared_ptr<music::Track> &, MainWindow *self) noexcept;
 
         private:
             GtkApplicationWindow *main_window_{ nullptr };
+            GtkPaned *paned_{ nullptr };
+            GtkWidget *sidebar_placeholder_{ nullptr };
+            GtkBox *main_content_{ nullptr };
             GtkRevealer *search_revealer_{ nullptr };
             GtkSearchEntry *search_entry_{ nullptr };
-            GtkToggleButton *search_button_{ nullptr };
-            GtkLabel *window_title_{ nullptr };
-            std::unique_ptr<PageStack> page_stack_{ nullptr };
-            std::unique_ptr<PlaylistSidebar> playlist_sidebar_{ nullptr };
-            std::unique_ptr<PlaybackHeader> playback_footer_{ nullptr };
-
-            std::weak_ptr<PlaybackList> playback_list_{};
 
             PlexMediaServer pms_;
+
+            HeaderBar header_{ nullptr };
+            PlaylistSidebar playlist_sidebar_{ nullptr };
+            PageStackSwitcher page_stack_switcher_{};
+            PageStack page_stack_;
+
+            std::weak_ptr<PlaybackList> playback_list_{};
 
             GtkCssProvider *css_provider_{ nullptr };
 

@@ -13,7 +13,6 @@ namespace spring
             {
                 Albums,
                 Artists,
-                Genres,
                 Songs,
                 Count
             };

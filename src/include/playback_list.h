@@ -5,12 +5,10 @@
 #include <memory>
 #include <vector>
 
-#include <gst/gst.h>
-
 #include <libspring_music_track.h>
 
 #include "gstreamer_pipeline.h"
-#include "utility.h"
+#include "utility/signals.h"
 
 namespace spring
 {

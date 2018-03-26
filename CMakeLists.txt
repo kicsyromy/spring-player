@@ -17,6 +17,7 @@ string (REPLACE "." "/" APPLICATION_PREFIX ${APPLICATION_PREFIX})
 set (
     3RDPARTY_INCLUDE_DIRS
     "${PROJECT_SOURCE_DIR}/3rdparty/utfcpp/"
+    "${PROJECT_SOURCE_DIR}/3rdparty/concurrentqueue/"
 )
 
 add_executable (${APPLICATION_ID} "")
