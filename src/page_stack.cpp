@@ -94,7 +94,31 @@ void PageStack::on_page_requested(PageStack::Page page, PageStack *self) noexcep
             break;
         case Page::Artists:
             gtk_stack_set_visible_child(self->page_stack_, artists_page());
-            //                artists_page_->activated();
+            self->artists_page_.activated([self, playback_list]() {
+                using ArtistWidget = ThumbnailWidget<music::Artist>;
+
+                auto artists = self->music_library_->artists();
+                auto artist_widgets = new std::vector<std::unique_ptr<ArtistWidget>>{};
+                artist_widgets->reserve(artists.size());
+
+                std::string main_text;
+                std::string secondary_text;
+
+                for (auto &artist : artists)
+                {
+                    main_text = artist.name();
+                    auto albums = artist.albums();
+                    auto album_count = albums.size();
+                    secondary_text =
+                        fmt::format("{} {}", album_count, album_count > 1 ? "albums" : "album");
+
+                    artist_widgets->push_back(
+                        std::make_unique<ArtistWidget>(std::move(artist), main_text, secondary_text,
+                                                       "artist_artwork", playback_list));
+                }
+
+                return artist_widgets;
+            });
             break;
         case Page::Songs:
             //                gtk_stack_set_visible_child(page_stack_, *songs_page_.get());

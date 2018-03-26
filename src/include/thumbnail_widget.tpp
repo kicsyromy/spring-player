@@ -94,7 +94,7 @@ ThumbnailWidget<ContentProvider>::ThumbnailWidget(
             else
             {
                 LOG_ERROR("ThumbnailWidget({}): Failed to grab artwork for {}", void_p(this),
-                          content_provider_.title());
+                          content_provider_.id());
             }
         } });
 }
@@ -219,7 +219,7 @@ void ThumbnailWidget<ContentProvider>::on_track_activated(GtkListBox *,
     std::size_t element_index = static_cast<std::size_t>(gtk_list_box_row_get_index(element));
 
     LOG_INFO("ThumbnailWidget({}): Track {} activated from {}", void_p(self),
-             self->tracks_.at(element_index)->title(), self->content_provider_.title());
+             self->tracks_.at(element_index)->title(), self->content_provider_.id());
 
     auto playlist = self->playback_list_.lock();
     if (playlist != nullptr)
