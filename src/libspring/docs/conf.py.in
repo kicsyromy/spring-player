@@ -119,7 +119,7 @@ htmlhelp_basename = '@PROJECT_NAME@doc'
 extensions = ['breathe' ]
 breathe_default_project = '@PROJECT_NAME@'
 breathe_projects = { '@PROJECT_NAME@': '@PROJECT_BINARY_DIR@/xml/' }
-
+breathe_default_project = '@PROJECT_NAME@'
 
 # -- Options for LaTeX output ---------------------------------------------
 

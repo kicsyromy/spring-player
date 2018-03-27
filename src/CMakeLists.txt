@@ -3,11 +3,12 @@ cmake_minimum_required(VERSION 3.5)
 
 find_package (PkgConfig REQUIRED QUIET)
 pkg_check_modules (GTK REQUIRED gtk+-3.0)
-#pkg_check_modules (GRANITE REQUIRED granite)
+pkg_check_modules (GRANITE REQUIRED granite)
 pkg_check_modules (GSTREAMER REQUIRED gstreamer-1.0)
 pkg_check_modules (GSTREAMER_AUDIO REQUIRED gstreamer-audio-1.0)
 pkg_check_modules (GSTREAMER_APP REQUIRED gstreamer-app-1.0)
 pkg_check_modules (LIBICU REQUIRED icu-i18n)
+pkg_check_modules (SQLITE3 REQUIRED sqlite3)
 
 file (GLOB HEADERS "${PROJECT_SOURCE_DIR}/include/*.h")
 source_group ("Headers" FILES ${HEADERS})
@@ -32,6 +33,7 @@ target_include_directories (
     ${GSTREAMER_AUDIO_INCLUDE_DIRS}
     ${GSTREAMER_APP_INCLUDE_DIRS}
     ${LIBICU_INCLUDE_DIRS}
+    ${SQLITE3_INCLUDE_DIRS}
     ${3RDPARTY_INCLUDE_DIRS}
 )
 
@@ -47,6 +49,7 @@ target_link_libraries (
     ${GSTREAMER_AUDIO_LIBRARIES}
     ${GSTREAMER_APP_LIBRARIES}
     ${LIBICU_LIBRARIES}
+    ${SQLITE3_LIBRARIES}
     spring
     ${PROJECT_NAME}.utility
     pthread
