@@ -19,13 +19,6 @@ namespace spring
         class HeaderBar
         {
         public:
-            enum class Text
-            {
-                Plain,
-                Markup
-            };
-
-        public:
             HeaderBar(std::shared_ptr<PlaybackList> playback_list) noexcept;
             ~HeaderBar() noexcept;
 

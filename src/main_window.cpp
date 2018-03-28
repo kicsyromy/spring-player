@@ -1,3 +1,4 @@
+#include <granite.h>
 #include <gtk/gtk.h>
 
 #include <fmt/format.h>
@@ -62,26 +63,44 @@ MainWindow::MainWindow(SpringPlayer &application,
 
     g_object_unref(builder);
 
-    gtk_window_set_titlebar(gtk_cast<GtkWindow>(main_window_), header_());
+    auto header_bar = gtk_cast<GtkHeaderBar>(gtk_header_bar_new());
+    gtk_header_bar_set_show_close_button(header_bar, true);
+    gtk_widget_set_visible(gtk_cast<GtkWidget>(header_bar), true);
 
-    gtk_widget_destroy(sidebar_placeholder_);
-    gtk_paned_pack1(paned_, playlist_sidebar_(), true, false);
+    gtk_header_bar_set_title(header_bar, "Spring Player");
 
-    auto switcher = page_stack_switcher_();
-    gtk_box_pack_start(main_content_, switcher, false, false, 0);
-    gtk_container_child_set(gtk_cast<GtkContainer>(main_content_), switcher, "position", 0,
-                            nullptr);
+    gtk_window_set_titlebar(gtk_cast<GtkWindow>(main_window_), gtk_cast<GtkWidget>(header_bar));
 
-    gtk_box_pack_end(main_content_, page_stack_(), true, true, 0);
+    auto welcome_screen =
+        granite_widgets_welcome_new("Spring Player", "Plex Media Server music client.");
+    granite_widgets_welcome_append(welcome_screen, "text-x-vala", "Item1 title",
+                                   "Item1 description.");
+    granite_widgets_welcome_append(welcome_screen, "text-x-source", "Item2 title",
+                                   "Item2 description.");
+    gtk_widget_show_all(gtk_cast<GtkWidget>(welcome_screen));
 
-    connect_g_signal(search_entry_, "search-changed", &on_search_changed, this);
-    connect_g_signal(search_entry_, "stop-search", &on_search_finished, this);
+    gtk_box_pack_end(main_content_, gtk_cast<GtkWidget>(welcome_screen), true, true, 0);
 
-    header_.on_playlist_toggled(this, &toggle_playlist);
-    header_.on_search_toggled(this, &on_search_toggled);
-    playback_list->on_track_queued(this, &on_track_queued);
+    //    gtk_window_set_titlebar(gtk_cast<GtkWindow>(main_window_), header_());
 
-    load_css_styling(css_provider_);
+    //    gtk_widget_destroy(sidebar_placeholder_);
+    //    gtk_paned_pack1(paned_, playlist_sidebar_(), true, false);
+
+    //    auto switcher = page_stack_switcher_();
+    //    gtk_box_pack_start(main_content_, switcher, false, false, 0);
+    //    gtk_container_child_set(gtk_cast<GtkContainer>(main_content_), switcher, "position", 0,
+    //                            nullptr);
+
+    //    gtk_box_pack_end(main_content_, page_stack_(), true, true, 0);
+
+    //    connect_g_signal(search_entry_, "search-changed", &on_search_changed, this);
+    //    connect_g_signal(search_entry_, "stop-search", &on_search_finished, this);
+
+    //    header_.on_playlist_toggled(this, &toggle_playlist);
+    //    header_.on_search_toggled(this, &on_search_toggled);
+    //    playback_list->on_track_queued(this, &on_track_queued);
+
+    //    load_css_styling(css_provider_);
 }
 
 MainWindow::~MainWindow() noexcept

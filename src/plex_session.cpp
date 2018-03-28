@@ -42,9 +42,6 @@ std::vector<PlexSession> PlexSession::sessions() noexcept
     auto storage = create_storage();
     storage.sync_schema();
 
-    //    storage.insert<session_table_t>({ -1, "name1", "token1" });
-    //    storage.insert<session_table_t>({ -1, "name2", "token2" });
-
     auto sessions = storage.select(columns(&session_table_t::token, &session_table_t::name));
 
     auto plex_sessions = reinterpret_cast<std::vector<PlexSession> *>(&sessions);

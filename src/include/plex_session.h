@@ -19,7 +19,7 @@ namespace spring
         public:
             static std::vector<PlexSession> sessions() noexcept;
 
-            //        private:
+        private:
             std::string name_{};
             std::string token_{};
         };
