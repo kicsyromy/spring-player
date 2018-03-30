@@ -1,5 +1,7 @@
 #include <gtk/gtk.h>
 
+#include <granite.h>
+
 #include <libspring_logger.h>
 
 #include "header_bar.h"
@@ -59,6 +61,7 @@ HeaderBar::HeaderBar(std::shared_ptr<PlaybackList> playback_list) noexcept
 
     get_widget_from_builder_simple(title_and_progress);
     get_widget_from_builder_simple(window_title);
+    get_widget_from_builder_simple(playback_progress_layout);
     get_widget_from_builder_simple(current_time);
     get_widget_from_builder_simple(duration);
     get_widget_from_builder_simple(playback_progress_bar);
@@ -70,6 +73,9 @@ HeaderBar::HeaderBar(std::shared_ptr<PlaybackList> playback_list) noexcept
     gtk_header_bar_pack_start(header_bar_, gtk_cast<GtkWidget>(playback_controls_));
 
     gtk_header_bar_set_custom_title(header_bar_, gtk_cast<GtkWidget>(title_and_progress_));
+
+    auto style_context = gtk_widget_get_style_context(gtk_cast<GtkWidget>(window_title_));
+    gtk_style_context_add_class(style_context, GRANITE_STYLE_CLASS_H4_LABEL);
     gtk_label_set_markup(window_title_, "<span weight=\"bold\">Spring Player</span>");
 
     gtk_header_bar_pack_end(header_bar_, gtk_cast<GtkWidget>(search_button_));
@@ -112,6 +118,22 @@ void HeaderBar::toggle_search() noexcept
 {
     const bool is_active = gtk_toggle_button_get_active(search_button_);
     gtk_toggle_button_set_active(search_button_, !is_active);
+}
+
+void HeaderBar::hide_controls() noexcept
+{
+    gtk_widget_set_visible(gtk_cast<GtkWidget>(tool_buttons_), false);
+    gtk_widget_set_visible(gtk_cast<GtkWidget>(playback_controls_), false);
+    gtk_widget_set_visible(gtk_cast<GtkWidget>(playback_progress_layout_), false);
+    gtk_widget_set_visible(gtk_cast<GtkWidget>(search_button_), false);
+}
+
+void HeaderBar::show_controls() noexcept
+{
+    gtk_widget_set_visible(gtk_cast<GtkWidget>(tool_buttons_), true);
+    gtk_widget_set_visible(gtk_cast<GtkWidget>(playback_controls_), true);
+    gtk_widget_set_visible(gtk_cast<GtkWidget>(playback_progress_layout_), true);
+    gtk_widget_set_visible(gtk_cast<GtkWidget>(search_button_), true);
 }
 
 GtkWidget *HeaderBar::operator()() noexcept

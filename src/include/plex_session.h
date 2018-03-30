@@ -5,7 +5,7 @@
 
 #include <sqlite_orm.h>
 
-#include <utility/compatibility.h>
+#include "utility/compatibility.h"
 
 namespace spring
 {
@@ -15,6 +15,10 @@ namespace spring
         {
         public:
             PlexSession() noexcept;
+
+        public:
+            const std::string &name() const noexcept;
+            const std::string &token() const noexcept;
 
         public:
             static std::vector<PlexSession> sessions() noexcept;

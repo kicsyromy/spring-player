@@ -35,6 +35,16 @@ PlexSession::PlexSession() noexcept
 {
 }
 
+const std::string &PlexSession::name() const noexcept
+{
+    return name_;
+}
+
+const std::string &PlexSession::token() const noexcept
+{
+    return token_;
+}
+
 std::vector<PlexSession> PlexSession::sessions() noexcept
 {
     using namespace sqlite_orm;

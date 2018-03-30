@@ -28,10 +28,12 @@ namespace spring
             using Page = settings::Page;
 
         public:
-            PageStack(MusicLibrary &&music_library,
-                      PageStackSwitcher &stack_switcher,
+            PageStack(PageStackSwitcher &stack_switcher,
                       std::weak_ptr<PlaybackList> playback_list) noexcept;
             ~PageStack() noexcept;
+
+        public:
+            void set_music_library(MusicLibrary &&library) noexcept;
 
         public:
             void filter_current_page(std::string &&text) noexcept;

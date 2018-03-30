@@ -14,6 +14,7 @@ declare_g_type(GObject);
 declare_g_type(GError);
 
 declare_g_type(GtkWidget);
+declare_g_type(GtkWindow);
 declare_g_type(GtkBox);
 declare_g_type(GtkListBox);
 declare_g_type(GtkListBoxRow);
@@ -25,6 +26,7 @@ declare_g_type(GtkScrolledWindow);
 declare_g_type(GtkFlowBox);
 declare_g_type(GtkFlowBoxChild);
 declare_g_type(GtkSpinner);
+declare_g_type(GtkEntry);
 declare_g_type(GtkSearchEntry);
 declare_g_type(GtkButtonBox);
 declare_g_type(GtkButton);
@@ -37,6 +39,10 @@ declare_g_type(GtkRevealer);
 declare_g_type(GtkSearchEntry);
 declare_g_type(GtkStack);
 declare_g_type(GtkContainer);
+declare_g_type(GtkMessageDialog);
+
+declare_g_type(GraniteWidgetsWelcome);
+declare_g_type(GraniteMessageDialog);
 
 declare_g_type(GtkBuilder);
 
@@ -45,6 +51,7 @@ declare_g_type(GtkCssProvider);
 declare_g_type(GdkPixbuf);
 declare_g_type(GdkPixbufLoader);
 
+using GdkEvent = union _GdkEvent;
 using cairo_t = struct _cairo;
 
 extern "C" void *g_object_ref_sink(void *);
