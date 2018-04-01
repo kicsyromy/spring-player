@@ -40,13 +40,26 @@ namespace
 
 MainWindow::MainWindow(SpringPlayer &application,
                        std::shared_ptr<PlaybackList> playback_list) noexcept
-  : pms_{ spring_player_pms() }
+  : pms_{}
   , header_{ playback_list }
   , playlist_sidebar_{ playback_list }
   , page_stack_{ page_stack_switcher_, playback_list }
   , playback_list_{ playback_list }
 {
     LOG_INFO("MainWindow({}): Creating...", void_p(this));
+
+    //char host[100];
+    //auto path = fmt::format("{}/workspace/host.txt", spring::player::settings::home_directory());
+    //FILE *f = fopen(path.c_str(), "r");
+    //fscanf(f, "%s", host);
+    //fclose(f);
+
+    //char token[100];
+    //path = fmt::format("{}/workspace/token.txt", spring::player::settings::home_directory());
+    //f = fopen(path.c_str(), "r");
+    //fscanf(f, "%s", token);
+    //fclose(f);
+    //pms_.connect(host, -1, token);
 
     auto builder = gtk_builder_new_from_resource(APPLICATION_PREFIX "/main_window.ui");
 
@@ -85,6 +98,7 @@ MainWindow::MainWindow(SpringPlayer &application,
     header_.on_search_toggled(this, &on_search_toggled);
     playback_list->on_track_queued(this, &on_track_queued);
     welcome_page_.on_new_connection_requested(this, &on_new_connection_requested);
+    server_setup_dialog_.on_server_added(this, &on_server_added);
     load_css_styling(css_provider_);
 }
 
@@ -146,6 +160,12 @@ void MainWindow::on_search_finished(GtkSearchEntry *, MainWindow *self) noexcept
 {
     self->page_stack_.filter_current_page("");
     self->header_.toggle_search();
+}
+
+void MainWindow::on_server_added(PlexSession session, MainWindow *self) noexcept
+{
+    LOG_INFO("MainWindow({}): New Plex Media Server added: {}", void_p(self), session.name());
+    session.save();
 }
 
 void MainWindow::toggle_playlist(bool toggled, MainWindow *self) noexcept

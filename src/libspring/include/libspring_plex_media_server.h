@@ -32,8 +32,10 @@
 #include <memory>
 #include <vector>
 
+#include <libspring_error.h>
 #include <libspring_global.h>
 #include <libspring_library_section.h>
+#include <libspring_optional.h>
 
 namespace spring
 {
@@ -49,17 +51,27 @@ namespace spring
         };
 
     public:
-        PlexMediaServer(const char *serverAddress,
-                        std::int32_t port,
-                        const char *username,
-                        const char *password,
-                        SSLErrorHandling errorHandling = SSLErrorHandling::Acknowledge) noexcept;
+        PlexMediaServer() noexcept;
         ~PlexMediaServer() noexcept;
 
         PlexMediaServer(PlexMediaServer &&other) noexcept;
         PlexMediaServer &operator=(PlexMediaServer &&other) noexcept;
 
     public:
+        Optional<const char *> connect(
+            const char *serverAddress,
+            std::int32_t port,
+            const char *username,
+            const char *password,
+            SSLErrorHandling errorHandling = SSLErrorHandling::Acknowledge) noexcept;
+
+        Error connect(const char *serverAddress,
+                      std::int32_t port,
+                      const char *token,
+                      SSLErrorHandling errorHandling = SSLErrorHandling::Acknowledge) noexcept;
+
+        const std::string &name() const noexcept;
+
         std::vector<LibrarySection> sections() const noexcept;
         std::string customRequest(const char *path) const noexcept;
 

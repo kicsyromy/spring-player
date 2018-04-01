@@ -29,6 +29,9 @@
 
 #include <memory>
 
+#include <sequential.h>
+
+#include "libspring_error.h"
 #include "libspring_global.h"
 #include "libspring_http_client_p.h"
 
@@ -37,28 +40,53 @@ namespace spring
     class PlexMediaServerPrivate
     {
     public:
+        struct LibraryContainer
+        {
+            struct media_container_t
+            {
+                struct server_t
+                {
+                    ATTRIBUTE(std::string, name)
+                    INIT_ATTRIBUTES(name)
+                };
+
+                ATTRIBUTE(std::vector<server_t>, Server)
+                INIT_ATTRIBUTES(Server)
+            };
+
+            ATTRIBUTE(media_container_t, MediaContainer)
+            INIT_ATTRIBUTES(MediaContainer)
+        };
+
+    public:
         static const char *USER_AGENT;
         static const char *PLEX_HEADER_AUTH_KEY;
         static const HttpClient::http_header_array_t PLEX_HEADERS;
 
     public:
-        PlexMediaServerPrivate(const char *serverAddress,
-                               int32_t port,
-                               const char *username,
-                               const char *password,
-                               bool errorHandling) noexcept;
-
+        PlexMediaServerPrivate() noexcept;
         ~PlexMediaServerPrivate() noexcept;
 
     public:
+        Error connect(const char *serverAddress,
+                      std::int32_t port,
+                      const char *username,
+                      const char *password,
+                      bool errorHandling) noexcept;
+
+        Error connect(const char *serverAddress,
+                      std::int32_t port,
+                      const char *token,
+                      bool errorHandling) noexcept;
+
         inline const std::string &authenticationToken() const noexcept
         {
             return authenticationToken_;
         }
 
-        const std::string &clientUUID() const noexcept { return clientUUID_; }
+        inline const std::string &clientUUID() const noexcept { return clientUUID_; }
 
-        const std::string &url() const noexcept { return url_; }
+        inline const std::string &url() const noexcept { return url_; }
 
         HttpClient::Request request() const noexcept;
         HttpClient::RequestResult request(std::string &&path) const noexcept;
@@ -68,6 +96,7 @@ namespace spring
         std::string url_{};
         std::string authenticationToken_{};
         std::string clientUUID_{ "6sha3edzskjda732qmdwsjk" };
+        std::string name_{};
 
     private:
         DISABLE_COPY(PlexMediaServerPrivate)

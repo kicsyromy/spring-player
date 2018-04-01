@@ -5,7 +5,9 @@
 #include <glib/gi18n.h>
 
 #include <libspring_logger.h>
+#include <libspring_plex_media_server.h>
 
+#include "async_queue.h"
 #include "server_setup_dialog.h"
 
 #include "utility/global.h"
@@ -28,11 +30,12 @@ ServerSetupDialog::ServerSetupDialog() noexcept
 
     auto builder = gtk_builder_new_from_resource(APPLICATION_PREFIX "/server_setup_dialog.ui");
     get_widget_from_builder_simple(content);
+    get_widget_from_builder_simple(status_revealer);
+    get_widget_from_builder_simple(connecting_spinner);
     get_widget_from_builder_simple(server_url_entry);
     get_widget_from_builder_simple(username_entry);
     get_widget_from_builder_simple(password_entry);
-    get_widget_from_builder_simple(status_revealer);
-    get_widget_from_builder_simple(connecting_spinner);
+    get_widget_from_builder_simple(ssl_validation_checkbutton);
 
     auto cancel_button = gtk_button_new_with_label(_("Cancel"));
     gtk_widget_set_visible(cancel_button, true);
@@ -52,7 +55,7 @@ ServerSetupDialog::ServerSetupDialog() noexcept
     g_object_unref(builder);
 
     connect_g_signal(cancel_button, "clicked", &on_setup_canceled, this);
-    connect_g_signal(connect_button, "clicked", &on_connecting_started, this);
+    connect_g_signal(connect_button, "clicked", &on_connection_requested, this);
 
     gtk_window_set_modal(gtk_cast<GtkWindow>(dialog_), true);
 }
@@ -77,10 +80,56 @@ GtkWidget *ServerSetupDialog::operator()() noexcept
     return gtk_cast<GtkWidget>(dialog_);
 }
 
-void ServerSetupDialog::on_connecting_started(GtkButton *, ServerSetupDialog *self) noexcept
+void ServerSetupDialog::on_connection_requested(GtkButton *, ServerSetupDialog *self) noexcept
 {
     LOG_INFO("ServerSetupDialog({}): Setting up server...", void_p(self));
     self->set_connecting_state(true);
+
+    std::string server_address{ gtk_entry_get_text(self->server_url_entry_) };
+    std::int32_t port = -1;
+    auto index = server_address.find_last_of(':');
+    if (index != std::string::npos && index != 4 && index != 5)
+    {
+        std::string port_str{ server_address.data() + index + 1 };
+        std::size_t offset{ 0 };
+        port = std::stoi(port_str, &offset, 10);
+        if (offset < port_str.size())
+        {
+            LOG_WARN(
+                "ServerSetupDialog({}): Port not given as a proper number, connection might fail",
+                void_p(self));
+        }
+        server_address.erase(index, std::string::npos);
+    }
+
+    auto username = gtk_entry_get_text(self->username_entry_);
+    auto password = gtk_entry_get_text(self->password_entry_);
+    auto enable_ssl_validation = static_cast<PlexMediaServer::SSLErrorHandling>(
+        gtk_toggle_button_get_active(gtk_cast<GtkToggleButton>(self->ssl_validation_checkbutton_)));
+
+    LOG_INFO("ServerSetupDialog({}): Connecting to {} on port {} with username {} and password {}",
+             void_p(self), server_address, port, username, password);
+
+    async_queue::push_front_request(async_queue::Request{
+        "Connect to server",
+        [self, server_address, port, username, password, enable_ssl_validation] {
+
+            PlexMediaServer server;
+
+            auto result = server.connect(server_address.c_str(), port, username, password,
+                                         enable_ssl_validation);
+            if (result.error)
+            {
+                LOG_ERROR("ServerSetupDialog({}): Failed to connect to server {}", void_p(self),
+                          result.error.message());
+            }
+            else
+            {
+                LOG_INFO("ServerSetupDialog({}): Connection successful", void_p(self));
+                self->emit_queued_server_added(PlexSession{
+                    server.name().c_str(), server_address.data(), port, result.value });
+            }
+        } });
 }
 
 void ServerSetupDialog::on_setup_canceled(GtkButton *, ServerSetupDialog *self) noexcept
@@ -103,6 +152,7 @@ void ServerSetupDialog::set_connecting_state(bool connecting) noexcept
     gtk_widget_set_sensitive(gtk_cast<GtkWidget>(server_url_entry_), !connecting);
     gtk_widget_set_sensitive(gtk_cast<GtkWidget>(username_entry_), !connecting);
     gtk_widget_set_sensitive(gtk_cast<GtkWidget>(password_entry_), !connecting);
+    gtk_widget_set_sensitive(gtk_cast<GtkWidget>(ssl_validation_checkbutton_), !connecting);
 
     gtk_widget_set_sensitive(gtk_cast<GtkWidget>(connect_button_), !connecting);
 
