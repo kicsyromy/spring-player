@@ -42,12 +42,20 @@ namespace spring
             static void on_search_toggled(bool toggled, MainWindow *self) noexcept;
             static void on_search_changed(GtkEntry *entry, MainWindow *self) noexcept;
             static void on_search_finished(GtkSearchEntry *entry, MainWindow *self) noexcept;
-            static void on_server_added(PlexSession session, PlexMediaServer server, MainWindow *self) noexcept;
+            static void on_server_added(PlexSession session,
+                                        PlexMediaServer server,
+                                        MainWindow *self) noexcept;
 
         private:
             static void toggle_playlist(bool toggled, MainWindow *self) noexcept;
             static void on_track_queued(std::shared_ptr<music::Track> &, MainWindow *self) noexcept;
             static void on_new_connection_requested(MainWindow *self) noexcept;
+
+        private:
+            bool switch_server(const std::vector<PlexSession> &sessions,
+                               const utility::string_view server_name) noexcept;
+            void show_welcome_page() noexcept;
+            void show_server_content() noexcept;
 
         private:
             GtkApplicationWindow *main_window_{ nullptr };

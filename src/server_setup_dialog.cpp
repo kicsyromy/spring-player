@@ -137,8 +137,11 @@ void ServerSetupDialog::on_connection_requested(GtkButton *, ServerSetupDialog *
             else
             {
                 LOG_INFO("ServerSetupDialog({}): Connection successful", void_p(self));
-                self->emit_queued_server_added(PlexSession{
-                    server.name().c_str(), server_address.data(), port, result.value }, std::move(server));
+                async_queue::post_response(async_queue::Response{
+                    "Connection successful", [self]() { on_connection_successful(self); } });
+                self->emit_queued_server_added(
+                    PlexSession{ server.name().c_str(), server_address.data(), port, result.value },
+                    std::move(server));
             }
         } });
 }
@@ -152,23 +155,20 @@ void ServerSetupDialog::on_connection_failed(Error error, ServerSetupDialog *sel
     gtk_widget_set_visible(gtk_cast<GtkWidget>(self->status_error_icon_), true);
 }
 
+void ServerSetupDialog::on_connection_successful(ServerSetupDialog *self) noexcept
+{
+    self->close();
+}
+
 void ServerSetupDialog::on_setup_canceled(GtkButton *, ServerSetupDialog *self) noexcept
 {
     LOG_INFO("ServerSetupDialog({}): Setup canceled...", void_p(self));
-
-    self->set_connecting_state(false);
-
-    gtk_entry_set_text(self->server_url_entry_, "");
-    gtk_entry_set_text(self->username_entry_, "");
-    gtk_entry_set_text(self->password_entry_, "");
-
-    gtk_widget_set_visible(gtk_cast<GtkWidget>(self->dialog_), false);
+    self->close();
 }
 
 bool ServerSetupDialog::on_destroy_event(GtkButton *, GdkEvent *, ServerSetupDialog *self) noexcept
 {
-    on_setup_canceled(nullptr, self);
-
+    self->close();
     return true;
 }
 
@@ -188,4 +188,15 @@ void ServerSetupDialog::set_connecting_state(bool connecting) noexcept
 
     gtk_label_set_text(status_text_, connecting ? _("Connecting...") : "");
     gtk_widget_set_visible(gtk_cast<GtkWidget>(status_error_icon_), false);
+}
+
+void ServerSetupDialog::close() noexcept
+{
+    set_connecting_state(false);
+
+    gtk_entry_set_text(server_url_entry_, "");
+    gtk_entry_set_text(username_entry_, "");
+    gtk_entry_set_text(password_entry_, "");
+
+    gtk_widget_set_visible(gtk_cast<GtkWidget>(dialog_), false);
 }

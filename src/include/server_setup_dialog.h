@@ -34,11 +34,13 @@ namespace spring
         private:
             static void on_connection_requested(GtkButton *, ServerSetupDialog *self) noexcept;
             static void on_connection_failed(Error error, ServerSetupDialog *self) noexcept;
+            static void on_connection_successful(ServerSetupDialog *self) noexcept;
             static void on_setup_canceled(GtkButton *, ServerSetupDialog *self) noexcept;
             static bool on_destroy_event(GtkButton *, GdkEvent *, ServerSetupDialog *self) noexcept;
 
         private:
             void set_connecting_state(bool connecting) noexcept;
+            void close() noexcept;
 
         private:
             utility::GObjectGuard<GraniteMessageDialog> dialog_;

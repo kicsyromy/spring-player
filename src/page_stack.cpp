@@ -30,7 +30,6 @@ PageStack::PageStack(PageStackSwitcher &stack_switcher,
     //    genres_page_ = std::make_unique<GenresPage>(builder, *music_library_);
     //    songs_page_ = std::make_unique<SongsPage>(builder, *music_library_);
 
-    on_page_requested(settings::get_current_page(), this);
     stack_switcher.on_page_requested(this, &on_page_requested);
 }
 
@@ -42,6 +41,7 @@ PageStack::~PageStack() noexcept
 void PageStack::set_music_library(MusicLibrary &&library) noexcept
 {
     music_library_ = std::make_shared<MusicLibrary>(std::move(library));
+    on_page_requested(settings::get_current_page(), this);
 }
 
 void PageStack::filter_current_page(std::string &&text) noexcept
