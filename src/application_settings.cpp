@@ -89,6 +89,15 @@ const std::string &settings::data_directory() noexcept
                 return fmt::format("{}/.local/share/" APPLICATION_ID, home_directory());
             }
         }();
+
+        auto result = g_mkdir_with_parents(::data_directory.c_str(), 0755);
+        if (result > 0)
+        {
+            auto err = errno;
+            LOG_ERROR("Settings: Failed to create directory {}: {}. Falling back to home directory",
+                      ::data_directory, std::strerror(err));
+            ::data_directory = home_directory();
+        }
     }
 
     return ::data_directory;
@@ -109,6 +118,15 @@ const std::string &settings::config_directory() noexcept
                 return fmt::format("{}/.config/" APPLICATION_ID, home_directory());
             }
         }();
+
+        auto result = g_mkdir_with_parents(::config_directory.c_str(), 0755);
+        if (result > 0)
+        {
+            auto err = errno;
+            LOG_ERROR("Settings: Failed to create directory {}: {}. Falling back to home directory",
+                      ::config_directory, std::strerror(err));
+            ::config_directory = home_directory();
+        }
     }
 
     return ::config_directory;
@@ -129,6 +147,15 @@ const std::string &settings::cache_directory() noexcept
                 return fmt::format("{}/.cache/" APPLICATION_ID, home_directory());
             }
         }();
+
+        auto result = g_mkdir_with_parents(::cache_directory.c_str(), 0755);
+        if (result > 0)
+        {
+            auto err = errno;
+            LOG_ERROR("Settings: Failed to create directory {}: {}. Falling back to home directory",
+                      ::cache_directory, std::strerror(err));
+            ::cache_directory = home_directory();
+        }
     }
 
     return ::cache_directory;

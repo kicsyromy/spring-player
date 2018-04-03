@@ -61,46 +61,82 @@ namespace
     constexpr const char PLEX_AUTH_PATH[]{ "/users/sign_in.json" };
 }
 
-PlexMediaServerPrivate::PlexMediaServerPrivate(const char *serverAddress,
-                                               int32_t port,
-                                               const char *username,
-                                               const char *password,
-                                               bool errorHandling) noexcept
+PlexMediaServerPrivate::PlexMediaServerPrivate() noexcept
+{
+}
+
+PlexMediaServerPrivate::~PlexMediaServerPrivate() noexcept = default;
+
+Error PlexMediaServerPrivate::connect(const char *serverAddress,
+                                      std::int32_t port,
+                                      const char *username,
+                                      const char *password,
+                                      bool errorHandling) noexcept
 {
     using namespace sequential_formats;
 
-    //    http_->setHost(PLEX_AUTH_HOST);
-    //    http_->setUsername(username);
-    //    http_->setPassword(password);
+    Error error{};
 
-    //    auto request = http_->createRequest();
-    //    request.setPath(PLEX_AUTH_PATH);
-    //    request.setHeaders(PLEX_HEADERS);
-    //    /* Send POST request */
-    //    request.setBody("");
+    http_.setHost(PLEX_AUTH_HOST);
+    http_.setUsername(username);
+    http_.setPassword(password);
 
-    //    auto result = request.send();
+    auto request = http_.createRequest();
+    request.setPath(PLEX_AUTH_PATH);
+    request.setHeaders(PLEX_HEADERS);
+    /* Send POST request */
+    request.setBody("");
 
-    //    JsonFormat format{ result.response.text };
-    //    auto user = sequential::from_format<UserProperties>(format);
-    char token[100];
-    auto path = fmt::format("{}/workspace/token.txt", getenv("HOME"));
-    FILE *f = fopen(path.c_str(), "r");
-    fscanf(f, "%s", token);
-    authenticationToken_ = token;
-    fclose(f);
-    //    std::cout << user.get_user().get_authentication_token();
-    //    authenticationToken_ = user.get_user().get_authentication_token();
+    auto result = request.send();
 
+    if (result.error)
+    {
+        error = Error{ static_cast<Error::Code>(result.error.errorCode), result.error.message };
+    }
+    else
+    {
+        if (result.status.code() != HttpClient::Status::OK &&
+            result.status.code() != HttpClient::Status::Created)
+        {
+            error = Error{ static_cast<Error::Code>(result.status.code()), result.status.name() };
+        }
+        else
+        {
+            JsonFormat format{ result.response.text };
+            auto user = sequential::from_format<UserProperties>(format);
+            authenticationToken_ = user.get_user().get_authentication_token();
+
+            http_.setHost(serverAddress);
+            http_.setPort(port);
+            http_.disableAuthentication();
+            http_.setSSLErrorHandling(static_cast<HttpClient::SSLErrorHandling>(errorHandling));
+
+            url_ = http_.url();
+
+            result = PlexMediaServerPrivate::request("/servers");
+            format.parse(result.response.text);
+            auto serverProperties = sequential::from_format<LibraryContainer>(format);
+            name_ = serverProperties.get_MediaContainer().get_Server().at(0).get_name();
+        }
+    }
+
+    return error;
+}
+
+Error PlexMediaServerPrivate::connect(const char *serverAddress,
+                                      std::int32_t port,
+                                      const char *token,
+                                      bool errorHandling) noexcept
+{
     http_.setHost(serverAddress);
     http_.setPort(port);
     http_.disableAuthentication();
     http_.setSSLErrorHandling(static_cast<HttpClient::SSLErrorHandling>(errorHandling));
 
-    url_ = http_.url();
-}
+    authenticationToken_ = token;
 
-PlexMediaServerPrivate::~PlexMediaServerPrivate() noexcept = default;
+    return Error::noError();
+}
 
 HttpClient::Request PlexMediaServerPrivate::request() const noexcept
 {
@@ -120,52 +156,12 @@ HttpClient::RequestResult PlexMediaServerPrivate::request(std::string &&path) co
     request.setHeaders(PlexMediaServerPrivate::PLEX_HEADERS);
     request.setHeader({ PlexMediaServerPrivate::PLEX_HEADER_AUTH_KEY, authenticationToken_ });
 
-#ifdef LIBSPRING_LOG_DEBUG
-    auto result = request.send();
-    std::stringstream ss;
-    ss << "Request:\n  Headers:";
-    for (const auto &header : PlexMediaServerPrivate::PLEX_HEADERS)
-    {
-        ss << fmt::format("\n    {}: {}", header.first.c_str(), header.second.c_str());
-    }
-    ss << fmt::format("\n    {}: {}", PlexMediaServerPrivate::PLEX_HEADER_AUTH_KEY,
-                      authenticationToken_.c_str());
-    ss << fmt::format("\n  Path: {}", path);
-
-    ss << "\n\nResponse:\n  Headers:";
-    ss << fmt::format("\n    {} {}", static_cast<int>(result.status.code()), result.status.name());
-    for (const auto &header : result.response.headers)
-    {
-        ss << fmt::format("\n    {}: {}", header.first.c_str(), header.second.c_str());
-    }
-    ss << "\n  Body:";
-
-    //    nlohmann::json json{ std::move(
-    //        nlohmann::json::parse(result.response.text)) };
-    //    std::string body;
-    //    nlohmann::detail::serializer<nlohmann::json> s(
-    //        nlohmann::detail::output_adapter<char>(body), ' ');
-    //    s.dump(json, true, false, 2, 2);
-    //    body.replace(0, 2, "");
-    //    body.replace(body.end() - 2, body.end(), "");
-    //    ss << '\n' << body;
-    //    auto log = ss.str();
-    //    LOG_DEBUG("%s", log.c_str());
-
-    return std::move(result);
-#else
     return request.send();
-#endif
 }
 
-PlexMediaServer::PlexMediaServer(const char *serverAddress,
-                                 int32_t port,
-                                 const char *username,
-                                 const char *password,
-                                 PlexMediaServer::SSLErrorHandling errorHandling) noexcept
-  : priv_(std::make_shared<PlexMediaServerPrivate>(
-        serverAddress, port, username, password, static_cast<bool>(errorHandling)))
+PlexMediaServer::PlexMediaServer() noexcept
 {
+    priv_ = std::make_shared<PlexMediaServerPrivate>();
 }
 
 PlexMediaServer::~PlexMediaServer() noexcept = default;
@@ -180,6 +176,31 @@ PlexMediaServer &PlexMediaServer::operator=(PlexMediaServer &&other) noexcept
     priv_ = std::move(other.priv_);
 
     return *this;
+}
+
+Optional<const char *> PlexMediaServer::connect(
+    const char *serverAddress,
+    std::int32_t port,
+    const char *username,
+    const char *password,
+    PlexMediaServer::SSLErrorHandling errorHandling) noexcept
+{
+    return { priv_->connect(serverAddress, port, username, password,
+                            static_cast<bool>(errorHandling)),
+             priv_->authenticationToken_.c_str() };
+}
+
+Error PlexMediaServer::connect(const char *serverAddress,
+                               std::int32_t port,
+                               const char *token,
+                               PlexMediaServer::SSLErrorHandling errorHandling) noexcept
+{
+    return priv_->connect(serverAddress, port, token, static_cast<bool>(errorHandling));
+}
+
+const std::string &PlexMediaServer::name() const noexcept
+{
+    return priv_->name_;
 }
 
 std::vector<LibrarySection> PlexMediaServer::sections() const noexcept
@@ -208,9 +229,5 @@ std::vector<LibrarySection> PlexMediaServer::sections() const noexcept
 std::string PlexMediaServer::customRequest(const char *path) const noexcept
 {
     auto result = priv_->request(path);
-    //    auto json = nlohmann::json::parse(result.response.text, nullptr, false);
-    //    if (json.type() != nlohmann::json::value_t::null)
-    //        return json.dump(2);
-    //    else
     return result.response.text;
 }

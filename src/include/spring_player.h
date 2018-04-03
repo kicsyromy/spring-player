@@ -9,6 +9,5 @@
 G_DECLARE_FINAL_TYPE(SpringPlayer, spring_player, SPRING_PLAYER, APPLICATION, GtkApplication)
 
 SpringPlayer *spring_player_new();
-spring::PlexMediaServer spring_player_pms();
 
 #endif // !SPRING_PLAYER_H

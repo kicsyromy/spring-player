@@ -11,11 +11,9 @@
 using namespace spring;
 using namespace spring::player;
 
-PageStack::PageStack(MusicLibrary &&music_library,
-                     PageStackSwitcher &stack_switcher,
+PageStack::PageStack(PageStackSwitcher &stack_switcher,
                      std::weak_ptr<PlaybackList> playback_list) noexcept
   : page_stack_{ gtk_cast<GtkStack>(gtk_stack_new()) }
-  , music_library_{ new MusicLibrary{ std::move(music_library) } }
   , albums_page_{ music_library_, playback_list }
   , artists_page_{ music_library_, playback_list }
   , playback_list_(playback_list)
@@ -32,13 +30,18 @@ PageStack::PageStack(MusicLibrary &&music_library,
     //    genres_page_ = std::make_unique<GenresPage>(builder, *music_library_);
     //    songs_page_ = std::make_unique<SongsPage>(builder, *music_library_);
 
-    on_page_requested(settings::get_current_page(), this);
     stack_switcher.on_page_requested(this, &on_page_requested);
 }
 
 PageStack::~PageStack() noexcept
 {
     LOG_INFO("PageStack({}): Destroying...", void_p(this));
+}
+
+void PageStack::set_music_library(MusicLibrary &&library) noexcept
+{
+    music_library_ = std::make_shared<MusicLibrary>(std::move(library));
+    on_page_requested(settings::get_current_page(), this);
 }
 
 void PageStack::filter_current_page(std::string &&text) noexcept
@@ -71,21 +74,30 @@ void PageStack::on_page_requested(PageStack::Page page, PageStack *self) noexcep
             self->albums_page_.activated([self, playback_list]() {
                 using AlbumWidget = ThumbnailWidget<music::Album>;
 
-                auto albums = self->music_library_->albums();
                 auto album_widgets = new std::vector<std::unique_ptr<AlbumWidget>>{};
-                album_widgets->reserve(albums.size());
 
-                std::string main_text;
-                std::string secondary_text;
-
-                for (auto &album : albums)
+                if (self->music_library_ != nullptr)
                 {
-                    main_text = album.artist();
-                    secondary_text = album.title();
+                    auto albums = self->music_library_->albums();
+                    album_widgets->reserve(albums.size());
 
-                    album_widgets->push_back(
-                        std::make_unique<AlbumWidget>(std::move(album), main_text, secondary_text,
-                                                      "album_artwork", playback_list));
+                    std::string main_text;
+                    std::string secondary_text;
+
+                    for (auto &album : albums)
+                    {
+                        main_text = album.artist();
+                        secondary_text = album.title();
+
+                        album_widgets->push_back(std::make_unique<AlbumWidget>(
+                            std::move(album), main_text, secondary_text, "album_artwork",
+                            playback_list));
+                    }
+                }
+                else
+                {
+                    LOG_WARN("PageStack({}): Music library is null, failed to load content",
+                             void_p(self));
                 }
 
                 return album_widgets;

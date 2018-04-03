@@ -2,8 +2,7 @@
 Test Document
 =============
 
-#.. doxygenclass:: spring::http::Interface
-#   :project: libspring
-#   :members:
-#   :private-members:
-#   :undoc-members:
+.. doxygenclass:: spring::MusicLibrary
+   :members:
+   :private-members:
+   :undoc-members:

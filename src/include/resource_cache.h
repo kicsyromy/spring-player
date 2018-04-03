@@ -8,10 +8,8 @@
 #include <memory>
 #include <string>
 
-#include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-#include <unistd.h>
 
 #include <gdk/gdk.h>
 #include <glib-object.h>
@@ -25,6 +23,7 @@
 
 #include "utility/compatibility.h"
 #include "utility/forward_declarations.h"
+#include "utility/posix_fd.h"
 
 namespace spring
 {
@@ -55,31 +54,6 @@ namespace spring
 
             std::pair<Resource, bool> from_cache(const utility::string_view &prefix,
                                                  const utility::string_view &resource_id) noexcept;
-
-        private:
-            struct posix_fd_t
-            {
-            public:
-                inline posix_fd_t(utility::string_view path, std::int32_t open_flags) noexcept
-                  : handle_(open(path.data(), open_flags, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH))
-                {
-                    error_ = errno;
-                }
-                inline ~posix_fd_t() noexcept
-                {
-                    if (*this)
-                    {
-                        close(handle_);
-                    }
-                }
-                inline operator bool() const noexcept { return handle_ != -1; }
-                inline std::int32_t operator()() noexcept { return handle_; }
-                inline std::int32_t error() const noexcept { return error_; }
-
-            private:
-                std::int32_t error_;
-                std::int32_t handle_;
-            };
         };
 
 #include "resource_cache.tpp"

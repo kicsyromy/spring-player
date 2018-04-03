@@ -48,13 +48,13 @@ namespace spring
 
             private:
                 template <typename Function, typename Tuple, size_t... I>
-                inline static auto call(Function f, Tuple t, std::index_sequence<I...>) noexcept
+                inline static auto call(Function f, Tuple &t, std::index_sequence<I...>) noexcept
                 {
-                    return f(std::get<I>(t)...);
+                    return f(std::move(std::get<I>(t))...);
                 }
 
                 template <typename Function, typename Tuple>
-                inline static auto call(Function f, Tuple t) noexcept
+                inline static auto call(Function f, Tuple &t) noexcept
                 {
                     static constexpr auto size = std::tuple_size<Tuple>::value;
                     return call(f, t, std::make_index_sequence<size>{});

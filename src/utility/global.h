@@ -4,7 +4,7 @@
 #define void_p(ptr) static_cast<const void *>(ptr)
 
 #if __cplusplus >= 201703L
-#define SPRING_FALL_THROUGH [[fallthrough]]
+#define SPRING_FALLTHROUGH [[fallthrough]]
 #else
 #define SPRING_FALLTHROUGH
 #endif

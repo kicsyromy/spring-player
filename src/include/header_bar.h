@@ -19,19 +19,14 @@ namespace spring
         class HeaderBar
         {
         public:
-            enum class Text
-            {
-                Plain,
-                Markup
-            };
-
-        public:
             HeaderBar(std::shared_ptr<PlaybackList> playback_list) noexcept;
             ~HeaderBar() noexcept;
 
         public:
             void toggle_sidebar() noexcept;
             void toggle_search() noexcept;
+            void hide_controls() noexcept;
+            void show_controls() noexcept;
 
         public:
             signal(search_toggled, bool);
@@ -62,6 +57,7 @@ namespace spring
             GtkBox *tool_buttons_{ nullptr };
             GtkToggleButton *toggle_sidebar_button_{ nullptr };
 
+            GtkBox *playback_progress_layout_{ nullptr };
             GtkButtonBox *playback_controls_{ nullptr };
             GtkButton *previous_button_{ nullptr };
             GtkButton *play_pause_button_{ nullptr };

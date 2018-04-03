@@ -89,13 +89,3 @@ SpringPlayer *spring_player_new()
                                                     APPLICATION_ID "a", "flags",
                                                     G_APPLICATION_HANDLES_OPEN, nullptr));
 }
-
-spring::PlexMediaServer spring_player_pms()
-{
-    char host[100];
-    auto path = fmt::format("{}/workspace/host.txt", spring::player::settings::home_directory());
-    FILE *f = fopen(path.c_str(), "r");
-    fscanf(f, "%s", host);
-    fclose(f);
-    return { host, -1, "username", "password" };
-}

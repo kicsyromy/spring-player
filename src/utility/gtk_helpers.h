@@ -11,6 +11,11 @@
     widget_name##_ = utility::gtk_cast<std::remove_pointer<decltype(widget_name##_)>::type>(       \
         gtk_builder_get_object(builder, #widget_name))
 
+#define get_smartptr_widget_from_builder(widget_name)                                              \
+    widget_name##_.reset(                                                                          \
+        utility::gtk_cast<std::remove_pointer<decltype(widget_name##_.get())>::type>(              \
+            gtk_builder_get_object(builder, #widget_name)))
+
 #define get_guarded_widget_from_builder(widget_name)                                               \
     do                                                                                             \
     {                                                                                              \
@@ -48,6 +53,12 @@ namespace spring
             {
                 return reinterpret_cast<destination_t *>(
                     static_cast<typename GObjectGuard<source_t>::g_object_t *>(object));
+            }
+
+            template <typename destination_t, typename source_t>
+            inline destination_t *gtk_cast(g_object_handle_t<source_t> &object)
+            {
+                return reinterpret_cast<destination_t *>(object.get());
             }
 
             template <typename GObjectType, typename SignalHandlerType, typename UserDataType>

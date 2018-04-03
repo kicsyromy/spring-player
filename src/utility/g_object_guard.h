@@ -1,6 +1,8 @@
 #ifndef SPRING_PLAYER_UTILITY_G_OBJECT_GUARD_H
 #define SPRING_PLAYER_UTILITY_G_OBJECT_GUARD_H
 
+#include <memory>
+
 #include "forward_declarations.h"
 
 namespace spring
@@ -9,6 +11,9 @@ namespace spring
     {
         namespace utility
         {
+            template <typename GObject>
+            using g_object_handle_t = std::unique_ptr<GObject, decltype(&g_object_unref)>;
+
             template <typename GObject> class GObjectGuard
             {
             public:

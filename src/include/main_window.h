@@ -11,8 +11,10 @@
 
 #include "page_stack.h"
 #include "page_stack_swicher.h"
-#include "playback_header.h"
 #include "playback_list.h"
+#include "plex_session.h"
+#include "server_setup_dialog.h"
+#include "welcome_page.h"
 
 #include "utility/forward_declarations.h"
 
@@ -33,14 +35,27 @@ namespace spring
             void show() noexcept;
             void hide() noexcept;
 
+        public:
+            GtkWindow *operator()() noexcept;
+
         private:
             static void on_search_toggled(bool toggled, MainWindow *self) noexcept;
             static void on_search_changed(GtkEntry *entry, MainWindow *self) noexcept;
             static void on_search_finished(GtkSearchEntry *entry, MainWindow *self) noexcept;
+            static void on_server_added(PlexSession session,
+                                        PlexMediaServer server,
+                                        MainWindow *self) noexcept;
 
         private:
             static void toggle_playlist(bool toggled, MainWindow *self) noexcept;
             static void on_track_queued(std::shared_ptr<music::Track> &, MainWindow *self) noexcept;
+            static void on_new_connection_requested(MainWindow *self) noexcept;
+
+        private:
+            bool switch_server(const std::vector<PlexSession> &sessions,
+                               const utility::string_view server_name) noexcept;
+            void show_welcome_page() noexcept;
+            void show_server_content() noexcept;
 
         private:
             GtkApplicationWindow *main_window_{ nullptr };
@@ -54,6 +69,8 @@ namespace spring
 
             HeaderBar header_{ nullptr };
             PlaylistSidebar playlist_sidebar_{ nullptr };
+            WelcomePage welcome_page_{};
+            ServerSetupDialog server_setup_dialog_{};
             PageStackSwitcher page_stack_switcher_{};
             PageStack page_stack_;
 
