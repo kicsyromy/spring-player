@@ -162,10 +162,11 @@ void MainWindow::on_search_finished(GtkSearchEntry *, MainWindow *self) noexcept
     self->header_.toggle_search();
 }
 
-void MainWindow::on_server_added(PlexSession session, MainWindow *self) noexcept
+void MainWindow::on_server_added(PlexSession session, PlexMediaServer server, MainWindow *self) noexcept
 {
     LOG_INFO("MainWindow({}): New Plex Media Server added: {}", void_p(self), session.name());
     session.save();
+    server.name(); // Do something with the server
 }
 
 void MainWindow::toggle_playlist(bool toggled, MainWindow *self) noexcept

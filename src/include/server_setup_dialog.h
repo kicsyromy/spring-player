@@ -1,7 +1,9 @@
 #ifndef SPRING_PLAYER_SERVER_SETUP_DIALOG_H
 #define SPRING_PLAYER_SERVER_SETUP_DIALOG_H
 
+#include <libspring_error.h>
 #include <libspring_global.h>
+#include <libspring_plex_media_server.h>
 
 #include "plex_session.h"
 
@@ -24,13 +26,14 @@ namespace spring
             void show() noexcept;
 
         public:
-            signal(server_added, PlexSession);
+            signal(server_added, PlexSession, PlexMediaServer);
 
         public:
             GtkWidget *operator()() noexcept;
 
         private:
             static void on_connection_requested(GtkButton *, ServerSetupDialog *self) noexcept;
+            static void on_connection_failed(Error error, ServerSetupDialog *self) noexcept;
             static void on_setup_canceled(GtkButton *, ServerSetupDialog *self) noexcept;
             static bool on_destroy_event(GtkButton *, GdkEvent *, ServerSetupDialog *self) noexcept;
 
@@ -42,10 +45,13 @@ namespace spring
             GtkWidget *content_{ nullptr };
             GtkRevealer *status_revealer_{ nullptr };
             GtkSpinner *connecting_spinner_{ nullptr };
+            GtkImage *status_error_icon_{ nullptr };
+            GtkLabel *status_text_{ nullptr };
             GtkEntry *server_url_entry_{ nullptr };
             GtkEntry *username_entry_{ nullptr };
             GtkEntry *password_entry_{ nullptr };
             GtkButton *connect_button_{ nullptr };
+            GtkButton *cancel_button_{ nullptr };
             GtkCheckButton *ssl_validation_checkbutton_{ nullptr };
 
         private:

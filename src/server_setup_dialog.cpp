@@ -5,7 +5,6 @@
 #include <glib/gi18n.h>
 
 #include <libspring_logger.h>
-#include <libspring_plex_media_server.h>
 
 #include "async_queue.h"
 #include "server_setup_dialog.h"
@@ -32,14 +31,18 @@ ServerSetupDialog::ServerSetupDialog() noexcept
     get_widget_from_builder_simple(content);
     get_widget_from_builder_simple(status_revealer);
     get_widget_from_builder_simple(connecting_spinner);
+    get_widget_from_builder_simple(status_error_icon);
+    get_widget_from_builder_simple(status_text);
     get_widget_from_builder_simple(server_url_entry);
     get_widget_from_builder_simple(username_entry);
     get_widget_from_builder_simple(password_entry);
     get_widget_from_builder_simple(ssl_validation_checkbutton);
 
-    auto cancel_button = gtk_button_new_with_label(_("Cancel"));
-    gtk_widget_set_visible(cancel_button, true);
-    gtk_dialog_add_action_widget(gtk_cast<GtkDialog>(dialog_), cancel_button, GTK_RESPONSE_CANCEL);
+    cancel_button_ = gtk_cast<GtkButton>(gtk_button_new_with_label(_("Cancel")));
+    auto cancel_button = cancel_button_;
+    gtk_widget_set_visible(gtk_cast<GtkWidget>(cancel_button), true);
+    gtk_dialog_add_action_widget(gtk_cast<GtkDialog>(dialog_), gtk_cast<GtkWidget>(cancel_button),
+                                 GTK_RESPONSE_CANCEL);
 
     connect_button_ = gtk_cast<GtkButton>(gtk_button_new_with_label("Connect"));
     auto connect_button = gtk_cast<GtkWidget>(connect_button_);
@@ -122,14 +125,31 @@ void ServerSetupDialog::on_connection_requested(GtkButton *, ServerSetupDialog *
             {
                 LOG_ERROR("ServerSetupDialog({}): Failed to connect to server {}", void_p(self),
                           result.error.message());
+
+                auto error = new Error;
+                *error = std::move(result.error);
+                async_queue::post_response(
+                    async_queue::Response{ "Connection failed", [self, error]() mutable {
+                                              auto e = std::unique_ptr<Error>(error);
+                                              on_connection_failed(std::move(*e), self);
+                                          } });
             }
             else
             {
                 LOG_INFO("ServerSetupDialog({}): Connection successful", void_p(self));
                 self->emit_queued_server_added(PlexSession{
-                    server.name().c_str(), server_address.data(), port, result.value });
+                    server.name().c_str(), server_address.data(), port, result.value }, std::move(server));
             }
         } });
+}
+
+void ServerSetupDialog::on_connection_failed(Error error, ServerSetupDialog *self) noexcept
+{
+    self->set_connecting_state(false);
+    gtk_revealer_set_reveal_child(self->status_revealer_, true);
+    gtk_label_set_text(self->status_text_,
+                       fmt::format("Connection failed: {}", error.message()).c_str());
+    gtk_widget_set_visible(gtk_cast<GtkWidget>(self->status_error_icon_), true);
 }
 
 void ServerSetupDialog::on_setup_canceled(GtkButton *, ServerSetupDialog *self) noexcept
@@ -137,6 +157,11 @@ void ServerSetupDialog::on_setup_canceled(GtkButton *, ServerSetupDialog *self) 
     LOG_INFO("ServerSetupDialog({}): Setup canceled...", void_p(self));
 
     self->set_connecting_state(false);
+
+    gtk_entry_set_text(self->server_url_entry_, "");
+    gtk_entry_set_text(self->username_entry_, "");
+    gtk_entry_set_text(self->password_entry_, "");
+
     gtk_widget_set_visible(gtk_cast<GtkWidget>(self->dialog_), false);
 }
 
@@ -155,6 +180,12 @@ void ServerSetupDialog::set_connecting_state(bool connecting) noexcept
     gtk_widget_set_sensitive(gtk_cast<GtkWidget>(ssl_validation_checkbutton_), !connecting);
 
     gtk_widget_set_sensitive(gtk_cast<GtkWidget>(connect_button_), !connecting);
+    gtk_widget_set_sensitive(gtk_cast<GtkWidget>(cancel_button_), !connecting);
 
     gtk_revealer_set_reveal_child(status_revealer_, connecting);
+
+    gtk_widget_set_visible(gtk_cast<GtkWidget>(connecting_spinner_), connecting);
+
+    gtk_label_set_text(status_text_, connecting ? _("Connecting...") : "");
+    gtk_widget_set_visible(gtk_cast<GtkWidget>(status_error_icon_), false);
 }
