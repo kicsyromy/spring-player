@@ -27,6 +27,16 @@ namespace
         return GStreamerPipeline::Milliseconds{ nanosecs / 1000000 };
     };
 
+    constexpr GStreamerPipeline::Milliseconds nanoseconds_to_milliseconds(guint64 nanosecs)
+    {
+        return GStreamerPipeline::Milliseconds{ nanosecs / 1000000 };
+    };
+
+    constexpr gint64 milliseconds_to_nanoseconds(GStreamerPipeline::Milliseconds value)
+    {
+        return value.count() * 1000000;
+    };
+
     const std::array<const char *,
                      static_cast<std::size_t>(GStreamerPipeline::PlaybackState::Count)>
         PLAYBACK_STATE{
@@ -141,6 +151,9 @@ void GStreamerPipeline::stop() noexcept
 void GStreamerPipeline::seek(music::Track::Milliseconds count) noexcept
 {
     LOG_INFO("GStreamerPipeline({}): Seek to {}", void_p(this), count.count());
+    gst_element_seek_simple(playbin_, GST_FORMAT_TIME,
+                            static_cast<GstSeekFlags>(GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_KEY_UNIT),
+                            milliseconds_to_nanoseconds(count));
 }
 
 GStreamerPipeline::PlaybackState GStreamerPipeline::playback_state() const noexcept
@@ -352,8 +365,7 @@ gboolean GStreamerPipeline::gst_appsrc_seek_data(GstAppSrc *,
 
     auto self = static_cast<GStreamerPipeline *>(instance);
 
-    // TODO: Implement this properly
-    self->playback_buffer_.seek(0);
+    self->playback_buffer_.seek(nanoseconds_to_milliseconds(offset));
 
     return true;
 }

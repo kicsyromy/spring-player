@@ -12,6 +12,11 @@ using namespace spring::player;
 namespace
 {
     constexpr const std::size_t MINIMUM_UNCONSUMED_BUFFER{ 128 * 1024 };
+
+    constexpr music::Track::Seconds milliseconds_to_seconds(music::Track::Milliseconds value)
+    {
+        return std::chrono::duration_cast<std::chrono::seconds>(value);
+    };
 }
 
 PlaybackBuffer::Producer::Producer() noexcept
@@ -25,13 +30,20 @@ PlaybackBuffer::Producer::~Producer() noexcept
     stop_buffering();
 }
 
-void PlaybackBuffer::Producer::start_buffering(std::shared_ptr<const music::Track> track) noexcept
+void PlaybackBuffer::Producer::start_buffering(std::weak_ptr<const music::Track> target_track,
+                                               std::chrono::seconds offset) noexcept
 {
+    auto track = target_track.lock();
+    if (track == nullptr)
+    {
+        LOG_WARN("PlaybackBuffer::Producer({}): Attempt to buffer null track", void_p(this));
+        return;
+    }
+
     LOG_INFO("PlaybackBuffer::Producer({}): New buffering session for track {}", void_p(this),
              track->title());
-    stop_buffering();
 
-    thread_ = std::thread{ [this, track] {
+    thread_ = std::thread{ [this, track, offset] {
         keep_buffering_ = true;
         LOG_INFO("PlaybackBuffer::Producer({}): Start buffering for track {}", void_p(this),
                  track->title());
@@ -54,7 +66,7 @@ void PlaybackBuffer::Producer::start_buffering(std::shared_ptr<const music::Trac
                 }
                 return result;
             },
-            this);
+            offset, this);
 
         if (keep_buffering_)
         {
@@ -128,10 +140,8 @@ void PlaybackBuffer::cache(std::shared_ptr<const music::Track> track) noexcept
 {
     LOG_INFO("PlaybackBuffer({}): Caching track {}", void_p(this), track->title());
 
-    consumed_ = 0;
-    buffering_finished_ = false;
-    buffer_.clear();
-    buffer_producer_.start_buffering(track);
+    current_track_ = track;
+    start_caching();
 }
 
 const utility::string_view PlaybackBuffer::consume(std::size_t count) noexcept
@@ -148,15 +158,17 @@ const utility::string_view PlaybackBuffer::consume(std::size_t count) noexcept
     return { buffer_.data() + range_begin, range_size };
 }
 
-void PlaybackBuffer::seek(std::size_t absolute_offset) noexcept
+void PlaybackBuffer::seek(music::Track::Milliseconds offset) noexcept
 {
-    if (absolute_offset >= buffer_.size())
-    {
-        LOG_WARN("PlaybackBuffer({}): Unimplemented: Seeking beyond cached data", void_p(this));
-        consumed_ = buffer_.size();
-    }
-    else
-    {
-        consumed_ = absolute_offset;
-    }
+    start_caching(milliseconds_to_seconds(offset));
+}
+
+void PlaybackBuffer::start_caching(music::Track::Seconds offset) noexcept
+{
+    buffer_producer_.stop_buffering();
+
+    consumed_ = 0;
+    buffering_finished_ = false;
+    buffer_.clear();
+    buffer_producer_.start_buffering(current_track_, offset);
 }

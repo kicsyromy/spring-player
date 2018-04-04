@@ -111,6 +111,12 @@ void PlaybackList::play_pause() noexcept
     }
 }
 
+void PlaybackList::seek_current_track(PlaybackList::Milliseconds value) noexcept
+{
+    LOG_INFO("PlaybackList({}): Seek to {}", void_p(this), value.count());
+    pipeline_.seek(value);
+}
+
 void PlaybackList::stop() noexcept
 {
     LOG_INFO("PlaybackList({}): Stop playback", void_p(this));

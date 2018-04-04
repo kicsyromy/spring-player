@@ -7,6 +7,10 @@
 using GConnectFlags = std::int32_t;
 #endif
 
+#ifndef __GTK_ENUMS_H__
+using GtkScrollType = std::int32_t;
+#endif
+
 #define declare_g_type(name) using name = struct _##name;
 
 declare_g_type(GObject);

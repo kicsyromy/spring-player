@@ -43,6 +43,7 @@ namespace spring
         {
         public:
             using Milliseconds = std::chrono::milliseconds;
+            using Seconds = std::chrono::seconds;
 
         public:
             explicit Track(TrackPrivate *priv) noexcept;
@@ -60,7 +61,8 @@ namespace spring
             std::size_t fileSize() const noexcept;
             const std::string &artwork() const noexcept;
             std::string url(std::uint32_t bitrate = 320) const noexcept;
-            void trackData(DataFragmentReadyCallback callback, void *userData) const noexcept;
+            void trackData(DataFragmentReadyCallback callback, Seconds offset, void *userData) const
+                noexcept;
 
         private:
             std::unique_ptr<TrackPrivate> priv_;

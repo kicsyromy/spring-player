@@ -45,6 +45,11 @@ namespace spring
             static void on_next_button_clicked(GtkButton *button, HeaderBar *self) noexcept;
             static void on_previous_button_clicked(GtkButton *button, HeaderBar *self) noexcept;
 
+            static bool on_seek_requested(GtkScale *,
+                                          GtkScrollType,
+                                          double value,
+                                          HeaderBar *self) noexcept;
+
             static void on_playback_state_changed(std::int32_t state, HeaderBar *self) noexcept;
             static void on_playback_position_changed(std::int64_t position,
                                                      HeaderBar *self) noexcept;

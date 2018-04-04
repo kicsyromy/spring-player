@@ -31,6 +31,7 @@ namespace spring
         public:
             void play(std::size_t index = 0) noexcept;
             void play_pause() noexcept;
+            void seek_current_track(Milliseconds value) noexcept;
             void stop() noexcept;
             void next() noexcept;
             void previous() noexcept;

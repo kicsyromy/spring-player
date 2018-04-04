@@ -86,6 +86,6 @@ static void spring_player_class_init(SpringPlayerClass *klass)
 SpringPlayer *spring_player_new()
 {
     return static_cast<SpringPlayer *>(g_object_new(SPRING_PLAYER_TYPE, "application-id",
-                                                    APPLICATION_ID "a", "flags",
+                                                    APPLICATION_ID "", "flags",
                                                     G_APPLICATION_HANDLES_OPEN, nullptr));
 }

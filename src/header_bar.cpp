@@ -87,6 +87,7 @@ HeaderBar::HeaderBar(std::shared_ptr<PlaybackList> playback_list) noexcept
     connect_g_signal(next_button_, "clicked", &on_next_button_clicked, this);
     connect_g_signal(toggle_sidebar_button_, "toggled", &on_sidebar_toggled, this);
     connect_g_signal(search_button_, "toggled", &on_search_button_toggled, this);
+    connect_g_signal(playback_progress_bar_, "change-value", &on_seek_requested, this);
 
     playback_list->on_playback_state_changed(this, &on_playback_state_changed);
     playback_list->on_playback_position_changed(this, &on_playback_position_changed);
@@ -176,6 +177,19 @@ void HeaderBar::on_previous_button_clicked(GtkButton *, HeaderBar *self) noexcep
     {
         playlist->previous();
     }
+}
+
+bool HeaderBar::on_seek_requested(GtkScale *, GtkScrollType, double value, HeaderBar *self) noexcept
+{
+    LOG_INFO("HeaderBar({}): Seeking to {}", void_p(self), value);
+    auto playlist = self->playback_list_.lock();
+    if (playlist != nullptr)
+    {
+        playlist->seek_current_track(
+            PlaybackList::Milliseconds{ static_cast<std::int64_t>(value) });
+    }
+
+    return false;
 }
 
 void HeaderBar::on_playback_state_changed(std::int32_t new_state, HeaderBar *self) noexcept
