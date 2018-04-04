@@ -80,6 +80,11 @@ std::size_t PlaybackList::track_count() const noexcept
     return content_.size();
 }
 
+PlaybackList::PlaybackState PlaybackList::playback_state() const noexcept
+{
+    return pipeline_.playback_state();
+}
+
 void PlaybackList::play(std::size_t index) noexcept
 {
     LOG_INFO("PlaybackList({}): Playing track at index {}", void_p(this), index);

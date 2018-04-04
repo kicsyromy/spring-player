@@ -237,8 +237,9 @@ GStreamerPipeline::PlaybackState GStreamerPipeline::on_gst_state_change_ready(
 }
 
 GStreamerPipeline::PlaybackState GStreamerPipeline::on_gst_state_change_paused(
-    GStreamerPipeline &) noexcept
+    GStreamerPipeline &self) noexcept
 {
+    on_gst_state_change_void_pending(self);
     return PlaybackState::Paused;
 }
 

@@ -45,6 +45,8 @@ namespace spring
             static void on_next_button_clicked(GtkButton *button, HeaderBar *self) noexcept;
             static void on_previous_button_clicked(GtkButton *button, HeaderBar *self) noexcept;
 
+            static bool on_drag_started(GtkWidget *, GdkEvent *, HeaderBar *self) noexcept;
+            static bool on_drag_ended(GtkWidget *, GdkEvent *, HeaderBar *self) noexcept;
             static bool on_seek_requested(GtkScale *,
                                           GtkScrollType,
                                           double value,
@@ -53,8 +55,6 @@ namespace spring
             static void on_playback_state_changed(std::int32_t state, HeaderBar *self) noexcept;
             static void on_playback_position_changed(std::int64_t position,
                                                      HeaderBar *self) noexcept;
-            static void on_track_cache_updated(std::size_t amount, HeaderBar *self) noexcept;
-            static void on_track_cached(HeaderBar *self) noexcept;
 
         private:
             utility::GObjectGuard<GtkHeaderBar> header_bar_{ nullptr };
@@ -77,6 +77,9 @@ namespace spring
             GtkAdjustment *playback_progress_adjustment_{ nullptr };
 
             GtkToggleButton *search_button_{ nullptr };
+
+            bool dragging_{ false };
+            double seek_value_{ 0.0 };
 
         private:
             std::weak_ptr<PlaybackList> playback_list_{};

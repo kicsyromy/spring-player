@@ -27,6 +27,7 @@ namespace spring
         public:
             std::pair<std::int32_t, const music::Track *> current_track() const noexcept;
             std::size_t track_count() const noexcept;
+            PlaybackState playback_state() const noexcept;
 
         public:
             void play(std::size_t index = 0) noexcept;

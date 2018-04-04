@@ -37,6 +37,17 @@ namespace
 
         return result;
     }
+
+    inline void set_time_for_label(GtkLabel *label, std::int64_t milliseconds)
+    {
+        auto elapsed_seconds_total = static_cast<std::int64_t>(milliseconds) / 1000;
+        const auto elapsed_minutes = elapsed_seconds_total / 60;
+        const auto elapsed_seconds = elapsed_seconds_total % 60;
+        gtk_label_set_text(label,
+                           elapsed_seconds < 10 ?
+                               fmt::format("{}:0{}", elapsed_minutes, elapsed_seconds).c_str() :
+                               fmt::format("{}:{}", elapsed_minutes, elapsed_seconds).c_str());
+    }
 }
 
 HeaderBar::HeaderBar(std::shared_ptr<PlaybackList> playback_list) noexcept
@@ -87,12 +98,13 @@ HeaderBar::HeaderBar(std::shared_ptr<PlaybackList> playback_list) noexcept
     connect_g_signal(next_button_, "clicked", &on_next_button_clicked, this);
     connect_g_signal(toggle_sidebar_button_, "toggled", &on_sidebar_toggled, this);
     connect_g_signal(search_button_, "toggled", &on_search_button_toggled, this);
+
+    connect_g_signal(playback_progress_bar_, "button-press-event", &on_drag_started, this);
+    connect_g_signal(playback_progress_bar_, "button-release-event", &on_drag_ended, this);
     connect_g_signal(playback_progress_bar_, "change-value", &on_seek_requested, this);
 
     playback_list->on_playback_state_changed(this, &on_playback_state_changed);
     playback_list->on_playback_position_changed(this, &on_playback_position_changed);
-    playback_list->on_track_cache_updated(this, &on_track_cache_updated);
-    playback_list->on_track_cached(this, &on_track_cached);
 }
 
 HeaderBar::~HeaderBar() noexcept
@@ -179,9 +191,40 @@ void HeaderBar::on_previous_button_clicked(GtkButton *, HeaderBar *self) noexcep
     }
 }
 
+bool HeaderBar::on_drag_started(GtkWidget *, GdkEvent *, HeaderBar *self) noexcept
+{
+    LOG_INFO("HeaderBar({}): Drag started", void_p(self));
+
+    self->dragging_ = true;
+
+    return false;
+}
+
+bool HeaderBar::on_drag_ended(GtkWidget *, GdkEvent *, HeaderBar *self) noexcept
+{
+    LOG_INFO("HeaderBar({}): Drag ended", void_p(self));
+
+    self->dragging_ = false;
+    on_seek_requested(nullptr, GTK_SCROLL_NONE, self->seek_value_, self);
+
+    return false;
+}
+
 bool HeaderBar::on_seek_requested(GtkScale *, GtkScrollType, double value, HeaderBar *self) noexcept
 {
+    auto ceil = gtk_adjustment_get_upper(self->playback_progress_adjustment_);
+    value = value > ceil ? ceil : value;
+
     LOG_INFO("HeaderBar({}): Seeking to {}", void_p(self), value);
+
+    if (self->dragging_)
+    {
+        self->seek_value_ = value;
+        set_time_for_label(self->current_time_, static_cast<std::int64_t>(value));
+
+        return false;
+    }
+
     auto playlist = self->playback_list_.lock();
     if (playlist != nullptr)
     {
@@ -227,14 +270,9 @@ void HeaderBar::on_playback_state_changed(std::int32_t new_state, HeaderBar *sel
                     gtk_adjustment_set_upper(self->playback_progress_adjustment_, duration);
                     gtk_adjustment_set_value(self->playback_progress_adjustment_, 0);
 
-                    auto duration_seconds_total = duration / 1000;
-                    const auto minutes = duration_seconds_total / 60;
-                    const auto seconds = duration_seconds_total % 60;
-                    gtk_label_set_text(self->current_time_, "00:00");
-                    gtk_label_set_text(self->duration_,
-                                       seconds < 10 ?
-                                           fmt::format("{}:0{}", minutes, seconds).c_str() :
-                                           fmt::format("{}:{}", minutes, seconds).c_str());
+                    gtk_label_set_text(self->current_time_, "0:00");
+                    set_time_for_label(self->duration_, duration);
+
                     break;
                 }
                 case state_t::Invalid:
@@ -242,11 +280,14 @@ void HeaderBar::on_playback_state_changed(std::int32_t new_state, HeaderBar *sel
                 {
                     gtk_adjustment_set_value(self->playback_progress_adjustment_, 0);
                     gtk_range_set_fill_level(gtk_cast<GtkRange>(self->playback_progress_bar_), 0);
-                    gtk_label_set_text(self->current_time_, "00:00");
-                    gtk_label_set_text(self->duration_, "00:00");
+                    gtk_label_set_text(self->current_time_, "0:00");
+                    gtk_label_set_text(self->duration_, "0:00");
 
                     gtk_label_set_markup(self->window_title_,
                                          "<span weight=\"bold\">Spring Player</span>");
+
+                    self->seek_value_ = 0.0;
+
                     SPRING_FALLTHROUGH;
                 }
                 case state_t::Paused:
@@ -261,40 +302,11 @@ void HeaderBar::on_playback_state_changed(std::int32_t new_state, HeaderBar *sel
     }
 }
 
-void HeaderBar::on_playback_position_changed(int64_t position, HeaderBar *self) noexcept
+void HeaderBar::on_playback_position_changed(std::int64_t position, HeaderBar *self) noexcept
 {
-    gtk_adjustment_set_value(self->playback_progress_adjustment_, position);
-    auto elapsed_seconds_total = position / 1000;
-    const auto elapsed_minutes = elapsed_seconds_total / 60;
-    const auto elapsed_seconds = elapsed_seconds_total % 60;
-    gtk_label_set_text(self->current_time_,
-                       elapsed_seconds < 10 ?
-                           fmt::format("{}:0{}", elapsed_minutes, elapsed_seconds).c_str() :
-                           fmt::format("{}:{}", elapsed_minutes, elapsed_seconds).c_str());
-}
-
-void HeaderBar::on_track_cache_updated(std::size_t amount, HeaderBar *self) noexcept
-{
-    auto playlist = self->playback_list_.lock();
-    if (playlist != nullptr)
+    if (!self->dragging_)
     {
-        auto &track = *playlist->current_track().second;
-        auto file_size = track.fileSize();
-        auto duration = static_cast<std::size_t>(track.duration().count());
-
-        gtk_range_set_fill_level(gtk_cast<GtkRange>(self->playback_progress_bar_),
-                                 amount * duration / file_size);
-    }
-}
-
-void HeaderBar::on_track_cached(HeaderBar *self) noexcept
-{
-    auto playlist = self->playback_list_.lock();
-    if (playlist != nullptr)
-    {
-        auto &track = *playlist->current_track().second;
-        auto duration = static_cast<std::size_t>(track.duration().count());
-
-        gtk_range_set_fill_level(gtk_cast<GtkRange>(self->playback_progress_bar_), duration);
+        gtk_adjustment_set_value(self->playback_progress_adjustment_, position);
+        set_time_for_label(self->current_time_, position);
     }
 }
