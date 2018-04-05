@@ -48,7 +48,7 @@ namespace
                                fmt::format("{}:0{}", elapsed_minutes, elapsed_seconds).c_str() :
                                fmt::format("{}:{}", elapsed_minutes, elapsed_seconds).c_str());
     }
-}
+} // namespace
 
 HeaderBar::HeaderBar(std::shared_ptr<PlaybackList> playback_list) noexcept
   : header_bar_(gtk_cast<GtkHeaderBar>(gtk_header_bar_new()))

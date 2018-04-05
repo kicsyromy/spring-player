@@ -32,6 +32,6 @@ namespace spring
     class VideoLibrary
     {
     };
-}
+} // namespace spring
 
 #endif // !LIBSPRING_VIDEO_LIBRARY_H

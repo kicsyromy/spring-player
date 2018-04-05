@@ -101,7 +101,7 @@ namespace spring
         private:
             friend class Album;
         };
-    }
-}
+    } // namespace music
+} // namespace spring
 
 #endif // !LIBSPRING_MUSIC_ALBUM_P_H

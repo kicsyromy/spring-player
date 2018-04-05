@@ -83,7 +83,7 @@ namespace spring
             DISABLE_COPY(PlaylistSidebar)
             DISABLE_MOVE(PlaylistSidebar)
         };
-    }
-}
+    } // namespace player
+} // namespace spring
 
 #endif // !SPRING_PLAYER_PLAYLIST_SIDEBAR_H

@@ -126,8 +126,8 @@ namespace spring
                 impl::exponential_blur_columns(pixels, width, width / 2, width, 0, height, alpha);
                 t2.join();
             }
-        }
-    }
-}
+        } // namespace utility
+    }     // namespace player
+} // namespace spring
 
 #endif // !SPRING_PLAYER_UTILITY_EXPONENTIAL_BLUR_H

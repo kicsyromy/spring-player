@@ -36,7 +36,7 @@ namespace
                                                   gtk_cast<GtkStyleProvider>(css_provider),
                                                   GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
     }
-}
+} // namespace
 
 MainWindow::MainWindow(SpringPlayer &application,
                        std::shared_ptr<PlaybackList> playback_list) noexcept

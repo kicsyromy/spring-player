@@ -116,7 +116,6 @@ void ServerSetupDialog::on_connection_requested(GtkButton *, ServerSetupDialog *
     async_queue::push_front_request(async_queue::Request{
         "Connect to server",
         [self, server_address, port, username, password, enable_ssl_validation] {
-
             PlexMediaServer server;
 
             auto result = server.connect(server_address.c_str(), port, username, password,

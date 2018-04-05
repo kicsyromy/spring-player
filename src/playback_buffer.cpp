@@ -17,7 +17,7 @@ namespace
     {
         return std::chrono::duration_cast<std::chrono::seconds>(value);
     };
-}
+} // namespace
 
 PlaybackBuffer::Producer::Producer() noexcept
 {

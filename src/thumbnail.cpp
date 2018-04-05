@@ -41,7 +41,7 @@ namespace
                    (first.blue == second.blue);
         }
     };
-}
+} // namespace
 
 Thumbnail::Thumbnail() noexcept
   : container_(gtk_drawing_area_new())

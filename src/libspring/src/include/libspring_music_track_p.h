@@ -127,7 +127,7 @@ namespace spring
         private:
             friend class Track;
         };
-    }
-}
+    } // namespace music
+} // namespace spring
 
 #endif // !LIBSPRING_MUSIC_TRACK_P_H

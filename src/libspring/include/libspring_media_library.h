@@ -70,6 +70,6 @@ namespace spring
     private:
         DISABLE_COPY(MediaLibrary)
     };
-}
+} // namespace spring
 
 #endif // !LIBSPRING_MEDIA_LIBRARY_H

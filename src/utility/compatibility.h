@@ -20,8 +20,8 @@ namespace spring
         {
             using string_view = SPRING_PLAYER_STRING_VIEW_T;
         }
-    }
-}
+    } // namespace player
+} // namespace spring
 namespace std
 {
 }

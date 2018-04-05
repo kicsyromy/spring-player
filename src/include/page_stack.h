@@ -60,7 +60,7 @@ namespace spring
             DISABLE_COPY(PageStack)
             DISABLE_MOVE(PageStack)
         };
-    }
-}
+    } // namespace player
+} // namespace spring
 
 #endif // !SPRING_PLAYER_PAGE_STACK_H

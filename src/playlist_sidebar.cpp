@@ -33,7 +33,7 @@ namespace
 
         return text_color;
     }
-}
+} // namespace
 
 PlaylistSidebar::PlaylistSidebar(std::shared_ptr<PlaybackList> playback_list) noexcept
   : playback_list_{ playback_list }

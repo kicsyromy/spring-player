@@ -55,6 +55,6 @@ namespace spring
     private:
         friend class MusicLibrary;
     };
-}
+} // namespace spring
 
 #endif // !LIBSPRING_MUSIC_LIBRARY_P_H

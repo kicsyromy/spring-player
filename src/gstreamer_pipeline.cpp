@@ -45,7 +45,7 @@ namespace
             "PlaybackState::Paused",
             "PlaybackState::Stopped",
         };
-}
+} // namespace
 
 GStreamerPipeline::GStreamerPipeline(const PlaybackList &playback_list) noexcept
   : playback_list_(playback_list)

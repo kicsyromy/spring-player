@@ -118,7 +118,7 @@ namespace spring
             DISABLE_COPY(GStreamerPipeline)
             DISABLE_MOVE(GStreamerPipeline)
         };
-    }
-}
+    } // namespace player
+} // namespace spring
 
 #endif // !SPRING_PLAYER_GSTREAMER_PIPELINE_H

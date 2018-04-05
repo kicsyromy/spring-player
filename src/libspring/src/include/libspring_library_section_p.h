@@ -88,6 +88,6 @@ namespace spring
     private:
         friend class LibrarySection;
     };
-}
+} // namespace spring
 
 #endif // !LIBSPRING_LIBRARY_SECTION_P_H

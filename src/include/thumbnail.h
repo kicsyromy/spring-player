@@ -74,7 +74,7 @@ namespace spring
             DISABLE_COPY(Thumbnail)
             DISABLE_MOVE(Thumbnail)
         };
-    }
-}
+    } // namespace player
+} // namespace spring
 
 #endif // !SPRING_PLAYER_THUMBNAIL_H

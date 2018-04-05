@@ -70,7 +70,7 @@ namespace spring
         private:
             DISABLE_COPY(Track)
         };
-    }
-}
+    } // namespace music
+} // namespace spring
 
 #endif // !LIBSPRING_MUSIC_TRACK_H

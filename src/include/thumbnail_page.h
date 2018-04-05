@@ -57,7 +57,7 @@ namespace spring
         };
 
 #include "thumbnail_page.tpp"
-    }
-}
+    } // namespace player
+} // namespace spring
 
 #endif // !SPRING_PLAYER_THUMBNAIL_PAGE_H

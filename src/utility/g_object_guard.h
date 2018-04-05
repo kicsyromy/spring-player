@@ -81,8 +81,8 @@ namespace spring
             private:
                 g_object_t *handle_;
             };
-        }
-    }
-}
+        } // namespace utility
+    }     // namespace player
+} // namespace spring
 
 #endif // !SPRING_PLAYER_UTILITY_G_OBJECT_GUARD_H

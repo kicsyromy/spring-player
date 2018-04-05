@@ -52,7 +52,7 @@ namespace spring
         private:
             DISABLE_COPY(Genre)
         };
-    }
-}
+    } // namespace music
+} // namespace spring
 
 #endif // !LIBSPRING_MUSIC_GENRE_H

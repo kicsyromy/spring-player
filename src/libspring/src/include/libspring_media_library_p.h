@@ -90,6 +90,6 @@ namespace spring
     private:
         friend class MediaLibrary;
     };
-}
+} // namespace spring
 
 #endif // !LIBSPRING_MEDIA_LIBRARY_P_H

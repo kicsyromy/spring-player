@@ -51,7 +51,7 @@ namespace spring
             DISABLE_COPY(PageStackSwitcher)
             DISABLE_MOVE(PageStackSwitcher)
         };
-    }
-}
+    } // namespace player
+} // namespace spring
 
 #endif // !SPRING_PLAYER_PAGE_STACK_SWITCHER_H

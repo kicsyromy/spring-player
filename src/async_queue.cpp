@@ -17,21 +17,23 @@ using namespace moodycamel;
 
 namespace
 {
-    inline unsigned long current_thread_id() noexcept { return pthread_self(); }
-}
-
-namespace
-{
     std::atomic_bool message_loop_running{ true };
     BlockingConcurrentQueue<async_queue::Request> message_queue{};
     ConcurrentQueue<async_queue::Request> prio_queue{};
     std::thread worker{};
 
+    constexpr auto SENTINEL_REQUEST_ID{ "6228d6fc-f492-4e09-bc82-2c83d351fe97" };
+
+    inline unsigned long current_thread_id() noexcept { return pthread_self(); }
+
     void handle_request(async_queue::Request &request) noexcept
     {
         if (request.request == nullptr)
         {
-            LOG("AsyncQueue: Received empty request...");
+            if (request.id != SENTINEL_REQUEST_ID)
+            {
+                LOG("AsyncQueue: Received empty request...");
+            }
         }
         else
         {
@@ -48,9 +50,9 @@ namespace
 
     void send_sentinel_request() noexcept
     {
-        message_queue.enqueue(async_queue::Request{ "sentinel", nullptr });
+        message_queue.enqueue(async_queue::Request{ SENTINEL_REQUEST_ID, nullptr });
     }
-}
+} // namespace
 
 void async_queue::start_processing() noexcept
 {

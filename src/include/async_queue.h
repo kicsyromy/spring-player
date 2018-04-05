@@ -23,8 +23,8 @@ namespace spring
             void push_back_request(Request &&request) noexcept;
             void push_front_request(Request &&request) noexcept;
             void post_response(Response &&response) noexcept;
-        }
-    }
-}
+        } // namespace async_queue
+    }     // namespace player
+} // namespace spring
 
 #endif // !SPRING_PLAYER_ASYNC_QUEUE_H

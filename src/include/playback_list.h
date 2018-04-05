@@ -61,7 +61,7 @@ namespace spring
             DISABLE_COPY(PlaybackList)
             DISABLE_MOVE(PlaybackList)
         };
-    }
-}
+    } // namespace player
+} // namespace spring
 
 #endif // !SPRING_PLAYER_PLAYBACK_LIST_H

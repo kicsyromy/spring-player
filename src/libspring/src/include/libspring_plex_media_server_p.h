@@ -105,6 +105,6 @@ namespace spring
     private:
         friend class PlexMediaServer;
     };
-}
+} // namespace spring
 
 #endif // !LIBSPRING_PLEX_MEDIA_SERVER_P_H

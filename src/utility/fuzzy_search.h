@@ -128,8 +128,8 @@ namespace spring
 
                 return false;
             }
-        }
-    }
-}
+        } // namespace utility
+    }     // namespace player
+} // namespace spring
 
 #endif // !SPRING_PLAYER_UTILITY_FUZZY_SEARCH_H

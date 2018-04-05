@@ -43,7 +43,6 @@ ThumbnailWidget<ContentProvider>::ThumbnailWidget(
 
     async_queue::push_back_request(async_queue::Request{
         "load_artwork", [this, cache_prefix, text] {
-
             struct header_t
             {
                 std::int32_t alpha;

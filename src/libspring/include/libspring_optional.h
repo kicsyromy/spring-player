@@ -62,6 +62,6 @@ namespace spring
     private:
         DISABLE_COPY(Optional)
     };
-}
+} // namespace spring
 
 #endif // LIBGEARBOX_RETURN_TYPE_H

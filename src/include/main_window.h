@@ -82,7 +82,7 @@ namespace spring
             DISABLE_COPY(MainWindow)
             DISABLE_MOVE(MainWindow)
         };
-    }
-}
+    } // namespace player
+} // namespace spring
 
 #endif // !SPRING_PLAYER_MAIN_WINDOW_H

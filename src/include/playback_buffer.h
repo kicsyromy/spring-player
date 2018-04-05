@@ -76,7 +76,7 @@ namespace spring
             DISABLE_COPY(PlaybackBuffer)
             DISABLE_MOVE(PlaybackBuffer)
         };
-    }
-}
+    } // namespace player
+} // namespace spring
 
 #endif // !SPRING_PLAYER_PLAYBACK_BUFFER_H

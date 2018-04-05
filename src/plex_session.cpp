@@ -33,7 +33,7 @@ namespace
                        make_column("PORT", &session_table_t::port),
                        make_column("TOKEN", &session_table_t::token)));
     }
-}
+} // namespace
 
 PlexSession::PlexSession() noexcept
 {

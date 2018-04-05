@@ -38,7 +38,7 @@ namespace spring
             std::int32_t port_{};
             std::string token_{};
         };
-    }
-}
+    } // namespace player
+} // namespace spring
 
 #endif // !SPRING_PLAYER_PLEX_SESSION_H

@@ -91,6 +91,6 @@ namespace spring
         ATTRIBUTE(properties_t, user)
         INIT_ATTRIBUTES(user)
     };
-}
+} // namespace spring
 
 #endif // !LIBSPRING_USER_P_H

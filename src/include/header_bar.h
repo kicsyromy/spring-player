@@ -88,7 +88,7 @@ namespace spring
             DISABLE_COPY(HeaderBar)
             DISABLE_MOVE(HeaderBar)
         };
-    }
-}
+    } // namespace player
+} // namespace spring
 
 #endif // !SPRING_PLAYER_HEADER_BAR_H

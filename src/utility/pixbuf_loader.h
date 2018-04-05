@@ -36,8 +36,8 @@ namespace spring
 
                 return scaled_pixbuf;
             }
-        }
-    }
-}
+        } // namespace utility
+    }     // namespace player
+} // namespace spring
 
 #endif // !SPRING_PLAYER_UTILITY_PIXBUF_LOADER_H
