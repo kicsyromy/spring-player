@@ -15,18 +15,9 @@ PlaybackList::PlaybackList() noexcept
 {
     LOG_INFO("PlaybackList({}): Creating...", void_p(this));
 
-    pipeline_.on_playback_state_changed(
-        this,
-        [](PlaybackState new_state, void *instance) {
-            auto self = static_cast<PlaybackList *>(instance);
-
-            LOG_INFO("PlaybackList({}): Playback state changed to {} for {}", instance,
-                     GStreamerPipeline::playback_state_to_string(new_state),
-                     self->current_track().second ? self->current_track().second->title() : "");
-
-            self->emit_playback_state_changed(std::move(new_state));
-        },
-        this);
+    void (*playback_state_changed_handler)(PlaybackState, PlaybackList *) noexcept =
+        &on_playback_state_changed;
+    pipeline_.on_playback_state_changed(this, playback_state_changed_handler);
 
     pipeline_.on_playback_position_changed(this,
                                            [](Milliseconds milliseconds, void *instance) {
@@ -169,4 +160,25 @@ void PlaybackList::enqueue(std::shared_ptr<music::Track> track) noexcept
     auto &t = content_.back();
 
     emit_track_queued(t);
+}
+
+void PlaybackList::on_playback_state_changed(PlaybackState new_state, PlaybackList *self) noexcept
+{
+    LOG_INFO("PlaybackList({}): Playback state changed to {} for {}", void_p(self),
+             GStreamerPipeline::playback_state_to_string(new_state),
+             self->current_track().second ? self->current_track().second->title() : "");
+
+    if (new_state == PlaybackState::Stopped)
+    {
+        if (self->current_index_ < static_cast<std::int32_t>(self->content_.size()) - 1)
+        {
+            self->next();
+        }
+        else
+        {
+            self->stop();
+        }
+    }
+
+    self->emit_playback_state_changed(std::move(new_state));
 }

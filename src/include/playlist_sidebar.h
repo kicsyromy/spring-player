@@ -38,8 +38,10 @@ namespace spring
             static void on_track_activated(GtkListBox *,
                                            GtkListBoxRow *element,
                                            PlaylistSidebar *self) noexcept;
+            static void on_playback_state_changed(PlaybackList::PlaybackState new_state,
+                                                  PlaylistSidebar *self) noexcept;
 
-            static std::int32_t on_list_bow_draw_requested(GtkWidget *,
+            static std::int32_t on_list_box_draw_requested(GtkWidget *,
                                                            cairo_t *cairo_context,
                                                            PlaylistSidebar *self) noexcept;
 
@@ -75,6 +77,7 @@ namespace spring
 
             std::weak_ptr<PlaybackList> playback_list_{};
             std::unordered_map<GtkWidget *, std::unique_ptr<PlaylistItem>> playlist_{};
+            PlaylistItem *current_item_{ nullptr };
 
         private:
             DISABLE_COPY(PlaylistSidebar)

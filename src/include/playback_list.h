@@ -49,6 +49,10 @@ namespace spring
             signal(track_cached);
 
         private:
+            static void on_playback_state_changed(PlaybackState new_state,
+                                                  PlaybackList *self) noexcept;
+
+        private:
             GStreamerPipeline pipeline_{ *this };
             std::vector<std::shared_ptr<music::Track>> content_{};
             std::int32_t current_index_{ -1 };

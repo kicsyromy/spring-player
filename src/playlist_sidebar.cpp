@@ -49,7 +49,7 @@ PlaylistSidebar::PlaylistSidebar(std::shared_ptr<PlaybackList> playback_list) no
     gtk_container_add(artwork_container_, artwork_());
 
     connect_g_signal(track_list_container_, "row-activated", &on_track_activated, this);
-    connect_g_signal(track_list_container_, "draw", &on_list_bow_draw_requested, this);
+    connect_g_signal(track_list_container_, "draw", &on_list_box_draw_requested, this);
 
     playback_list->on_track_queued(
         this,
@@ -86,58 +86,7 @@ PlaylistSidebar::PlaylistSidebar(std::shared_ptr<PlaybackList> playback_list) no
         },
         this);
 
-    playback_list->on_playback_state_changed(
-        this,
-        [](auto state, void *instance) {
-            auto self = static_cast<PlaylistSidebar *>(instance);
-
-            LOG_INFO("PlaylistSidebar({}): Playback state changed {}", instance,
-                     GStreamerPipeline::playback_state_to_string(state));
-
-            if (state == PlaybackList::PlaybackState::Pending ||
-                state == PlaybackList::PlaybackState::Playing)
-            {
-                auto playlist = self->playback_list_.lock();
-                if (playlist != nullptr)
-                {
-                    auto current_track = playlist->current_track();
-
-                    auto element = gtk_list_box_get_row_at_index(self->track_list_container_,
-                                                                 current_track.first);
-                    auto it = self->playlist_.find(gtk_bin_get_child(gtk_cast<GtkBin>(element)));
-                    if (it != self->playlist_.end())
-                    {
-                        it->second->set_playing(true);
-                    }
-
-                    const auto &artwork = current_track.second->artwork();
-                    self->artwork_.set_image(artwork, Thumbnail::BackgroundType::FromImage);
-                    gtk_widget_queue_draw(gtk_cast<GtkWidget>(self->track_list_container_));
-
-                    auto background_color = self->artwork_.dominant_color();
-
-                    for (auto &track_item : self->playlist_)
-                    {
-                        track_item.second->set_text_color(determine_text_color(background_color));
-                    }
-
-                    GdkRGBA gdk_color{ static_cast<gdouble>(background_color.red) / 255,
-                                       static_cast<gdouble>(background_color.green) / 255,
-                                       static_cast<gdouble>(background_color.blue) / 255, 0.8 };
-                    gtk_widget_override_background_color(
-                        gtk_cast<GtkWidget>(self->track_list_container_), GTK_STATE_FLAG_NORMAL,
-                        &gdk_color);
-                }
-                else
-                {
-                    LOG_ERROR("PlaylistSidebar({}): PlaybackList object "
-                              "destroyed, the program will not function "
-                              "correctly.",
-                              instance);
-                }
-            }
-        },
-        this);
+    playback_list->on_playback_state_changed(this, &on_playback_state_changed);
 }
 
 PlaylistSidebar::~PlaylistSidebar() noexcept
@@ -179,26 +128,67 @@ void PlaylistSidebar::on_track_activated(GtkListBox *,
     auto playlist = self->playback_list_.lock();
     if (playlist != nullptr)
     {
-        auto current_track = playlist->current_track();
-
-        if (current_track.first > -1)
-        {
-            auto current_element =
-                gtk_list_box_get_row_at_index(self->track_list_container_, current_track.first);
-            auto it = self->playlist_.find(gtk_bin_get_child(gtk_cast<GtkBin>(current_element)));
-            if (it != self->playlist_.end())
-            {
-                it->second->set_playing(false);
-            }
-        }
-
         playlist->play(index);
     }
 }
 
-int32_t PlaylistSidebar::on_list_bow_draw_requested(GtkWidget *,
-                                                    cairo_t * /*cairo_context*/,
-                                                    PlaylistSidebar * /*self*/) noexcept
+void PlaylistSidebar::on_playback_state_changed(PlaybackList::PlaybackState new_state,
+                                                PlaylistSidebar *self) noexcept
+{
+    LOG_INFO("PlaylistSidebar({}): Playback state changed {}", void_p(self),
+             GStreamerPipeline::playback_state_to_string(new_state));
+
+    if (new_state == PlaybackList::PlaybackState::Pending ||
+        new_state == PlaybackList::PlaybackState::Playing)
+    {
+        auto playlist = self->playback_list_.lock();
+        if (playlist != nullptr)
+        {
+            auto current_track = playlist->current_track();
+
+            auto element =
+                gtk_list_box_get_row_at_index(self->track_list_container_, current_track.first);
+            auto it = self->playlist_.find(gtk_bin_get_child(gtk_cast<GtkBin>(element)));
+            if (it != self->playlist_.end())
+            {
+                if (self->current_item_ != nullptr)
+                {
+                    self->current_item_->set_playing(false);
+                }
+                self->current_item_ = it->second.get();
+                it->second->set_playing(true);
+            }
+
+            const auto &artwork = current_track.second->artwork();
+            self->artwork_.set_image(artwork, Thumbnail::BackgroundType::FromImage);
+            gtk_widget_queue_draw(gtk_cast<GtkWidget>(self->track_list_container_));
+
+            auto background_color = self->artwork_.dominant_color();
+
+            for (auto &track_item : self->playlist_)
+            {
+                track_item.second->set_text_color(determine_text_color(background_color));
+            }
+
+            GdkRGBA gdk_color{ static_cast<gdouble>(background_color.red) / 255,
+                               static_cast<gdouble>(background_color.green) / 255,
+                               static_cast<gdouble>(background_color.blue) / 255, 0.8 };
+            gtk_widget_override_background_color(gtk_cast<GtkWidget>(self->track_list_container_),
+                                                 GTK_STATE_FLAG_NORMAL, &gdk_color);
+        }
+        else
+        {
+            LOG_ERROR("PlaylistSidebar({}): PlaybackList object "
+                      "destroyed, the program will not function "
+                      "correctly.",
+                      void_p(self));
+        }
+    }
+}
+
+std::int32_t PlaylistSidebar::on_list_box_draw_requested(GtkWidget *,
+                                                         cairo_t * /*cairo_context*/,
+                                                         PlaylistSidebar * /*self*/) noexcept
 {
     return false;
 }
