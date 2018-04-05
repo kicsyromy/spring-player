@@ -33,7 +33,8 @@ namespace spring
             GtkWidget *operator()() noexcept;
 
         private:
-            static void toggled(GtkToggleButton *toggle_button, PlaylistSidebar *self) noexcept;
+            static void on_shuffle_toggled(GtkToggleButton *button, PlaylistSidebar *self) noexcept;
+            static void on_repeat_toggled(GtkToggleButton *button, PlaylistSidebar *self) noexcept;
 
             static void on_track_activated(GtkListBox *,
                                            GtkListBoxRow *element,
@@ -71,6 +72,8 @@ namespace spring
         private:
             utility::GObjectGuard<GtkBox> playlist_sidebar_{ nullptr };
             GtkContainer *artwork_container_{ nullptr };
+            GtkToggleButton *shuffle_button_{ nullptr };
+            GtkToggleButton *repeat_button_{ nullptr };
             GtkListBox *track_list_container_{ nullptr };
 
             Thumbnail artwork_{};

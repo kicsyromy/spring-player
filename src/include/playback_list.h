@@ -29,6 +29,10 @@ namespace spring
             std::size_t track_count() const noexcept;
             PlaybackState playback_state() const noexcept;
 
+            void set_repeat_all_active(bool value) noexcept;
+            void set_repeat_one_active(bool value) noexcept;
+            void set_shuffle_active(bool value) noexcept;
+
         public:
             void play(std::size_t index = 0) noexcept;
             void play_pause() noexcept;
@@ -36,7 +40,6 @@ namespace spring
             void stop() noexcept;
             void next() noexcept;
             void previous() noexcept;
-            void shuffle() noexcept;
             void clear() noexcept;
             void enqueue(std::shared_ptr<music::Track> track) noexcept;
 
@@ -56,6 +59,9 @@ namespace spring
             GStreamerPipeline pipeline_{ *this };
             std::vector<std::shared_ptr<music::Track>> content_{};
             std::int32_t current_index_{ -1 };
+            bool repeat_all_active_{ false };
+            bool repeat_one_active_{ false };
+            bool shuffle_active_{ false };
 
         private:
             DISABLE_COPY(PlaybackList)

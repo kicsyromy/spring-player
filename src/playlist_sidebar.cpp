@@ -44,10 +44,14 @@ PlaylistSidebar::PlaylistSidebar(std::shared_ptr<PlaybackList> playback_list) no
 
     get_guarded_widget_from_builder(playlist_sidebar);
     get_widget_from_builder_simple(artwork_container);
+    get_widget_from_builder_simple(shuffle_button);
+    get_widget_from_builder_simple(repeat_button);
     get_widget_from_builder_simple(track_list_container);
 
     gtk_container_add(artwork_container_, artwork_());
 
+    connect_g_signal(shuffle_button_, "toggled", &on_shuffle_toggled, this);
+    connect_g_signal(repeat_button_, "toggled", &on_repeat_toggled, this);
     connect_g_signal(track_list_container_, "row-activated", &on_track_activated, this);
     connect_g_signal(track_list_container_, "draw", &on_list_box_draw_requested, this);
 
@@ -116,6 +120,28 @@ void PlaylistSidebar::hide() noexcept
 GtkWidget *PlaylistSidebar::operator()() noexcept
 {
     return gtk_cast<GtkWidget>(playlist_sidebar_);
+}
+
+void PlaylistSidebar::on_shuffle_toggled(GtkToggleButton *button, PlaylistSidebar *self) noexcept
+{
+    LOG_INFO("PlaylistSidebar({}): Shuffle toggled", void_p(self));
+
+    auto playlist = self->playback_list_.lock();
+    if (playlist != nullptr)
+    {
+        playlist->set_shuffle_active(gtk_toggle_button_get_active(button));
+    }
+}
+
+void PlaylistSidebar::on_repeat_toggled(GtkToggleButton *button, PlaylistSidebar *self) noexcept
+{
+    LOG_INFO("PlaylistSidebar({}): Repeat toggled", void_p(self));
+
+    auto playlist = self->playback_list_.lock();
+    if (playlist != nullptr)
+    {
+        playlist->set_repeat_one_active(gtk_toggle_button_get_active(button));
+    }
 }
 
 void PlaylistSidebar::on_track_activated(GtkListBox *,
