@@ -213,7 +213,7 @@ void PlaybackList::on_playback_state_changed(PlaybackState new_state, PlaybackLi
             }
             else
             {
-                self->stop();
+                self->current_index_ = -1;
             }
         }
     }

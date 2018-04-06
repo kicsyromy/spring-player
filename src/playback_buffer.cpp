@@ -122,7 +122,11 @@ PlaybackBuffer::PlaybackBuffer() noexcept
 
             if (self->buffer_.size() - self->consumed_ >= MINIMUM_UNCONSUMED_BUFFER)
             {
-                self->emit_minimum_available_buffer_reached();
+                if (self->minimum_available_buffer_exceeded_)
+                {
+                    self->emit_minimum_available_buffer_reached();
+                    self->minimum_available_buffer_exceeded_ = false;
+                }
             }
         },
         this);
@@ -136,12 +140,42 @@ PlaybackBuffer::~PlaybackBuffer() noexcept
     buffer_producer_.disconnect_buffering_finished(this);
 }
 
-void PlaybackBuffer::cache(std::shared_ptr<const music::Track> track) noexcept
+bool PlaybackBuffer::minimum_available_buffer_exceeded() const noexcept
 {
-    LOG_INFO("PlaybackBuffer({}): Caching track {}", void_p(this), track->title());
+    return minimum_available_buffer_exceeded_;
+}
 
+bool PlaybackBuffer::buffering() const noexcept
+{
+    return !buffering_finished_;
+}
+
+void PlaybackBuffer::set_track(const std::shared_ptr<const music::Track> &track) noexcept
+{
     current_track_ = track;
-    start_caching();
+}
+
+void PlaybackBuffer::start_caching(music::Track::Seconds offset) noexcept
+{
+    auto track = current_track_.lock();
+    if (track != nullptr)
+    {
+        LOG_INFO("PlaybackBuffer({}): Caching track {}", void_p(this), track->title());
+
+        buffer_producer_.stop_buffering();
+
+        consumed_ = 0;
+        buffering_finished_ = false;
+        buffer_.clear();
+        buffer_producer_.start_buffering(current_track_, offset);
+
+        minimum_available_buffer_exceeded_ = true;
+        emit_minimum_available_buffer_exceeded();
+    }
+    else
+    {
+        LOG_INFO("PlaybackBuffer({}): Failed to start caching NULL track", void_p(this));
+    }
 }
 
 const utility::string_view PlaybackBuffer::consume(std::size_t count) noexcept
@@ -149,11 +183,15 @@ const utility::string_view PlaybackBuffer::consume(std::size_t count) noexcept
     const auto range_begin = consumed_;
     const auto range_size =
         consumed_ + count >= buffer_.size() ? buffer_.size() - consumed_ : count;
-
     consumed_ += range_size;
+
+    LOG_INFO("PlaybackBuffer({}): Consume {} bytes from buffer, with {} bytes remaining",
+             void_p(this), count, buffer_.size() - consumed_);
+
     if (!buffering_finished_ && buffer_.size() - consumed_ < MINIMUM_UNCONSUMED_BUFFER)
     {
         emit_minimum_available_buffer_exceeded();
+        minimum_available_buffer_exceeded_ = true;
     }
     return { buffer_.data() + range_begin, range_size };
 }
@@ -161,14 +199,4 @@ const utility::string_view PlaybackBuffer::consume(std::size_t count) noexcept
 void PlaybackBuffer::seek(music::Track::Milliseconds offset) noexcept
 {
     start_caching(milliseconds_to_seconds(offset));
-}
-
-void PlaybackBuffer::start_caching(music::Track::Seconds offset) noexcept
-{
-    buffer_producer_.stop_buffering();
-
-    consumed_ = 0;
-    buffering_finished_ = false;
-    buffer_.clear();
-    buffer_producer_.start_buffering(current_track_, offset);
 }

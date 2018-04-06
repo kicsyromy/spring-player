@@ -171,36 +171,39 @@ void PlaylistSidebar::on_playback_state_changed(PlaybackList::PlaybackState new_
         if (playlist != nullptr)
         {
             auto current_track = playlist->current_track();
-
-            auto element =
-                gtk_list_box_get_row_at_index(self->track_list_container_, current_track.first);
-            auto it = self->playlist_.find(gtk_bin_get_child(gtk_cast<GtkBin>(element)));
-            if (it != self->playlist_.end())
+            if (current_track.second != nullptr)
             {
-                if (self->current_item_ != nullptr)
+                auto element =
+                    gtk_list_box_get_row_at_index(self->track_list_container_, current_track.first);
+                auto it = self->playlist_.find(gtk_bin_get_child(gtk_cast<GtkBin>(element)));
+                if (it != self->playlist_.end())
                 {
-                    self->current_item_->set_playing(false);
+                    if (self->current_item_ != nullptr)
+                    {
+                        self->current_item_->set_playing(false);
+                    }
+                    self->current_item_ = it->second.get();
+                    it->second->set_playing(true);
                 }
-                self->current_item_ = it->second.get();
-                it->second->set_playing(true);
+
+                const auto &artwork = current_track.second->artwork();
+                self->artwork_.set_image(artwork, Thumbnail::BackgroundType::FromImage);
+                gtk_widget_queue_draw(gtk_cast<GtkWidget>(self->track_list_container_));
+
+                auto background_color = self->artwork_.dominant_color();
+
+                for (auto &track_item : self->playlist_)
+                {
+                    track_item.second->set_text_color(determine_text_color(background_color));
+                }
+
+                GdkRGBA gdk_color{ static_cast<gdouble>(background_color.red) / 255,
+                                   static_cast<gdouble>(background_color.green) / 255,
+                                   static_cast<gdouble>(background_color.blue) / 255, 0.8 };
+                gtk_widget_override_background_color(
+                    gtk_cast<GtkWidget>(self->track_list_container_), GTK_STATE_FLAG_NORMAL,
+                    &gdk_color);
             }
-
-            const auto &artwork = current_track.second->artwork();
-            self->artwork_.set_image(artwork, Thumbnail::BackgroundType::FromImage);
-            gtk_widget_queue_draw(gtk_cast<GtkWidget>(self->track_list_container_));
-
-            auto background_color = self->artwork_.dominant_color();
-
-            for (auto &track_item : self->playlist_)
-            {
-                track_item.second->set_text_color(determine_text_color(background_color));
-            }
-
-            GdkRGBA gdk_color{ static_cast<gdouble>(background_color.red) / 255,
-                               static_cast<gdouble>(background_color.green) / 255,
-                               static_cast<gdouble>(background_color.blue) / 255, 0.8 };
-            gtk_widget_override_background_color(gtk_cast<GtkWidget>(self->track_list_container_),
-                                                 GTK_STATE_FLAG_NORMAL, &gdk_color);
         }
         else
         {

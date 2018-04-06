@@ -52,7 +52,11 @@ namespace spring
             ~PlaybackBuffer() noexcept;
 
         public:
-            void cache(std::shared_ptr<const music::Track> track) noexcept;
+            bool minimum_available_buffer_exceeded() const noexcept;
+            bool buffering() const noexcept;
+
+            void set_track(const std::shared_ptr<const music::Track> &track) noexcept;
+            void start_caching(music::Track::Seconds offset = music::Track::Seconds{ 0 }) noexcept;
             const utility::string_view consume(std::size_t count) noexcept;
             void seek(music::Track::Milliseconds offset) noexcept;
 
@@ -63,14 +67,13 @@ namespace spring
             signal(cache_updated, std::size_t);
 
         private:
-            void start_caching(music::Track::Seconds offset = music::Track::Seconds{ 0 }) noexcept;
-
         private:
             Producer buffer_producer_{};
             std::string buffer_{};
             std::size_t consumed_{ 0 };
             std::weak_ptr<const music::Track> current_track_{};
             bool buffering_finished_{ true };
+            bool minimum_available_buffer_exceeded_{ true };
 
         private:
             DISABLE_COPY(PlaybackBuffer)

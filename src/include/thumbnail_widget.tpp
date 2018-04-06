@@ -83,7 +83,7 @@ ThumbnailWidget<ContentProvider>::ThumbnailWidget(
                     pixbuf = gdk_pixbuf_new_from_data(
                         result.first.buffer.data, GDK_COLORSPACE_RGB, header->alpha,
                         header->bits_per_sample, header->width, header->height, header->rowstride,
-                        [](guchar *data, void *) { delete data; }, nullptr);
+                        [](guchar *data, void *) { delete[] data; }, nullptr);
                 }
 
                 async_queue::post_response(async_queue::Response{ "artwork_ready", [this, pixbuf] {
