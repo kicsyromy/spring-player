@@ -152,6 +152,6 @@ namespace spring
     private:
         DISABLE_COPY(Error)
     };
-}
+} // namespace spring
 
 #endif // LIBGEARBOX_ERROR_H

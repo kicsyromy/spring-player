@@ -24,7 +24,7 @@ namespace
     {
         NewConnection
     };
-}
+} // namespace
 
 WelcomePage::WelcomePage() noexcept
   : welcome_(granite_widgets_welcome_new(WELCOME_TITLE, WELCOME_SUBTITLE))

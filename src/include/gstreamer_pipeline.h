@@ -39,7 +39,7 @@ namespace spring
             ~GStreamerPipeline() noexcept;
 
         public:
-            void play(std::shared_ptr<const music::Track> track) noexcept;
+            void play(const std::shared_ptr<const music::Track> &track) noexcept;
             void pause_resume() noexcept;
             void stop() noexcept;
             void seek(music::Track::Milliseconds target) noexcept;
@@ -73,19 +73,23 @@ namespace spring
                                            GstMessage *message,
                                            GStreamerPipeline *self) noexcept;
 
-            static gboolean update_playback_position(GStreamerPipeline *self) noexcept;
+            static std::int32_t update_playback_position(GStreamerPipeline *self) noexcept;
 
             static void gst_appsrc_setup(GstElement *pipeline,
                                          GstElement *source,
                                          GStreamerPipeline *self) noexcept;
 
-            static void gst_appsrc_need_data(GstAppSrc *src, guint length, void *instance) noexcept;
+            static void gst_appsrc_need_data(GstAppSrc *src,
+                                             guint,
+                                             GStreamerPipeline *self) noexcept;
 
-            static void gst_appsrc_enough_data(GstAppSrc *src, void *instance) noexcept;
+            static std::int32_t push_data_to_appsrc(GStreamerPipeline *self) noexcept;
+
+            static void gst_appsrc_enough_data(GstAppSrc *src, GStreamerPipeline *self) noexcept;
 
             static gboolean gst_appsrc_seek_data(GstAppSrc *src,
                                                  guint64 offset,
-                                                 void *instance) noexcept;
+                                                 GStreamerPipeline *self) noexcept;
 
         private:
             GstElement *playbin_{ nullptr };
@@ -97,12 +101,8 @@ namespace spring
             PlaybackBuffer playback_buffer_{};
             const PlaybackList &playback_list_;
 
-            GstAppSrcCallbacks gst_appsrc_callbacks_{ &GStreamerPipeline::gst_appsrc_need_data,
-                                                      &GStreamerPipeline::gst_appsrc_enough_data,
-                                                      &GStreamerPipeline::gst_appsrc_seek_data,
-                                                      {} };
-
             std::uint32_t progress_update_source_id_{ 0 };
+            std::atomic_uint32_t push_data_source_id_{ 0 };
 
         private:
             using gst_state_change_handler_t = PlaybackState (*)(GStreamerPipeline &);
@@ -118,7 +118,7 @@ namespace spring
             DISABLE_COPY(GStreamerPipeline)
             DISABLE_MOVE(GStreamerPipeline)
         };
-    }
-}
+    } // namespace player
+} // namespace spring
 
 #endif // !SPRING_PLAYER_GSTREAMER_PIPELINE_H

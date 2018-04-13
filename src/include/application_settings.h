@@ -23,8 +23,8 @@ namespace spring
             const std::string &data_directory() noexcept;
             const std::string &config_directory() noexcept;
             const std::string &cache_directory() noexcept;
-        }
-    }
-}
+        } // namespace settings
+    }     // namespace player
+} // namespace spring
 
 #endif // !SPRING_PLAYER_APPLICATION_SETTINGS_H

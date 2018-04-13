@@ -84,7 +84,7 @@ namespace spring
         private:
             friend class Genre;
         };
-    }
-}
+    } // namespace music
+} // namespace spring
 
 #endif // !LIBSPRING_MUSIC_GENRE_P_H

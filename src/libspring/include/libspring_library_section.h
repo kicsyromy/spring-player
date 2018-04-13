@@ -57,6 +57,6 @@ namespace spring
     private:
         DISABLE_COPY(LibrarySection)
     };
-}
+} // namespace spring
 
 #endif // !LIBSPRING_LIBRARY_SECTION_H

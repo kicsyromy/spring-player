@@ -59,7 +59,7 @@ namespace
 {
     constexpr const char PLEX_AUTH_HOST[]{ "https://plex.tv" };
     constexpr const char PLEX_AUTH_PATH[]{ "/users/sign_in.json" };
-}
+} // namespace
 
 PlexMediaServerPrivate::PlexMediaServerPrivate() noexcept
 {

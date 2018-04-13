@@ -33,13 +33,16 @@ namespace spring
             GtkWidget *operator()() noexcept;
 
         private:
-            static void toggled(GtkToggleButton *toggle_button, PlaylistSidebar *self) noexcept;
+            static void on_shuffle_toggled(GtkToggleButton *button, PlaylistSidebar *self) noexcept;
+            static void on_repeat_toggled(GtkToggleButton *button, PlaylistSidebar *self) noexcept;
 
             static void on_track_activated(GtkListBox *,
                                            GtkListBoxRow *element,
                                            PlaylistSidebar *self) noexcept;
+            static void on_playback_state_changed(PlaybackList::PlaybackState new_state,
+                                                  PlaylistSidebar *self) noexcept;
 
-            static std::int32_t on_list_bow_draw_requested(GtkWidget *,
+            static std::int32_t on_list_box_draw_requested(GtkWidget *,
                                                            cairo_t *cairo_context,
                                                            PlaylistSidebar *self) noexcept;
 
@@ -69,18 +72,21 @@ namespace spring
         private:
             utility::GObjectGuard<GtkBox> playlist_sidebar_{ nullptr };
             GtkContainer *artwork_container_{ nullptr };
+            GtkToggleButton *shuffle_button_{ nullptr };
+            GtkToggleButton *repeat_button_{ nullptr };
             GtkListBox *track_list_container_{ nullptr };
 
             Thumbnail artwork_{};
 
             std::weak_ptr<PlaybackList> playback_list_{};
             std::unordered_map<GtkWidget *, std::unique_ptr<PlaylistItem>> playlist_{};
+            PlaylistItem *current_item_{ nullptr };
 
         private:
             DISABLE_COPY(PlaylistSidebar)
             DISABLE_MOVE(PlaylistSidebar)
         };
-    }
-}
+    } // namespace player
+} // namespace spring
 
 #endif // !SPRING_PLAYER_PLAYLIST_SIDEBAR_H

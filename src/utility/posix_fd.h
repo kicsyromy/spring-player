@@ -35,8 +35,8 @@ namespace spring
                 std::int32_t error_;
                 std::int32_t handle_;
             };
-        }
-    }
-}
+        } // namespace utility
+    }     // namespace player
+} // namespace spring
 
 #endif // !SPRING_PLAYER_UTILITY_POSIX_FD_H

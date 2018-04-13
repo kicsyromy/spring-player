@@ -31,7 +31,9 @@ namespace spring
                 signal(buffer_updated, std::uint8_t *, std::size_t);
 
             public:
-                void start_buffering(std::shared_ptr<const music::Track> track) noexcept;
+                void start_buffering(std::weak_ptr<const music::Track> track,
+                                     std::chrono::seconds offset = std::chrono::seconds{
+                                         0 }) noexcept;
                 void stop_buffering() noexcept;
                 utility::string_view buffer_range(std::size_t index, std::size_t count) const
                     noexcept;
@@ -50,9 +52,13 @@ namespace spring
             ~PlaybackBuffer() noexcept;
 
         public:
-            void cache(std::shared_ptr<const music::Track> track) noexcept;
+            bool minimum_available_buffer_exceeded() const noexcept;
+            bool buffering() const noexcept;
+
+            void set_track(const std::shared_ptr<const music::Track> &track) noexcept;
+            void start_caching(music::Track::Seconds offset = music::Track::Seconds{ 0 }) noexcept;
             const utility::string_view consume(std::size_t count) noexcept;
-            void seek(std::size_t absolute_offset) noexcept;
+            void seek(music::Track::Milliseconds offset) noexcept;
 
         public:
             signal(minimum_available_buffer_reached);
@@ -61,16 +67,19 @@ namespace spring
             signal(cache_updated, std::size_t);
 
         private:
+        private:
             Producer buffer_producer_{};
             std::string buffer_{};
             std::size_t consumed_{ 0 };
+            std::weak_ptr<const music::Track> current_track_{};
             bool buffering_finished_{ true };
+            bool minimum_available_buffer_exceeded_{ true };
 
         private:
             DISABLE_COPY(PlaybackBuffer)
             DISABLE_MOVE(PlaybackBuffer)
         };
-    }
-}
+    } // namespace player
+} // namespace spring
 
 #endif // !SPRING_PLAYER_PLAYBACK_BUFFER_H

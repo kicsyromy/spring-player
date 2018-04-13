@@ -27,6 +27,16 @@ namespace
         return GStreamerPipeline::Milliseconds{ nanosecs / 1000000 };
     };
 
+    constexpr GStreamerPipeline::Milliseconds nanoseconds_to_milliseconds(guint64 nanosecs)
+    {
+        return GStreamerPipeline::Milliseconds{ nanosecs / 1000000 };
+    };
+
+    constexpr gint64 milliseconds_to_nanoseconds(GStreamerPipeline::Milliseconds value)
+    {
+        return value.count() * 1000000;
+    };
+
     const std::array<const char *,
                      static_cast<std::size_t>(GStreamerPipeline::PlaybackState::Count)>
         PLAYBACK_STATE{
@@ -35,7 +45,7 @@ namespace
             "PlaybackState::Paused",
             "PlaybackState::Stopped",
         };
-}
+} // namespace
 
 GStreamerPipeline::GStreamerPipeline(const PlaybackList &playback_list) noexcept
   : playback_list_(playback_list)
@@ -56,35 +66,21 @@ GStreamerPipeline::GStreamerPipeline(const PlaybackList &playback_list) noexcept
     connect_g_signal(bus_, "message::state-changed", &gst_playback_state_changed, this);
     connect_g_signal(bus_, "message::error", &gst_playback_error, this);
 
-    playback_buffer_.on_minimum_available_buffer_exceeded(
-        this,
-        [](void *instance) {
-            auto self = static_cast<GStreamerPipeline *>(instance);
-            gst_element_set_state(self->playbin_, GST_STATE_PAUSED);
-        },
-        this);
+    playback_buffer_.on_minimum_available_buffer_reached(this, [](void *instance) {
+        auto self = static_cast<GStreamerPipeline *>(instance);
+        LOG_INFO("GStreamerPipeline({}): Minimum buffer reached", void_p(self));
+        gst_element_set_state(self->playbin_, GST_STATE_PLAYING);
+    });
 
-    playback_buffer_.on_minimum_available_buffer_reached(
-        this,
-        [](void *instance) {
-            auto self = static_cast<GStreamerPipeline *>(instance);
-            gst_element_set_state(self->playbin_, GST_STATE_PLAYING);
-        },
-        this);
+    playback_buffer_.on_cache_updated(this, [](std::size_t new_size, void *instance) {
+        auto self = static_cast<GStreamerPipeline *>(instance);
+        self->emit_track_cache_updated(std::move(new_size));
+    });
 
-    playback_buffer_.on_cache_updated(this,
-                                      [](std::size_t new_size, void *instance) {
-                                          auto self = static_cast<GStreamerPipeline *>(instance);
-                                          self->emit_track_cache_updated(std::move(new_size));
-                                      },
-                                      this);
-
-    playback_buffer_.on_caching_finished(this,
-                                         [](void *instance) {
-                                             auto self = static_cast<GStreamerPipeline *>(instance);
-                                             self->emit_track_cached();
-                                         },
-                                         this);
+    playback_buffer_.on_caching_finished(this, [](void *instance) {
+        auto self = static_cast<GStreamerPipeline *>(instance);
+        self->emit_track_cached();
+    });
 }
 
 GStreamerPipeline::~GStreamerPipeline() noexcept
@@ -102,16 +98,14 @@ GStreamerPipeline::~GStreamerPipeline() noexcept
     gst_object_unref(playbin_);
 }
 
-void GStreamerPipeline::play(std::shared_ptr<const music::Track> track) noexcept
+void GStreamerPipeline::play(const std::shared_ptr<const music::Track> &track) noexcept
 {
     LOG_INFO("GStreamerPipeline({}): Playing {}", void_p(this), track->title());
 
-    stop();
+    gst_element_set_state(playbin_, GST_STATE_READY);
 
-    current_state_ = PlaybackState::Pending;
-    emit_playback_state_changed(PlaybackState::Pending);
-
-    playback_buffer_.cache(track);
+    playback_buffer_.set_track(track);
+    gst_element_set_state(playbin_, GST_STATE_PAUSED);
 }
 
 void GStreamerPipeline::pause_resume() noexcept
@@ -135,12 +129,18 @@ void GStreamerPipeline::stop() noexcept
     LOG_INFO("GStreamerPipeline({}): Stop", void_p(this));
 
     gst_element_set_state(playbin_, GST_STATE_NULL);
+    current_state_ = PlaybackState::Stopped;
+
+    emit_playback_state_changed(PlaybackState::Stopped);
     emit_playback_position_changed(Milliseconds{ 0 });
 }
 
 void GStreamerPipeline::seek(music::Track::Milliseconds count) noexcept
 {
     LOG_INFO("GStreamerPipeline({}): Seek to {}", void_p(this), count.count());
+    gst_element_seek_simple(playbin_, GST_FORMAT_TIME,
+                            static_cast<GstSeekFlags>(GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_KEY_UNIT),
+                            milliseconds_to_nanoseconds(count));
 }
 
 GStreamerPipeline::PlaybackState GStreamerPipeline::playback_state() const noexcept
@@ -160,9 +160,7 @@ void GStreamerPipeline::gst_playback_finished(GstBus *,
                                               GStreamerPipeline *self) noexcept
 {
     LOG_INFO("GStreamerPipeline({}): Internal: Playback finished", void_p(self));
-    gst_element_set_state(self->playbin_, GST_STATE_NULL);
-    self->current_state_ = PlaybackState::Stopped;
-    self->emit_playback_state_changed(PlaybackState::Stopped);
+    self->stop();
 }
 
 void GStreamerPipeline::gst_playback_state_changed(GstBus *,
@@ -178,8 +176,8 @@ void GStreamerPipeline::gst_playback_state_changed(GstBus *,
 
         if (self->gst_state_ != gst_state)
         {
-            self->gst_state_ = gst_state;
             PlaybackState new_state = self->gst_state_change_handlers_[gst_state](*self);
+            self->gst_state_ = gst_state;
 
             LOG_INFO("GStreamerPipeline({}): Internal: Playbin state "
                      "changed "
@@ -198,14 +196,8 @@ void GStreamerPipeline::gst_playback_state_changed(GstBus *,
 }
 
 GStreamerPipeline::PlaybackState GStreamerPipeline::on_gst_state_change_void_pending(
-    GStreamerPipeline &self) noexcept
+    GStreamerPipeline &) noexcept
 {
-    if (self.progress_update_source_id_)
-    {
-        g_source_remove(self.progress_update_source_id_);
-        self.progress_update_source_id_ = 0;
-    }
-
     return PlaybackState::Invalid;
 }
 
@@ -213,19 +205,40 @@ GStreamerPipeline::PlaybackState GStreamerPipeline::on_gst_state_change_null(
     GStreamerPipeline &self) noexcept
 {
     on_gst_state_change_void_pending(self);
-    return PlaybackState::Stopped;
+
+    auto new_state = PlaybackState::Stopped;
+    /* When transitioning from READY to NULL it means that playback is starting  */
+    /* and not that playback has actually been stopped. The workaround is not to */
+    /* change the state presented to external components                         */
+    if (self.gst_state_ == GST_STATE_READY)
+    {
+        new_state = PlaybackState::Pending;
+    }
+
+    return new_state;
 }
 
 GStreamerPipeline::PlaybackState GStreamerPipeline::on_gst_state_change_ready(
     GStreamerPipeline &self) noexcept
 {
     on_gst_state_change_void_pending(self);
-    return PlaybackState::Pending;
+
+    auto new_state = PlaybackState::Pending;
+    /* When first loading a new track GStreamer changes internally from READY to PAUSED    */
+    /* several times before transitioning to PLAYING, avoid sending this rapid consecutive */
+    /* state change to other components                                                    */
+    if (self.gst_state_ == GST_STATE_PAUSED)
+    {
+        new_state = PlaybackState::Paused;
+    }
+
+    return new_state;
 }
 
 GStreamerPipeline::PlaybackState GStreamerPipeline::on_gst_state_change_paused(
-    GStreamerPipeline &) noexcept
+    GStreamerPipeline &self) noexcept
 {
+    on_gst_state_change_void_pending(self);
     return PlaybackState::Paused;
 }
 
@@ -252,36 +265,50 @@ void GStreamerPipeline::gst_playback_error(GstBus *,
     g_free(error_message);
 }
 
-gboolean GStreamerPipeline::update_playback_position(GStreamerPipeline *self) noexcept
+std::int32_t GStreamerPipeline::update_playback_position(GStreamerPipeline *self) noexcept
 {
-    gint64 position_nanoseconds;
-    gst_element_query_position(self->playbin_, GST_FORMAT_TIME, &position_nanoseconds);
+    auto result = G_SOURCE_CONTINUE;
 
-    self->emit_playback_position_changed(nanoseconds_to_milliseconds(position_nanoseconds));
+    if (self->current_state_ != PlaybackState::Playing)
+    {
+        result = G_SOURCE_REMOVE;
+        self->progress_update_source_id_ = 0;
+    }
+    else
+    {
+        gint64 position_nanoseconds{ 0 };
+        gst_element_query_position(self->playbin_, GST_FORMAT_TIME, &position_nanoseconds);
+        self->emit_playback_position_changed(nanoseconds_to_milliseconds(position_nanoseconds));
+    }
 
-    return true;
+    return result;
 }
 
 void GStreamerPipeline::gst_appsrc_setup(GstElement *,
                                          GstElement *source,
                                          GStreamerPipeline *self) noexcept
 {
-    LOG_INFO("GStreamerPipeline({}): Internal: Configuring application source for "
-             "playbin",
+    LOG_INFO("GStreamerPipeline({}): Internal: Configuring application source for playbin",
              void_p(self));
 
     self->appsrc_ = gtk_cast<GstAppSrc>(source);
+
+    connect_g_signal(self->appsrc_, "need-data", &gst_appsrc_need_data, self);
+    connect_g_signal(self->appsrc_, "enough-data", &gst_appsrc_enough_data, self);
+    connect_g_signal(self->appsrc_, "seek-data", &gst_appsrc_seek_data, self);
 
     auto caps = gst_caps_from_string(MP3_CAPS_STRING);
     gst_app_src_set_caps(self->appsrc_, caps);
     gst_caps_unref(caps);
 
-    auto current_track = self->playback_list_.current_track().second;
-
     gst_app_src_set_stream_type(self->appsrc_, GST_APP_STREAM_TYPE_SEEKABLE);
+    g_object_set(self->appsrc_, "format", GST_FORMAT_TIME, nullptr);
+
+    auto current_track = self->playback_list_.current_track().second;
     if (current_track != nullptr)
     {
-        gst_app_src_set_size(self->appsrc_, static_cast<gint64>(current_track->fileSize()));
+        g_object_set(self->appsrc_, "duration",
+                     milliseconds_to_nanoseconds(current_track->duration()), nullptr);
     }
     else
     {
@@ -289,71 +316,98 @@ void GStreamerPipeline::gst_appsrc_setup(GstElement *,
                  "track, this most likely indicates a logic error",
                  void_p(self));
     }
-    gst_app_src_set_callbacks(self->appsrc_, &self->gst_appsrc_callbacks_, self, [](void *) {});
-
-    g_object_set(self->appsrc_, "format", GST_FORMAT_TIME, nullptr);
 }
 
-void GStreamerPipeline::gst_appsrc_need_data(GstAppSrc *, guint length, void *instance) noexcept
+void GStreamerPipeline::gst_appsrc_need_data(GstAppSrc *, guint, GStreamerPipeline *self) noexcept
 {
-    const std::size_t buffer_size{ length };
-    auto self = static_cast<GStreamerPipeline *>(instance);
-
-    auto range = self->playback_buffer_.consume(buffer_size);
-
-    auto gst_buffer = gst_buffer_new_allocate(nullptr, range.size(), nullptr);
-    GstMapInfo buffer_info;
-    gst_buffer_map(gst_buffer, &buffer_info, GST_MAP_WRITE);
-
-    memcpy(buffer_info.data, range.data(), range.size());
-
-    gst_buffer_unmap(gst_buffer, &buffer_info);
-
-    gst_app_src_push_buffer(self->appsrc_, gst_buffer);
-
-    if (range.size() < buffer_size)
+    if (self->push_data_source_id_ == 0)
     {
-        constexpr const Milliseconds MAXIMUM_DELTA{ 300 };
-        gint64 position_nanoseconds;
-        gst_element_query_position(self->playbin_, GST_FORMAT_TIME, &position_nanoseconds);
-
-        auto current_track = self->playback_list_.current_track().second;
-        if (current_track != nullptr)
-        {
-            if (nanoseconds_to_milliseconds(position_nanoseconds) + MAXIMUM_DELTA >=
-                current_track->duration())
-            {
-                gst_app_src_end_of_stream(self->appsrc_);
-            }
-        }
-        else
-        {
-            LOG_WARN("GStreamerPipeline({}): Internal: Ending playback "
-                     "prematurely since track is null",
-                     void_p(self));
-            gst_app_src_end_of_stream(self->appsrc_);
-        }
+        LOG_INFO("GStreamerPipeline({}): Internal: Start pushing data to 'appsrc'", void_p(self));
+        self->push_data_source_id_ =
+            g_idle_add(reinterpret_cast<std::int32_t (*)(void *)>(&push_data_to_appsrc), self);
     }
 }
 
-void GStreamerPipeline::gst_appsrc_enough_data(GstAppSrc *, void *instance) noexcept
+std::int32_t GStreamerPipeline::push_data_to_appsrc(GStreamerPipeline *self) noexcept
 {
-    LOG_INFO("GStreamerPipeline({}): Internal: Playbin buffer full", instance);
+    constexpr std::size_t buffer_size{ 4096 };
 
-    auto self = static_cast<GStreamerPipeline *>(instance);
-    static_cast<void>(self);
+    auto result = G_SOURCE_CONTINUE;
+
+    if (!self->playback_buffer_.minimum_available_buffer_exceeded())
+    {
+        auto range = self->playback_buffer_.consume(buffer_size);
+        auto gst_buffer = gst_buffer_new_allocate(nullptr, range.size(), nullptr);
+        GstMapInfo buffer_info;
+        gst_buffer_map(gst_buffer, &buffer_info, GST_MAP_WRITE);
+
+        memcpy(buffer_info.data, range.data(), range.size());
+
+        gst_buffer_unmap(gst_buffer, &buffer_info);
+
+        GstFlowReturn gst_result = gst_app_src_push_buffer(self->appsrc_, gst_buffer);
+        if (gst_result != GST_FLOW_OK)
+        {
+            LOG_ERROR("GStreamerPipeline({}): Error when pushing data to 'appsrc': {}",
+                      void_p(self), gst_result);
+        }
+
+        if (range.size() < buffer_size && !self->playback_buffer_.buffering())
+        {
+            auto current_track = self->playback_list_.current_track().second;
+            if (current_track != nullptr)
+            {
+                gst_result = gst_app_src_end_of_stream(self->appsrc_);
+                if (gst_result != GST_FLOW_OK)
+                {
+                    LOG_ERROR("GStreamerPipeline({}): Error while announcing end-of-stream: {}",
+                              void_p(self), gst_result);
+                }
+                result = G_SOURCE_REMOVE;
+                self->push_data_source_id_ = 0;
+            }
+            else
+            {
+                LOG_WARN("GStreamerPipeline({}): Internal: Ending playback prematurely since track "
+                         "is null",
+                         void_p(self));
+                gst_result = gst_app_src_end_of_stream(self->appsrc_);
+                if (gst_result != GST_FLOW_OK)
+                {
+                    LOG_ERROR("GStreamerPipeline({}): Error while announcing end-of-stream: {}",
+                              void_p(self), gst_result);
+                }
+                result = G_SOURCE_REMOVE;
+                self->push_data_source_id_ = 0;
+            }
+        }
+    }
+    else
+    {
+        gst_element_set_state(self->playbin_, GST_STATE_PAUSED);
+    }
+
+    return result;
+}
+
+void GStreamerPipeline::gst_appsrc_enough_data(GstAppSrc *, GStreamerPipeline *self) noexcept
+{
+    if (self->push_data_source_id_ != 0)
+    {
+        LOG_INFO("GStreamerPipeline({}): Internal: Stop pushing data to 'appsrc', buffer full",
+                 void_p(self));
+        g_source_remove(self->push_data_source_id_);
+        self->push_data_source_id_ = 0;
+    }
 }
 
 gboolean GStreamerPipeline::gst_appsrc_seek_data(GstAppSrc *,
                                                  guint64 offset,
-                                                 void *instance) noexcept
+                                                 GStreamerPipeline *self) noexcept
 {
-    LOG_INFO("GStreamerPipeline({}): Internal: Seek request to offset {}", instance, offset);
+    LOG_INFO("GStreamerPipeline({}): Internal: Seek request to offset {}", void_p(self), offset);
 
-    auto self = static_cast<GStreamerPipeline *>(instance);
-
-    // TODO: Implement this properly
-    self->playback_buffer_.seek(0);
+    self->playback_buffer_.seek(nanoseconds_to_milliseconds(offset));
 
     return true;
 }

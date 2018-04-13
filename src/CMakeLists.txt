@@ -40,6 +40,12 @@ target_include_directories (
 add_subdirectory (libspring)
 add_subdirectory (ui)
 add_subdirectory (utility)
+
+target_link_libraries (
+    ${PROJECT_NAME} PUBLIC debug
+    asan
+)
+
 target_link_libraries (
     ${PROJECT_NAME} PUBLIC
     ${APPLICATION_ID}.ui
@@ -59,4 +65,9 @@ target_compile_definitions (
     ${PROJECT_NAME} PRIVATE
     "-DAPPLICATION_ID=\"${APPLICATION_ID}\""
     "-DAPPLICATION_PREFIX=\"${APPLICATION_PREFIX}\""
+)
+
+target_compile_options (
+    ${PROJECT_NAME} PRIVATE
+    "$<$<CONFIG:DEBUG>:-fsanitize=address>"
 )

@@ -37,7 +37,7 @@ namespace spring
             DISABLE_COPY(WelcomePage)
             DISABLE_MOVE(WelcomePage)
         };
-    }
-}
+    } // namespace player
+} // namespace spring
 
 #endif // !SPRING_PLAYER_WELCOME_PAGE_H

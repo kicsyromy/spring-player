@@ -33,7 +33,7 @@ namespace spring
             DISABLE_COPY(SongsPage)
             DISABLE_MOVE(SongsPage)
         };
-    }
-}
+    } // namespace player
+} // namespace spring
 
 #endif // !SPRING_PLAYER_SONGS_PAGE_H

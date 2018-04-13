@@ -301,6 +301,6 @@ namespace spring
     private:
         DISABLE_COPY(HttpClient)
     };
-}
+} // namespace spring
 
 #endif // !LIBSPRING_HTTP_CLIENT_P_H

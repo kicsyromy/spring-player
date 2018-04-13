@@ -70,15 +70,20 @@ TrackPrivate::TrackPrivate(RawTrackMetadata &&metadata,
 
 TrackPrivate::~TrackPrivate() noexcept = default;
 
-std::string TrackPrivate::path(std::uint32_t bitrate) const noexcept
+std::string TrackPrivate::path(Seconds offset, std::uint32_t bitrate) const noexcept
 {
     auto pms = pms_.lock();
     if (pms != nullptr)
     {
-        return fmt::format("{}{}&session={}&protocol=http&maxAudioBitrate={}&"
-                           "directPlay=1&X-Plex-Device=Web&{}={}",
+        return fmt::format("{}{}"
+                           "&session={}"
+                           "&protocol=http"
+                           "&maxAudioBitrate={}"
+                           "&directPlay=1"
+                           "&offset={}"
+                           "&X-Plex-Device=Web&{}={}",
                            MUSIC_TRANSCODE_REQUEST_PATH, path_, pms->clientUUID(), bitrate,
-                           PlexMediaServerPrivate::PLEX_HEADER_AUTH_KEY,
+                           offset.count(), PlexMediaServerPrivate::PLEX_HEADER_AUTH_KEY,
                            pms->authenticationToken());
     }
     else
@@ -180,7 +185,8 @@ std::string Track::url(std::uint32_t bitrate) const noexcept
     auto pms = priv_->pms_.lock();
     if (pms != nullptr)
     {
-        return fmt::format("{}{}", pms->url(), std::move(priv_->path(bitrate)));
+        return fmt::format("{}{}", pms->url(),
+                           std::move(priv_->path(music::Track::Seconds{ 0 }, bitrate)));
     }
     else
     {
@@ -190,18 +196,18 @@ std::string Track::url(std::uint32_t bitrate) const noexcept
     }
 }
 
-void Track::trackData(DataFragmentReadyCallback callback, void *userData) const noexcept
+void Track::trackData(DataFragmentReadyCallback callback, Seconds offset, void *userData) const
+    noexcept
 {
     auto pms = priv_->pms_.lock();
     if (pms != nullptr)
     {
         auto request = pms->request();
-        request.setPath(priv_->path());
+        request.setPath(priv_->path(offset));
         auto response = request.send(callback, userData);
     }
     else
     {
-        LOG_ERROR("Track: Invalid connection handle. PlexMediaServer "
-                  "instance was deleted!");
+        LOG_ERROR("Track: Invalid connection handle. PlexMediaServer instance was deleted!");
     }
 }

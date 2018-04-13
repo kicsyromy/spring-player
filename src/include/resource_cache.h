@@ -57,7 +57,7 @@ namespace spring
         };
 
 #include "resource_cache.tpp"
-    }
-}
+    } // namespace player
+} // namespace spring
 
 #endif // !SPRING_PLAYER_RESOURCE_CACHE_H

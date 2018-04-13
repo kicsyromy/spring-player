@@ -60,7 +60,7 @@ namespace spring
             DISABLE_COPY(ServerSetupDialog)
             DISABLE_MOVE(ServerSetupDialog)
         };
-    }
-}
+    } // namespace player
+} // namespace spring
 
 #endif // !SPRING_PLAYER_SERVER_SETUP_DIALOG_H

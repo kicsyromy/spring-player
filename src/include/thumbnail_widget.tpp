@@ -27,10 +27,12 @@ ThumbnailWidget<ContentProvider>::ThumbnailWidget(
 
     builder = gtk_builder_new_from_resource(APPLICATION_PREFIX "/track_list_popover.ui");
     listbox_popover_ = gtk_cast<GtkPopover>(gtk_builder_get_object(builder, "listbox_popover"));
+    enqueue_button_ = gtk_cast<GtkButton>(gtk_builder_get_object(builder, "enqueue_button"));
     listbox_ = gtk_cast<GtkListBox>(gtk_builder_get_object(builder, "listbox"));
     loading_spinner_ = gtk_cast<GtkSpinner>(gtk_builder_get_object(builder, "loading_spinner"));
     g_object_unref(builder);
 
+    connect_g_signal(enqueue_button_, "clicked", &on_enqueue_requested, this);
     connect_g_signal(listbox_, "row-activated", &on_track_activated, this);
     connect_g_signal(listbox_popover_, "closed", &on_popover_closed, this);
 
@@ -41,7 +43,6 @@ ThumbnailWidget<ContentProvider>::ThumbnailWidget(
 
     async_queue::push_back_request(async_queue::Request{
         "load_artwork", [this, cache_prefix, text] {
-
             struct header_t
             {
                 std::int32_t alpha;
@@ -82,7 +83,7 @@ ThumbnailWidget<ContentProvider>::ThumbnailWidget(
                     pixbuf = gdk_pixbuf_new_from_data(
                         result.first.buffer.data, GDK_COLORSPACE_RGB, header->alpha,
                         header->bits_per_sample, header->width, header->height, header->rowstride,
-                        [](guchar *data, void *) { delete data; }, nullptr);
+                        [](guchar *data, void *) { delete[] data; }, nullptr);
                 }
 
                 async_queue::post_response(async_queue::Response{ "artwork_ready", [this, pixbuf] {
@@ -196,7 +197,6 @@ void ThumbnailWidget<ContentProvider>::on_tracks_loaded(
         std::unique_ptr<std::vector<music::Track>> track_list{ tracks };
         std::unique_ptr<std::vector<GObjectGuard<GtkBox>>> track_widget_list{ track_widgets };
 
-        tracks_.clear();
         std::size_t index{ 0 };
         for (auto &track_widget : *track_widget_list)
         {
@@ -232,6 +232,21 @@ template <typename ContentProvider>
 void ThumbnailWidget<ContentProvider>::on_popover_closed(GtkPopover *,
                                                          ThumbnailWidget *self) noexcept
 {
+    self->tracks_.clear();
     gtk_container_foreach(gtk_cast<GtkContainer>(self->listbox_),
                           [](GtkWidget *widget, gpointer) { gtk_widget_destroy(widget); }, nullptr);
+}
+
+template <typename ContentProvider>
+void ThumbnailWidget<ContentProvider>::on_enqueue_requested(GtkButton *,
+                                                            ThumbnailWidget *self) noexcept
+{
+    auto playlist = self->playback_list_.lock();
+    if (playlist != nullptr)
+    {
+        for (auto &track : self->tracks_)
+        {
+            playlist->enqueue(track);
+        }
+    }
 }

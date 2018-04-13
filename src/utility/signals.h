@@ -136,8 +136,8 @@ namespace spring
                 std::unordered_map<void *, std::size_t> clients_{};
                 mutable std::shared_ptr<void> lifeline_{ std::make_shared<char>() };
             };
-        }
-    }
-}
+        } // namespace utility
+    }     // namespace player
+} // namespace spring
 
 #endif // !SPRING_PLAYER_UTILITY_SIGNALS_H

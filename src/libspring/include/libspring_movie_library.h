@@ -32,6 +32,6 @@ namespace spring
     class MovieLibrary
     {
     };
-}
+} // namespace spring
 
 #endif // !LIBSPRING_MOVIE_LIBRARY_H

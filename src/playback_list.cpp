@@ -1,6 +1,7 @@
 #include <gtk/gtk.h>
 
 #include <memory>
+#include <random>
 
 #include <libspring_logger.h>
 
@@ -15,18 +16,9 @@ PlaybackList::PlaybackList() noexcept
 {
     LOG_INFO("PlaybackList({}): Creating...", void_p(this));
 
-    pipeline_.on_playback_state_changed(
-        this,
-        [](PlaybackState new_state, void *instance) {
-            auto self = static_cast<PlaybackList *>(instance);
-
-            LOG_INFO("PlaybackList({}): Playback state changed to {} for {}", instance,
-                     GStreamerPipeline::playback_state_to_string(new_state),
-                     self->current_track().second ? self->current_track().second->title() : "");
-
-            self->emit_playback_state_changed(std::move(new_state));
-        },
-        this);
+    void (*playback_state_changed_handler)(PlaybackState, PlaybackList *) noexcept =
+        &on_playback_state_changed;
+    pipeline_.on_playback_state_changed(this, playback_state_changed_handler);
 
     pipeline_.on_playback_position_changed(this,
                                            [](Milliseconds milliseconds, void *instance) {
@@ -80,6 +72,38 @@ std::size_t PlaybackList::track_count() const noexcept
     return content_.size();
 }
 
+PlaybackList::PlaybackState PlaybackList::playback_state() const noexcept
+{
+    return pipeline_.playback_state();
+}
+
+void PlaybackList::set_repeat_all_active(bool value) noexcept
+{
+    if (repeat_all_active_ != value)
+    {
+        LOG_INFO("PlaybackList({}): Repeat all {}", void_p(this), value ? "ON" : "OFF");
+        repeat_all_active_ = value;
+    }
+}
+
+void PlaybackList::set_repeat_one_active(bool value) noexcept
+{
+    if (repeat_one_active_ != value)
+    {
+        LOG_INFO("PlaybackList({}): Repeat one {}", void_p(this), value ? "ON" : "OFF");
+        repeat_one_active_ = value;
+    }
+}
+
+void PlaybackList::set_shuffle_active(bool value) noexcept
+{
+    if (shuffle_active_ != value)
+    {
+        LOG_INFO("PlaybackList({}): Suffle {}", void_p(this), value ? "ON" : "OFF");
+        shuffle_active_ = value;
+    }
+}
+
 void PlaybackList::play(std::size_t index) noexcept
 {
     LOG_INFO("PlaybackList({}): Playing track at index {}", void_p(this), index);
@@ -111,6 +135,12 @@ void PlaybackList::play_pause() noexcept
     }
 }
 
+void PlaybackList::seek_current_track(PlaybackList::Milliseconds value) noexcept
+{
+    LOG_INFO("PlaybackList({}): Seek to {}", void_p(this), value.count());
+    pipeline_.seek(value);
+}
+
 void PlaybackList::stop() noexcept
 {
     LOG_INFO("PlaybackList({}): Stop playback", void_p(this));
@@ -136,11 +166,6 @@ void PlaybackList::previous() noexcept
     play(new_index);
 }
 
-void PlaybackList::shuffle() noexcept
-{
-    LOG_INFO("PlaybackList({}): Shuffle", void_p(this));
-}
-
 void PlaybackList::clear() noexcept
 {
     LOG_INFO("PlaybackList({}): Clear", void_p(this));
@@ -158,4 +183,40 @@ void PlaybackList::enqueue(std::shared_ptr<music::Track> track) noexcept
     auto &t = content_.back();
 
     emit_track_queued(t);
+}
+
+void PlaybackList::on_playback_state_changed(PlaybackState new_state, PlaybackList *self) noexcept
+{
+    LOG_INFO("PlaybackList({}): Playback state changed to {} for {}", void_p(self),
+             GStreamerPipeline::playback_state_to_string(new_state),
+             self->current_track().second ? self->current_track().second->title() : "");
+
+    if (new_state == PlaybackState::Stopped)
+    {
+        if (self->current_index_ > -1)
+        {
+            if (self->repeat_one_active_)
+            {
+                self->play(static_cast<std::size_t>(self->current_index_));
+            }
+            else if (self->shuffle_active_)
+            {
+                std::random_device entropy{};
+                std::mt19937 generator{ entropy() };
+                std::uniform_int_distribution<std::size_t> distribution{ 0, self->content_.size() -
+                                                                                1 };
+                self->play(distribution(generator));
+            }
+            else if (self->current_index_ < static_cast<std::int32_t>(self->content_.size()) - 1)
+            {
+                self->next();
+            }
+            else
+            {
+                self->current_index_ = -1;
+            }
+        }
+    }
+
+    self->emit_playback_state_changed(std::move(new_state));
 }

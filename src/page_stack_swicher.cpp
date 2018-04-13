@@ -21,7 +21,7 @@ namespace
         }
         return false;
     }
-}
+} // namespace
 
 PageStackSwitcher::PageStackSwitcher() noexcept
   : toggled_button_(settings::get_current_page())

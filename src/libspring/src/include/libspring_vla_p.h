@@ -76,6 +76,6 @@ namespace spring
         T *array_;
         std::size_t size_;
     };
-}
+} // namespace spring
 
 #endif // !LIBSPRING_VLA_P_H

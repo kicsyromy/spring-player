@@ -106,7 +106,7 @@ namespace spring
         private:
             friend class Artist;
         };
-    }
-}
+    } // namespace music
+} // namespace spring
 
 #endif // !LIBSPRING_MUSIC_ARTIST_P_H

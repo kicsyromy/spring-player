@@ -172,7 +172,7 @@ namespace
         }
         return size * nmemb;
     }
-}
+} // namespace
 
 HttpClient::Status::Status(std::int32_t code) noexcept
   : statusCode_(Unknown)

@@ -40,7 +40,7 @@ namespace
     std::string data_directory{};
     std::string config_directory{};
     std::string cache_directory{};
-}
+} // namespace
 
 void settings::set_current_page(settings::Page page) noexcept
 {

@@ -67,6 +67,6 @@ namespace spring
     private:
         DISABLE_COPY(MusicLibrary)
     };
-}
+} // namespace spring
 
 #endif // !LIBSPRING_MUSIC_LIBRARY_H

@@ -41,7 +41,7 @@ namespace
                    (first.blue == second.blue);
         }
     };
-}
+} // namespace
 
 Thumbnail::Thumbnail() noexcept
   : container_(gtk_drawing_area_new())
@@ -126,9 +126,9 @@ Thumbnail::pixel_t Thumbnail::dominant_color() const noexcept
         std::int32_t count{ 0 };
         auto channel_count = static_cast<std::size_t>(gdk_pixbuf_get_n_channels(image_));
 
-        constexpr std::size_t sample_offset{ 5 };
-        constexpr std::uint8_t top_threshold{ 245 };
-        constexpr std::uint8_t bottom_threshold{ 20 };
+        constexpr std::size_t sample_offset{ 3 };
+        constexpr std::uint8_t top_threshold{ 235 };
+        constexpr std::uint8_t bottom_threshold{ 30 };
 
         const auto length = static_cast<std::size_t>(gdk_pixbuf_get_width(image_)) *
                             static_cast<std::size_t>(gdk_pixbuf_get_height(image_)) * channel_count;

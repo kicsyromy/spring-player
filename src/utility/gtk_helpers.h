@@ -84,8 +84,8 @@ namespace spring
                                              static_cast<void *>(user_data), nullptr,
                                              static_cast<GConnectFlags>(0));
             }
-        }
-    }
-}
+        } // namespace utility
+    }     // namespace player
+} // namespace spring
 
 #endif // !SPRING_PLAYER_UTILITY_GTK_HELPERS_H

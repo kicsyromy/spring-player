@@ -32,6 +32,6 @@ namespace spring
     class TVShowLibrary
     {
     };
-}
+} // namespace spring
 
 #endif // !LIBSPRING_TV_SHOW_LIBRARY_H

@@ -54,6 +54,7 @@ namespace spring
                                            GtkListBoxRow *element,
                                            ThumbnailWidget *self) noexcept;
             static void on_popover_closed(GtkPopover *popover, ThumbnailWidget *self) noexcept;
+            static void on_enqueue_requested(GtkButton *, ThumbnailWidget *self) noexcept;
 
         private:
             utility::GObjectGuard<GtkBox> thumbnail_widget_{ nullptr };
@@ -62,6 +63,7 @@ namespace spring
             GtkLabel *secondary_title_{ nullptr };
 
             utility::GObjectGuard<GtkPopover> listbox_popover_{ nullptr };
+            GtkButton *enqueue_button_{ nullptr };
             GtkListBox *listbox_{ nullptr };
             GtkSpinner *loading_spinner_{ nullptr };
 
@@ -72,7 +74,7 @@ namespace spring
         };
 
 #include "thumbnail_widget.tpp"
-    }
-}
+    } // namespace player
+} // namespace spring
 
 #endif // !SPRING_PLAYER_THUMBNAIL_WIDGET_H

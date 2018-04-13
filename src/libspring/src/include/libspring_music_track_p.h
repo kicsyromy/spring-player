@@ -92,6 +92,9 @@ namespace spring
                 INIT_ATTRIBUTES(MediaContainer)
             };
 
+        public:
+            using Seconds = Track::Seconds;
+
         private:
             using RawTrackMetadata = LibraryContainer::media_container_t::metadata_t;
 
@@ -100,7 +103,7 @@ namespace spring
                          std::weak_ptr<PlexMediaServerPrivate> pms) noexcept;
             ~TrackPrivate() noexcept;
 
-            std::string path(uint32_t bitrate = 320) const noexcept;
+            std::string path(Seconds offset = Seconds{ 0 }, uint32_t bitrate = 320) const noexcept;
 
         private:
             std::string key_{};
@@ -124,7 +127,7 @@ namespace spring
         private:
             friend class Track;
         };
-    }
-}
+    } // namespace music
+} // namespace spring
 
 #endif // !LIBSPRING_MUSIC_TRACK_P_H

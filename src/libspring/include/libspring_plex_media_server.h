@@ -81,6 +81,6 @@ namespace spring
     private:
         DISABLE_COPY(PlexMediaServer)
     };
-}
+} // namespace spring
 
 #endif // !LIBSPRING_PLEX_MEDIA_SERVER_H
