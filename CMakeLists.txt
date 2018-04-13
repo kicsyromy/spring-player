@@ -38,3 +38,4 @@ install (
 
 add_subdirectory (resources)
 add_subdirectory (schemas)
+add_subdirectory (po)
