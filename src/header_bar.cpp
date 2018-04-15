@@ -1,3 +1,4 @@
+#include <glib/gi18n.h>
 #include <gtk/gtk.h>
 
 #include <granite.h>
@@ -255,14 +256,15 @@ void HeaderBar::on_playback_state_changed(std::int32_t new_state, HeaderBar *sel
                     gtk_image_set_from_icon_name(self->play_pause_button_icon_,
                                                  "media-playback-pause-symbolic",
                                                  GTK_ICON_SIZE_LARGE_TOOLBAR);
-                    gtk_label_set_markup(
-                        self->window_title_,
-                        clean_markup(
-                            fmt::format(
-                                "<span weight=\"bold\">{}</span> by <span "
-                                "weight=\"bold\">{}</span> from <span weight=\"bold\">{}</span>",
-                                track->title(), track->artist(), track->album()))
-                            .c_str());
+                    const auto title_string =
+                        /// TRANSLATORS: '{}' is a placeholder for the tracks' title, artist and album respectively,
+                        /// in that order. Also take care to preserve the markup which is meant to make these elements bolded.
+                        _("<span weight=\"bold\">{}</span> by <span weight=\"bold\">{}</span> from "
+                          "<span weight=\"bold\">{}</span>");
+                    gtk_label_set_markup(self->window_title_,
+                                         clean_markup(fmt::format(title_string, track->title(),
+                                                                  track->artist(), track->album()))
+                                             .c_str());
                     break;
                 }
                 case state_t::Pending:

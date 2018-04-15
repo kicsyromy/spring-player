@@ -207,9 +207,8 @@ void PlaylistSidebar::on_playback_state_changed(PlaybackList::PlaybackState new_
         }
         else
         {
-            LOG_ERROR("PlaylistSidebar({}): PlaybackList object "
-                      "destroyed, the program will not function "
-                      "correctly.",
+            LOG_ERROR("PlaylistSidebar({}): PlaybackList object destroyed, the program will not "
+                      "function correctly.",
                       void_p(self));
         }
     }

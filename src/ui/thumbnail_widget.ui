@@ -35,7 +35,7 @@
         <property name="visible">True</property>
         <property name="can_focus">False</property>
         <property name="halign">start</property>
-        <property name="label" translatable="yes">Main Title</property>
+        <property name="label">Main Title</property>
         <property name="ellipsize">end</property>
         <property name="single_line_mode">True</property>
         <property name="max_width_chars">29</property>
@@ -55,7 +55,7 @@
         <property name="visible">True</property>
         <property name="can_focus">False</property>
         <property name="halign">start</property>
-        <property name="label" translatable="yes">Secondary Title</property>
+        <property name="label">Secondary Title</property>
         <property name="ellipsize">end</property>
         <property name="single_line_mode">True</property>
         <property name="max_width_chars">29</property>

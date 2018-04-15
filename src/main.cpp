@@ -3,6 +3,8 @@
 
 #include <gtk/gtk.h>
 
+#include <libintl.h>
+
 #include <libspring_logger.h>
 
 #include "spring_player.h"
@@ -11,6 +13,8 @@ GRESOURCE_UI_DECLARE_RESOURCE();
 
 int main(int argc, char *argv[])
 {
+    textdomain(APPLICATION_ID);
+
     auto ui = GRESOURCE_UI_INIT_RESOURCE();
 
     LOG_INFO("SpringPlayer: Starting up...");

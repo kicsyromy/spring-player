@@ -1,0 +1,75 @@
+msgid ""
+msgstr ""
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Plural-Forms: nplurals=3; plural=n==1 ? 0 : (n==0 || (n%100 > 0 && n%100 < 20)) ? 1 : 2;\n"
+
+#. TRANSLATORS: '{}' is a placeholder for the tracks' title, artist and album respectively,
+#. in that order. Also take care to preserve the markup which is meant to make these elements bolded.
+#: ../src/header_bar.cpp:262
+msgid ""
+"<span weight=\"bold\">{}</span> by <span weight=\"bold\">{}</span> from "
+"<span weight=\"bold\">{}</span>"
+msgstr ""
+"<span weight=\"bold\">{}</span> de <span weight=\"bold\">{}</span> din "
+"<span weight=\"bold\">{}</span>"
+
+#: ../src/server_setup_dialog.cpp:41
+msgid "Cancel"
+msgstr "Anulează"
+
+#: ../src/server_setup_dialog.cpp:188 ../src/ui/server_setup_dialog.ui:47
+msgid "Connecting..."
+msgstr "Se conectează"
+
+#: ../src/welcome_page.cpp:20
+msgid "Welcome to Spring Player"
+msgstr "Bine ai venit la Spring Player"
+
+#: ../src/welcome_page.cpp:21
+msgid "No Plex Media Server is configured for use."
+msgstr "Nu s-a configurat nici un Plex Media Server"
+
+#: ../src/welcome_page.cpp:34
+msgid "Set-Up"
+msgstr "Configurează"
+
+#: ../src/welcome_page.cpp:35
+msgid "Connect to an existing Plex Media Server."
+msgstr "Conectare la un Plex Media Server existent"
+
+#: ../src/ui/main_window.ui:45
+msgid "Search..."
+msgstr "Caută"
+
+#: ../src/ui/page_stack_switcher.ui:47
+msgid "Albums"
+msgstr "Albume"
+
+#: ../src/ui/page_stack_switcher.ui:112
+msgid "Artists"
+msgstr "Artiști"
+
+#: ../src/ui/page_stack_switcher.ui:177
+msgid "Songs"
+msgstr "Melodii"
+
+#: ../src/ui/server_setup_dialog.ui:73
+msgid "Server URL"
+msgstr "Adresă server"
+
+#: ../src/ui/server_setup_dialog.ui:110
+msgid "Username"
+msgstr "Nume utilizator"
+
+#: ../src/ui/server_setup_dialog.ui:146
+msgid "Password"
+msgstr "Parolă"
+
+#: ../src/ui/server_setup_dialog.ui:178
+msgid "Enable SSL Validation"
+msgstr "Activare verificare SSL"
+
+#: ../src/ui/track_list_popover.ui:23
+msgid "Enqueue"
+msgstr "Adaugă in coadă"
