@@ -38,7 +38,7 @@ ServerSetupDialog::ServerSetupDialog() noexcept
     get_widget_from_builder_simple(password_entry);
     get_widget_from_builder_simple(ssl_validation_checkbutton);
 
-    cancel_button_ = gtk_cast<GtkButton>(gtk_button_new_with_label(gettext("Cancel")));
+    cancel_button_ = gtk_cast<GtkButton>(gtk_button_new_with_label(_("Cancel")));
     auto cancel_button = cancel_button_;
     gtk_widget_set_visible(gtk_cast<GtkWidget>(cancel_button), true);
     gtk_dialog_add_action_widget(gtk_cast<GtkDialog>(dialog_), gtk_cast<GtkWidget>(cancel_button),
@@ -185,7 +185,7 @@ void ServerSetupDialog::set_connecting_state(bool connecting) noexcept
 
     gtk_widget_set_visible(gtk_cast<GtkWidget>(connecting_spinner_), connecting);
 
-    gtk_label_set_text(status_text_, connecting ? gettext("Connecting...") : "");
+    gtk_label_set_text(status_text_, connecting ? _("Connecting...") : "");
     gtk_widget_set_visible(gtk_cast<GtkWidget>(status_error_icon_), false);
 }
 

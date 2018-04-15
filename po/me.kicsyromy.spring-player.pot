@@ -1,14 +1,14 @@
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the me.kicsyromy.spring-player package.
+# This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: me.kicsyromy.spring-player 0.0.1\n"
-"Report-Msgid-Bugs-To: dummy\n"
-"POT-Creation-Date: 2018-04-13 17:55+0300\n"
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2018-04-15 10:41+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,84 +17,82 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: /home/kicsyromy/workspace/spring-player/po/../src/server_setup_dialog.cpp:41
+#: ../src/server_setup_dialog.cpp:41
 msgid "Cancel"
 msgstr ""
 
-#: /home/kicsyromy/workspace/spring-player/po/../src/server_setup_dialog.cpp:188
-#: /home/kicsyromy/workspace/spring-player/po/../src/ui/server_setup_dialog.ui:47
+#: ../src/server_setup_dialog.cpp:188 ../src/ui/server_setup_dialog.ui:47
 msgid "Connecting..."
 msgstr ""
 
-#: /home/kicsyromy/workspace/spring-player/po/../src/ui/header_bar.ui:92
+#: ../src/ui/header_bar.ui:92
 msgid "Spring Player"
 msgstr ""
 
-#: /home/kicsyromy/workspace/spring-player/po/../src/ui/header_bar.ui:122
-#: /home/kicsyromy/workspace/spring-player/po/../src/ui/header_bar.ui:150
+#: ../src/ui/header_bar.ui:122 ../src/ui/header_bar.ui:150
 msgid "0:00"
 msgstr ""
 
-#: /home/kicsyromy/workspace/spring-player/po/../src/ui/main_window.ui:45
+#: ../src/ui/main_window.ui:45
 msgid "Search..."
 msgstr ""
 
-#: /home/kicsyromy/workspace/spring-player/po/../src/ui/page_stack_switcher.ui:47
+#: ../src/ui/page_stack_switcher.ui:47
 msgid "Albums"
 msgstr ""
 
-#: /home/kicsyromy/workspace/spring-player/po/../src/ui/page_stack_switcher.ui:112
+#: ../src/ui/page_stack_switcher.ui:112
 msgid "Artists"
 msgstr ""
 
-#: /home/kicsyromy/workspace/spring-player/po/../src/ui/page_stack_switcher.ui:177
+#: ../src/ui/page_stack_switcher.ui:177
 msgid "Songs"
 msgstr ""
 
-#: /home/kicsyromy/workspace/spring-player/po/../src/ui/playlist_item.ui:17
+#: ../src/ui/playlist_item.ui:17
 msgid "00:00"
 msgstr ""
 
-#: /home/kicsyromy/workspace/spring-player/po/../src/ui/playlist_item.ui:49
+#: ../src/ui/playlist_item.ui:49
 msgid "artist - song"
 msgstr ""
 
-#: /home/kicsyromy/workspace/spring-player/po/../src/ui/server_setup_dialog.ui:73
+#: ../src/ui/server_setup_dialog.ui:73
 msgid "Server URL"
 msgstr ""
 
-#: /home/kicsyromy/workspace/spring-player/po/../src/ui/server_setup_dialog.ui:110
+#: ../src/ui/server_setup_dialog.ui:110
 msgid "Username"
 msgstr ""
 
-#: /home/kicsyromy/workspace/spring-player/po/../src/ui/server_setup_dialog.ui:146
+#: ../src/ui/server_setup_dialog.ui:146
 msgid "Password"
 msgstr ""
 
-#: /home/kicsyromy/workspace/spring-player/po/../src/ui/server_setup_dialog.ui:178
+#: ../src/ui/server_setup_dialog.ui:178
 msgid "Enable SSL Validation"
 msgstr ""
 
-#: /home/kicsyromy/workspace/spring-player/po/../src/ui/thumbnail_widget.ui:38
+#: ../src/ui/thumbnail_widget.ui:38
 msgid "Main Title"
 msgstr ""
 
-#: /home/kicsyromy/workspace/spring-player/po/../src/ui/thumbnail_widget.ui:58
+#: ../src/ui/thumbnail_widget.ui:58
 msgid "Secondary Title"
 msgstr ""
 
-#: /home/kicsyromy/workspace/spring-player/po/../src/ui/track_list_popover.ui:23
+#: ../src/ui/track_list_popover.ui:23
 msgid "Enqueue"
 msgstr ""
 
-#: /home/kicsyromy/workspace/spring-player/po/../src/ui/track_widget.ui:29
+#: ../src/ui/track_widget.ui:29
 msgid "Artist"
 msgstr ""
 
-#: /home/kicsyromy/workspace/spring-player/po/../src/ui/track_widget.ui:46
+#: ../src/ui/track_widget.ui:46
 msgid "Song"
 msgstr ""
 
-#: /home/kicsyromy/workspace/spring-player/po/../src/ui/track_widget.ui:70
+#: ../src/ui/track_widget.ui:70
 msgid "Time"
 msgstr ""
