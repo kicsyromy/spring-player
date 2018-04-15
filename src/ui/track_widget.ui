@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- Generated with glade 3.22.1 -->
 <interface>
   <requires lib="gtk+" version="3.18"/>
   <object class="GtkBox" id="track_list_entry">
@@ -26,7 +27,7 @@
                 <property name="can_focus">False</property>
                 <property name="halign">start</property>
                 <property name="valign">center</property>
-                <property name="label" translatable="yes">Artist</property>
+                <property name="label">Artist</property>
                 <property name="ellipsize">end</property>
                 <property name="single_line_mode">True</property>
               </object>
@@ -43,7 +44,7 @@
                 <property name="can_focus">False</property>
                 <property name="halign">start</property>
                 <property name="valign">center</property>
-                <property name="label" translatable="yes">Song</property>
+                <property name="label">Song</property>
                 <property name="ellipsize">end</property>
                 <property name="single_line_mode">True</property>
               </object>
@@ -67,7 +68,7 @@
             <property name="can_focus">False</property>
             <property name="halign">end</property>
             <property name="valign">center</property>
-            <property name="label" translatable="yes">Time</property>
+            <property name="label">Time</property>
           </object>
           <packing>
             <property name="expand">False</property>

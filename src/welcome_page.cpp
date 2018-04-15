@@ -17,8 +17,8 @@ using namespace spring::player::utility;
 
 namespace
 {
-    constexpr auto WELCOME_TITLE{ "Welcome to Spring Player" };
-    constexpr auto WELCOME_SUBTITLE{ "No Plex Media Server is configured for use." };
+    const auto WELCOME_TITLE{ _("Welcome to Spring Player") };
+    const auto WELCOME_SUBTITLE{ _("No Plex Media Server is configured for use.") };
 
     enum Action
     {
@@ -31,8 +31,8 @@ WelcomePage::WelcomePage() noexcept
 {
     LOG_INFO("WelcomePage({}): Creating...", void_p(this));
 
-    granite_widgets_welcome_append(welcome_, "preferences-system-network", "Set-Up",
-                                   "Connect to an existing Plex Media Server.");
+    granite_widgets_welcome_append(welcome_, "preferences-system-network", _("Set-Up"),
+                                   _("Connect to an existing Plex Media Server."));
 
     gtk_widget_show_all(gtk_cast<GtkWidget>(welcome_));
 
