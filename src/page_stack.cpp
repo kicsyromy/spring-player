@@ -7,6 +7,7 @@
 
 #include "utility/global.h"
 #include "utility/gtk_helpers.h"
+#include "artist_browse_page.h"
 
 using namespace spring;
 using namespace spring::player;
@@ -33,6 +34,8 @@ PageStack::PageStack(PageStackSwitcher &stack_switcher,
 
     stack_switcher.on_page_requested(this, &on_page_requested);
     albums_page_.on_thumbnail_activated(this, &on_album_activated);
+    artists_page_.on_thumbnail_activated(this, &on_artist_activated);
+    artists_page_.set_secondary_content_widget(ArtistBrowsePage()());
 }
 
 PageStack::~PageStack() noexcept
@@ -147,4 +150,10 @@ void PageStack::on_album_activated(ThumbnailWidget<music::Album> *thumbnail,
                                    PageStack *self) noexcept
 {
     self->track_list_popover_.show(thumbnail->content_provider(), (*thumbnail)());
+}
+
+void PageStack::on_artist_activated(ThumbnailWidget<music::Artist> *thumbnail,
+                                    PageStack *self) noexcept
+{
+    self->artists_page_.switch_to_secondary_page();
 }

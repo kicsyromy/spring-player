@@ -1,6 +1,7 @@
 #ifndef SPRING_PLAYER_GSTREAMER_PIPELINE_H
 #define SPRING_PLAYER_GSTREAMER_PIPELINE_H
 
+#include <atomic>
 #include <memory>
 
 #include <gst/app/gstappsrc.h>
@@ -102,7 +103,7 @@ namespace spring
             const PlaybackList &playback_list_;
 
             std::uint32_t progress_update_source_id_{ 0 };
-            std::atomic_uint32_t push_data_source_id_{ 0 };
+            std::atomic<std::uint32_t> push_data_source_id_{ 0 };
 
         private:
             using gst_state_change_handler_t = PlaybackState (*)(GStreamerPipeline &);

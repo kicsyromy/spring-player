@@ -46,6 +46,8 @@ namespace spring
             static void on_page_requested(Page page, PageStack *self) noexcept;
             static void on_album_activated(ThumbnailWidget<music::Album> *thumbnail,
                                            PageStack *self) noexcept;
+            static void on_artist_activated(ThumbnailWidget<music::Artist> *thumbnail,
+                                           PageStack *self) noexcept;
 
         private:
             utility::GObjectGuard<GtkStack> page_stack_{ nullptr };

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Generated with glade 3.22.1 -->
+<!-- Generated with glade 3.22.0 -->
 <interface>
   <requires lib="gtk+" version="3.18"/>
   <object class="GtkScrolledWindow" id="page">
@@ -16,6 +16,7 @@
           <object class="GtkStack" id="content_stack">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
+            <property name="vhomogeneous">False</property>
             <property name="transition_type">crossfade</property>
             <property name="interpolate_size">True</property>
             <child>
@@ -53,9 +54,6 @@
                 <property name="name">main_content</property>
                 <property name="title">main_content</property>
               </packing>
-            </child>
-            <child>
-              <placeholder/>
             </child>
           </object>
         </child>

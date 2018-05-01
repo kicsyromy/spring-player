@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Generated with glade 3.22.1 -->
+<!-- Generated with glade 3.22.0 -->
 <interface>
   <requires lib="gtk+" version="3.18"/>
-  <object class="GtkBox" id="container">
+  <object class="GtkBox" id="root_container">
     <property name="name">track_list_entry</property>
     <property name="visible">True</property>
     <property name="can_focus">False</property>
     <child>
-      <object class="GtkImage" id="artist_thumbnail_placeholder">
+      <object class="GtkImage" id="artist_thumbnail">
         <property name="width_request">200</property>
         <property name="height_request">200</property>
         <property name="visible">True</property>
