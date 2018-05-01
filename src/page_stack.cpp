@@ -17,6 +17,7 @@ PageStack::PageStack(PageStackSwitcher &stack_switcher,
   , albums_page_{ music_library_, playback_list }
   , artists_page_{ music_library_, playback_list }
   , playback_list_(playback_list)
+  , track_list_popover_{ playback_list_ }
 {
     LOG_INFO("PageStack({}): Creating...", void_p(this));
 
@@ -31,6 +32,7 @@ PageStack::PageStack(PageStackSwitcher &stack_switcher,
     //    songs_page_ = std::make_unique<SongsPage>(builder, *music_library_);
 
     stack_switcher.on_page_requested(this, &on_page_requested);
+    albums_page_.on_thumbnail_activated(this, &on_album_activated);
 }
 
 PageStack::~PageStack() noexcept
@@ -139,4 +141,10 @@ void PageStack::on_page_requested(PageStack::Page page, PageStack *self) noexcep
         default:
             break;
     }
+}
+
+void PageStack::on_album_activated(ThumbnailWidget<music::Album> *thumbnail,
+                                   PageStack *self) noexcept
+{
+    self->track_list_popover_.show(thumbnail->content_provider(), (*thumbnail)());
 }

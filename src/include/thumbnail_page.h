@@ -17,6 +17,7 @@
 #include "utility/g_object_guard.h"
 #include "utility/global.h"
 #include "utility/gtk_helpers.h"
+#include "utility/signals.h"
 
 namespace spring
 {
@@ -34,6 +35,9 @@ namespace spring
         public:
             template <typename FetchFunction> void activated(FetchFunction &&f) noexcept;
             void filter(std::string &&text) noexcept;
+
+        public:
+            signal(thumbnail_activated, ThumbnailWidget<ContentProvider> *);
 
         public:
             GtkWidget *operator()() noexcept;

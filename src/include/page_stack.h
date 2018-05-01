@@ -9,6 +9,7 @@
 #include "application_settings.h"
 
 #include "thumbnail_page.h"
+#include "track_list_popover.h"
 /* TODO: Forward declare these */
 #include "songs_page.h"
 
@@ -43,6 +44,8 @@ namespace spring
 
         private:
             static void on_page_requested(Page page, PageStack *self) noexcept;
+            static void on_album_activated(ThumbnailWidget<music::Album> *thumbnail,
+                                           PageStack *self) noexcept;
 
         private:
             utility::GObjectGuard<GtkStack> page_stack_{ nullptr };
@@ -55,6 +58,8 @@ namespace spring
             std::unique_ptr<SongsPage> songs_page_{ nullptr };
 
             std::weak_ptr<PlaybackList> playback_list_{};
+
+            TrackListPopover track_list_popover_{ playback_list_ };
 
         private:
             DISABLE_COPY(PageStack)

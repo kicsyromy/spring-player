@@ -101,5 +101,6 @@ void ThumbnailPage<ContentProvider>::on_child_activated(GtkFlowBox *,
 
     LOG_INFO("ThumbnailPage({}): Activated element at index {}", void_p(self), index);
 
-    self->children_.at(index)->activated();
+    auto activated_child = self->children_.at(index).get();
+    self->emit_thumbnail_activated(std::move(activated_child));
 }
