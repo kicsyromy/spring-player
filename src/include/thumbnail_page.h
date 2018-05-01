@@ -28,6 +28,9 @@ namespace spring
 
         template <typename ContentProvider> class ThumbnailPage
         {
+        private:
+            static constexpr auto SECONDARY_PAGE_TITLE{ "SECONDARY_PAGE" };
+
         public:
             ThumbnailPage(std::weak_ptr<MusicLibrary> music_library,
                           std::weak_ptr<PlaybackList> playback_list) noexcept;
@@ -35,6 +38,11 @@ namespace spring
         public:
             template <typename FetchFunction> void activated(FetchFunction &&f) noexcept;
             void filter(std::string &&text) noexcept;
+
+        public:
+            void set_secondary_content_widget(GtkWidget *widget) noexcept;
+            void switch_to_primary_page() noexcept;
+            void switch_to_secondary_page() noexcept;
 
         public:
             signal(thumbnail_activated, ThumbnailWidget<ContentProvider> *);
@@ -50,8 +58,11 @@ namespace spring
 
         public:
             utility::GObjectGuard<GtkScrolledWindow> page_{ nullptr };
+            GtkStack *content_stack_{ nullptr };
+            GtkWidget *main_content_page_{ nullptr };
             GtkFlowBox *content_{ nullptr };
             GtkSpinner *loading_spinner_{ nullptr };
+            utility::GObjectGuard<GtkWidget> secondary_content_page_{ nullptr };
 
             std::weak_ptr<MusicLibrary> music_library_{};
             std::vector<std::unique_ptr<ThumbnailWidget<ContentProvider>>> children_{};

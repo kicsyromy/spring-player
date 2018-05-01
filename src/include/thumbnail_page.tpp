@@ -16,6 +16,8 @@ ThumbnailPage<ContentProvider>::ThumbnailPage(std::weak_ptr<MusicLibrary> music_
 
     auto builder = gtk_builder_new_from_resource(APPLICATION_PREFIX "/thumbnail_page.ui");
     page_ = gtk_cast<GtkScrolledWindow>(gtk_builder_get_object(builder, "page"));
+    content_stack_ = gtk_cast<GtkStack>(gtk_builder_get_object(builder, "content_stack"));
+    main_content_page_ = gtk_cast<GtkWidget>(gtk_builder_get_object(builder, "main_content_page"));
     content_ = gtk_cast<GtkFlowBox>(gtk_builder_get_object(builder, "content"));
     loading_spinner_ = gtk_cast<GtkSpinner>(gtk_builder_get_object(builder, "loading_spinner"));
     g_object_unref(builder);
@@ -63,6 +65,38 @@ void ThumbnailPage<ContentProvider>::filter(std::string &&text) noexcept
     LOG_INFO("ThumbnailPage({}): Search string changed, resetting filter", void_p(this));
     search_string_ = std::move(text);
     gtk_flow_box_invalidate_filter(content_);
+}
+
+template <typename ContentProvider>
+void ThumbnailPage<ContentProvider>::set_secondary_content_widget(GtkWidget *widget) noexcept
+{
+    LOG_INFO("ThumbnailPage({}): Add secondary page", void_p(this));
+
+    auto secondary_content_page = gtk_stack_get_child_by_name(content_stack_, SECONDARY_PAGE_TITLE);
+    if (secondary_content_page == nullptr)
+    {
+        secondary_content_page_ = widget;
+        gtk_stack_add_named(content_stack_, widget, SECONDARY_PAGE_TITLE);
+    }
+    else
+    {
+        /* TODO: Probably should replace instead of error out, but docs are unclear how this can */
+        /*       be done.                                                                        */
+        LOG_INFO("ThumbnailPage({}): Cannot add secondary content, content already set",
+                 void_p(this));
+    }
+}
+
+template <typename ContentProvider>
+void spring::player::ThumbnailPage<ContentProvider>::switch_to_primary_page() noexcept
+{
+    gtk_stack_set_visible_child(content_stack_, main_content_page_);
+}
+
+template <typename ContentProvider>
+void ThumbnailPage<ContentProvider>::switch_to_secondary_page() noexcept
+{
+    gtk_stack_set_visible_child(content_stack_, secondary_content_page_);
 }
 
 template <typename ContentProvider> GtkWidget *ThumbnailPage<ContentProvider>::operator()() noexcept

@@ -44,9 +44,9 @@ declare_g_type(GtkSearchEntry);
 declare_g_type(GtkStack);
 declare_g_type(GtkContainer);
 declare_g_type(GtkMessageDialog);
-declare_g_type(GtkCheckButton)
+declare_g_type(GtkCheckButton);
 
-    declare_g_type(GraniteWidgetsWelcome);
+declare_g_type(GraniteWidgetsWelcome);
 declare_g_type(GraniteMessageDialog);
 
 declare_g_type(GtkBuilder);
