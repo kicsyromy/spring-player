@@ -1,10 +1,13 @@
 #ifndef SPRING_PLAYER_ARTIST_BROWSE_PAGE_H
 #define SPRING_PLAYER_ARTIST_BROWSE_PAGE_H
 
+#include <memory>
 #include <vector>
 
 #include <libspring_global.h>
 #include <libspring_music_artist.h>
+
+#include "thumbnail_widget.h"
 
 #include "utility/compatibility.h"
 #include "utility/forward_declarations.h"
@@ -17,29 +20,6 @@ namespace spring
     {
         class ArtistBrowsePage
         {
-        private:
-            class TrackListEntry
-            {
-            public:
-                TrackListEntry(std::size_t index,
-                               const utility::string_view &title,
-                               music::Track::Milliseconds duration) noexcept;
-                ~TrackListEntry() noexcept;
-
-            public:
-                GtkWidget *operator()() noexcept;
-
-            private:
-                utility::GObjectGuard<GtkBox> track_list_entry_{ nullptr };
-                GtkLabel *track_number_{ nullptr };
-                GtkLabel *track_title_{ nullptr };
-                GtkLabel *track_duration_{ nullptr };
-
-            private:
-                DISABLE_COPY(TrackListEntry)
-                DISABLE_MOVE(TrackListEntry)
-            };
-
         public:
             ArtistBrowsePage() noexcept;
             ~ArtistBrowsePage() noexcept;
@@ -51,15 +31,34 @@ namespace spring
             GtkWidget *operator()() noexcept;
 
         private:
+            void clear_all() noexcept;
+
+        private:
+            std::pair<std::vector<music::Track> *, std::vector<utility::GObjectGuard<GtkBox>> *>
+            load_popular_tracks(const music::Artist &artist) const noexcept;
+
+            void on_tracks_loaded(
+                std::vector<music::Track> *tracks,
+                std::vector<utility::GObjectGuard<GtkBox>> *track_widgets) noexcept;
+
+            std::vector<ThumbnailWidget<music::Album>> *
+            load_albums(const music::Artist &artist) const noexcept;
+
+            void on_albums_loaded(
+                    std::vector<ThumbnailWidget<music::Album>> *album_widgets) noexcept;
+
+        private:
             utility::GObjectGuard<GtkBox> root_container_{ nullptr };
             GtkImage *artist_thumbnail_{ nullptr };
             GtkBox *right_pane_container_{ nullptr };
             GtkLabel *artist_name_{ nullptr };
+            GtkSpinner *popular_tracks_loading_spinner_{ nullptr };
             GtkListBox *popular_tracks_listbox_{ nullptr };
             GtkFlowBox *album_list_content_{ nullptr };
             GtkSpinner *album_list_loading_spinner_{ nullptr };
 
-            std::vector<TrackListEntry> popular_tracks_{};
+            std::vector<std::shared_ptr<music::Track>> popular_tracks_{};
+            std::vector<ThumbnailWidget<music::Album>> album_thumbnails_{};
 
         private:
             DISABLE_COPY(ArtistBrowsePage)

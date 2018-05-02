@@ -63,6 +63,7 @@ HeaderBar::HeaderBar(std::shared_ptr<PlaybackList> playback_list) noexcept
     auto builder = gtk_builder_new_from_resource(APPLICATION_PREFIX "/header_bar.ui");
 
     get_widget_from_builder_simple(tool_buttons);
+    get_widget_from_builder_simple(back_button);
     get_widget_from_builder_simple(toggle_sidebar_button);
 
     get_widget_from_builder_simple(playback_controls);
@@ -97,6 +98,7 @@ HeaderBar::HeaderBar(std::shared_ptr<PlaybackList> playback_list) noexcept
     connect_g_signal(previous_button_, "clicked", &on_previous_button_clicked, this);
     connect_g_signal(play_pause_button_, "clicked", &on_play_pause_button_clicked, this);
     connect_g_signal(next_button_, "clicked", &on_next_button_clicked, this);
+    connect_g_signal(back_button_, "clicked", &on_back_button_clicked, this);
     connect_g_signal(toggle_sidebar_button_, "toggled", &on_sidebar_toggled, this);
     connect_g_signal(search_button_, "toggled", &on_search_button_toggled, this);
 
@@ -163,6 +165,11 @@ void HeaderBar::on_search_button_toggled(GtkToggleButton *toggle_button, HeaderB
 void HeaderBar::on_sidebar_toggled(GtkToggleButton *playlist_button, HeaderBar *self) noexcept
 {
     self->emit_playlist_toggled(gtk_toggle_button_get_active(playlist_button));
+}
+
+void HeaderBar::on_back_button_clicked(GtkButton *, HeaderBar *self) noexcept
+{
+    self->emit_back_requested();
 }
 
 void HeaderBar::on_play_pause_button_clicked(GtkButton *, HeaderBar *self) noexcept

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Generated with glade 3.22.1 -->
+<!-- Generated with glade 3.22.0 -->
 <interface>
   <requires lib="gtk+" version="3.18"/>
   <object class="GtkBox" id="root_container">
@@ -8,21 +8,22 @@
     <property name="can_focus">False</property>
     <child>
       <object class="GtkImage" id="artist_thumbnail">
+        <property name="name">artwork_large</property>
         <property name="width_request">200</property>
         <property name="height_request">200</property>
         <property name="visible">True</property>
         <property name="can_focus">False</property>
         <property name="halign">center</property>
         <property name="valign">start</property>
-        <property name="margin_left">10</property>
-        <property name="margin_right">10</property>
-        <property name="margin_top">10</property>
+        <property name="margin_left">50</property>
+        <property name="margin_right">50</property>
+        <property name="margin_top">30</property>
         <property name="margin_bottom">10</property>
         <property name="stock">gtk-missing-image</property>
       </object>
       <packing>
         <property name="expand">False</property>
-        <property name="fill">False</property>
+        <property name="fill">True</property>
         <property name="position">0</property>
       </packing>
     </child>
@@ -30,12 +31,19 @@
       <object class="GtkBox" id="right_pane_container">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
+        <property name="margin_top">10</property>
+        <property name="margin_bottom">5</property>
         <property name="orientation">vertical</property>
+        <property name="spacing">15</property>
         <child>
           <object class="GtkLabel" id="artist_name">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <property name="label">ARTIST NAME</property>
+            <attributes>
+              <attribute name="weight" value="bold"/>
+              <attribute name="scale" value="1.5"/>
+            </attributes>
           </object>
           <packing>
             <property name="expand">False</property>
@@ -47,12 +55,17 @@
           <object class="GtkBox" id="popular_tracks_container">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
+            <property name="margin_right">10</property>
             <property name="orientation">vertical</property>
             <child>
               <object class="GtkLabel" id="popular_tracks_title">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
+                <property name="halign">start</property>
                 <property name="label" translatable="yes">Popular Tracks</property>
+                <attributes>
+                  <attribute name="weight" value="bold"/>
+                </attributes>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -61,10 +74,31 @@
               </packing>
             </child>
             <child>
-              <object class="GtkListBox" id="popular_tracks_listbox">
+              <object class="GtkOverlay" id="popular_tracks_overlay">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="activate_on_single_click">False</property>
+                <child>
+                  <object class="GtkListBox" id="popular_tracks_listbox">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="activate_on_single_click">False</property>
+                  </object>
+                  <packing>
+                    <property name="index">-1</property>
+                  </packing>
+                </child>
+                <child type="overlay">
+                  <object class="GtkSpinner" id="popular_tracks_loading_spinner">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="halign">center</property>
+                    <property name="valign">center</property>
+                    <property name="active">True</property>
+                  </object>
+                  <packing>
+                    <property name="pass_through">True</property>
+                  </packing>
+                </child>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -74,7 +108,7 @@
             </child>
           </object>
           <packing>
-            <property name="expand">True</property>
+            <property name="expand">False</property>
             <property name="fill">True</property>
             <property name="position">1</property>
           </packing>
@@ -83,6 +117,7 @@
           <object class="GtkScrolledWindow" id="album_list">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
+            <property name="margin_right">10</property>
             <child>
               <object class="GtkViewport" id="album_list_viewport">
                 <property name="visible">True</property>
@@ -141,6 +176,8 @@
     <property name="name">track_list_entry</property>
     <property name="visible">True</property>
     <property name="can_focus">True</property>
+    <property name="margin_top">5</property>
+    <property name="margin_bottom">5</property>
     <child>
       <object class="GtkLabel" id="track_number">
         <property name="visible">True</property>

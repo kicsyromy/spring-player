@@ -61,6 +61,12 @@ void PageStack::filter_current_page(std::string &&text) noexcept
     }
 }
 
+void PageStack::go_back() noexcept
+{
+    /* TODO: Check to see that Artists are curently in view */
+    artists_page_.switch_to_primary_page();
+}
+
 GtkWidget *PageStack::operator()() noexcept
 {
     return gtk_cast<GtkWidget>(page_stack_);
@@ -124,10 +130,10 @@ void PageStack::on_page_requested(PageStack::Page page, PageStack *self) noexcep
                 for (auto &artist : artists)
                 {
                     main_text = artist.name();
-                    auto albums = artist.albums();
-                    auto album_count = albums.size();
-                    secondary_text =
-                        fmt::format("{} {}", album_count, album_count > 1 ? "albums" : "album");
+//                    auto albums = artist.albums();
+//                    auto album_count = albums.size();
+//                    secondary_text =
+//                        fmt::format("{} {}", album_count, album_count > 1 ? "albums" : "album");
 
                     artist_widgets->push_back(
                         std::make_unique<ArtistWidget>(std::move(artist), main_text, secondary_text,

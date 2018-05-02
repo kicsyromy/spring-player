@@ -39,6 +39,7 @@ namespace spring
 
         public:
             void filter_current_page(std::string &&text) noexcept;
+            void go_back() noexcept;
 
         public:
             GtkWidget *operator()() noexcept;
