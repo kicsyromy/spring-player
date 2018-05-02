@@ -29,6 +29,7 @@
 
 #include <json_format.h>
 
+#include "libspring_library_section_p.h"
 #include "libspring_logger.h"
 #include "libspring_music_album_p.h"
 #include "libspring_music_track_p.h"
@@ -38,6 +39,7 @@ using namespace spring;
 using namespace spring::music;
 
 ArtistPrivate::ArtistPrivate(RawArtistMetadata &&metadata,
+                             std::int32_t sectionId,
                              std::weak_ptr<PlexMediaServerPrivate> pms) noexcept
   : key_(std::move(metadata.get_key()))
   /* This micro-algorithm assumes that each key starts with '/library/metadata'*/
@@ -49,6 +51,7 @@ ArtistPrivate::ArtistPrivate(RawArtistMetadata &&metadata,
                                                  "")
   , genre_(metadata.get_Genre().size() > 0 ? std::move(metadata.get_Genre().at(0).get_tag()) : "")
   , thumbnailPath_(std::move(metadata.get_thumb()))
+  , librarySectionId_(sectionId)
   , pms_(pms)
 {
     auto index = key_.rfind('/');
@@ -164,7 +167,7 @@ std::vector<Track> Artist::tracks() const noexcept
     return { result.begin(), result.end() };
 }
 
-std::vector<Track> Artist::popularTracks() const noexcept
+std::vector<Track> Artist::popularTracks(std::size_t count) const noexcept
 {
     using namespace sequential_formats;
 
@@ -173,6 +176,23 @@ std::vector<Track> Artist::popularTracks() const noexcept
     auto pms = priv_->pms_.lock();
     if (pms != nullptr)
     {
+        auto requestString = fmt::format(
+            LIBRARY_SECTION_REQUEST_PATH
+            "/{}/"
+            "all?artist.id={}&group=title&limit={}&ratingCount>=1&sort=ratingCount:desc&type=10",
+            priv_->librarySectionId_, priv_->id_, count);
+        auto r = pms->request(std::move(requestString));
+        auto body = std::move(r.response.text);
+
+        JsonFormat format{ body };
+        auto container = sequential::from_format<TrackPrivate::LibraryContainer>(format);
+
+        auto &metadata = container.get_MediaContainer().get_Metadata();
+        result.reserve(metadata.size());
+        for (auto &m : metadata)
+        {
+            result.push_back(new TrackPrivate{ std::move(m), priv_->pms_ });
+        }
     }
     else
     {

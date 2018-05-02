@@ -208,7 +208,7 @@ std::vector<LibrarySection> PlexMediaServer::sections() const noexcept
     using namespace sequential_formats;
 
     /* TODO: Error handling */
-    auto result = priv_->request(LibrarySectionPrivate::REQUEST_PATH);
+    auto result = priv_->request(LIBRARY_SECTION_REQUEST_PATH);
 
     JsonFormat format{ result.response.text };
     auto mediaContainer =

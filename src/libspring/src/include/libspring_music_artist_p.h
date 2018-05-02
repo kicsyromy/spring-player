@@ -71,8 +71,9 @@ namespace spring
                         INIT_ATTRIBUTES(Country, Genre, key, summary, thumb, title)
                     };
 
+                    ATTRIBUTE(std::int32_t, librarySectionID)
                     ATTRIBUTE(std::vector<metadata_t>, Metadata)
-                    INIT_ATTRIBUTES(Metadata)
+                    INIT_ATTRIBUTES(librarySectionID, Metadata)
                 };
 
                 ATTRIBUTE(media_container_t, MediaContainer)
@@ -84,6 +85,7 @@ namespace spring
 
         public:
             ArtistPrivate(RawArtistMetadata &&metadata,
+                          std::int32_t sectionId,
                           std::weak_ptr<PlexMediaServerPrivate> pms) noexcept;
             ~ArtistPrivate() noexcept;
 
@@ -95,6 +97,7 @@ namespace spring
             std::string country_{};
             std::string genre_{};
             std::string thumbnailPath_{};
+            std::int32_t librarySectionId_{};
             std::string artworkData_{};
 
             std::weak_ptr<PlexMediaServerPrivate> pms_{};

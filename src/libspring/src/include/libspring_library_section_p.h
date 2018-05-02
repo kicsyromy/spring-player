@@ -35,6 +35,8 @@
 #include "libspring_http_client_p.h"
 #include "libspring_library_section.h"
 
+#define LIBRARY_SECTION_REQUEST_PATH "/library/sections"
+
 namespace spring
 {
     class PlexMediaServerPrivate;
@@ -64,9 +66,6 @@ namespace spring
 
     private:
         using MediaDirectory = LibrarySectionContainer::media_container_t::directory_t;
-
-    public:
-        static constexpr const char *REQUEST_PATH{ "/library/sections" };
 
     public:
         LibrarySectionPrivate(MediaDirectory &&container,

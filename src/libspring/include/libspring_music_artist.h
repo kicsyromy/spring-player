@@ -56,7 +56,7 @@ namespace spring
             const std::string &genre() const noexcept;
             std::vector<Album> albums() const noexcept;
             std::vector<Track> tracks() const noexcept;
-            std::vector<Track> popularTracks() const noexcept;
+            std::vector<Track> popularTracks(std::size_t count) const noexcept;
             const std::string &artwork() const noexcept;
 
         private:
