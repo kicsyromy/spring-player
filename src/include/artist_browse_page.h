@@ -41,11 +41,11 @@ namespace spring
                 std::vector<music::Track> *tracks,
                 std::vector<utility::GObjectGuard<GtkBox>> *track_widgets) noexcept;
 
-            std::vector<ThumbnailWidget<music::Album>> *
-            load_albums(const music::Artist &artist) const noexcept;
+            std::vector<ThumbnailWidget<music::Album>> *load_albums(
+                const music::Artist &artist) const noexcept;
 
             void on_albums_loaded(
-                    std::vector<ThumbnailWidget<music::Album>> *album_widgets) noexcept;
+                std::vector<ThumbnailWidget<music::Album>> *album_widgets) noexcept;
 
         private:
             utility::GObjectGuard<GtkBox> root_container_{ nullptr };

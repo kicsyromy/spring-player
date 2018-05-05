@@ -1,6 +1,6 @@
-#include <gtk/gtk.h>
 #include <glib/gi18n.h>
 #include <granite.h>
+#include <gtk/gtk.h>
 
 #include <fmt/format.h>
 
@@ -9,8 +9,8 @@
 #include "artist_browse_page.h"
 #include "async_queue.h"
 
-#include "utility/pixbuf_loader.h"
 #include "utility/global.h"
+#include "utility/pixbuf_loader.h"
 
 using namespace spring;
 using namespace spring::player;
@@ -114,8 +114,7 @@ void ArtistBrowsePage::set_artist(const music::Artist &artist) noexcept
     async_queue::push_front_request(async_queue::Request{
         "load_albums_for_artist", [this, &artist] {
             auto albums = load_albums(artist);
-            auto callback =
-                std::bind(&ArtistBrowsePage::on_albums_loaded, this, albums);
+            auto callback = std::bind(&ArtistBrowsePage::on_albums_loaded, this, albums);
             async_queue::post_response(async_queue::Response{ "tracks_ready", callback });
         } });
 }
@@ -133,12 +132,13 @@ void ArtistBrowsePage::clear_all() noexcept
                           [](GtkWidget *widget, gpointer) { gtk_widget_destroy(widget); }, nullptr);
     gtk_container_foreach(gtk_cast<GtkContainer>(album_list_content_),
                           [](GtkWidget *widget, gpointer) { g_object_unref(widget); }, nullptr);
-
 }
 
-std::pair<std::vector<music::Track> *, std::vector<utility::GObjectGuard<GtkBox> > *> ArtistBrowsePage::load_popular_tracks(const music::Artist &artist) const noexcept
+std::pair<std::vector<music::Track> *, std::vector<utility::GObjectGuard<GtkBox>> *>
+ArtistBrowsePage::load_popular_tracks(const music::Artist &artist) const noexcept
 {
-    LOG_INFO("ArtistBrowsePage({}): Loading popular tracks for artist {}", void_p(this), artist.name());
+    LOG_INFO("ArtistBrowsePage({}): Loading popular tracks for artist {}", void_p(this),
+             artist.name());
 
     auto tracks = new std::vector<music::Track>();
     *tracks = artist.popularTracks(5);
@@ -161,8 +161,8 @@ std::pair<std::vector<music::Track> *, std::vector<utility::GObjectGuard<GtkBox>
         auto minutes = duration_seconds / 60;
         auto seconds = duration_seconds % 60;
         gtk_label_set_text(track_duration, seconds < 10 ?
-                                         fmt::format("{}:0{}", minutes, seconds).c_str() :
-                                         fmt::format("{}:{}", minutes, seconds).c_str());
+                                               fmt::format("{}:0{}", minutes, seconds).c_str() :
+                                               fmt::format("{}:{}", minutes, seconds).c_str());
 
         track_list_entries->emplace_back(track_list_entry);
 
@@ -172,9 +172,12 @@ std::pair<std::vector<music::Track> *, std::vector<utility::GObjectGuard<GtkBox>
     return { tracks, track_list_entries };
 }
 
-void ArtistBrowsePage::on_tracks_loaded(std::vector<music::Track> *tracks, std::vector<utility::GObjectGuard<GtkBox> > *track_widgets) noexcept
+void ArtistBrowsePage::on_tracks_loaded(
+    std::vector<music::Track> *tracks,
+    std::vector<utility::GObjectGuard<GtkBox>> *track_widgets) noexcept
 {
-    LOG_INFO("ArtistBrowsePage({}): Popular tracks ready for artist {}", void_p(this), gtk_label_get_text(artist_name_));
+    LOG_INFO("ArtistBrowsePage({}): Popular tracks ready for artist {}", void_p(this),
+             gtk_label_get_text(artist_name_));
 
     std::unique_ptr<std::vector<music::Track>> track_list{ tracks };
     std::unique_ptr<std::vector<GObjectGuard<GtkBox>>> track_widget_list{ track_widgets };
@@ -182,14 +185,17 @@ void ArtistBrowsePage::on_tracks_loaded(std::vector<music::Track> *tracks, std::
     std::size_t index{ 0 };
     for (auto &track_widget : *track_widget_list)
     {
-        gtk_container_add(gtk_cast<GtkContainer>(popular_tracks_listbox_), gtk_cast<GtkWidget>(track_widget));
-        popular_tracks_.push_back(std::make_shared<music::Track>(std::move(track_list->at(index++))));
+        gtk_container_add(gtk_cast<GtkContainer>(popular_tracks_listbox_),
+                          gtk_cast<GtkWidget>(track_widget));
+        popular_tracks_.push_back(
+            std::make_shared<music::Track>(std::move(track_list->at(index++))));
     }
 
     gtk_spinner_stop(popular_tracks_loading_spinner_);
 }
 
-std::vector<ThumbnailWidget<music::Album> > *ArtistBrowsePage::load_albums(const music::Artist &artist) const noexcept
+std::vector<ThumbnailWidget<music::Album>> *ArtistBrowsePage::load_albums(
+    const music::Artist &artist) const noexcept
 {
     LOG_INFO("ArtistBrowsePage({}): Loading albums for artist {}", void_p(this), artist.name());
 
@@ -198,18 +204,21 @@ std::vector<ThumbnailWidget<music::Album> > *ArtistBrowsePage::load_albums(const
     album_widgets->reserve(albums.size());
 
     std::string main_text;
-    for (auto &album: albums)
+    for (auto &album : albums)
     {
         main_text = album.title();
-        album_widgets->emplace_back(std::move(album), main_text, "", "album_artwork", std::shared_ptr<PlaybackList>(nullptr));
+        album_widgets->emplace_back(std::move(album), main_text, "", "album_artwork",
+                                    std::shared_ptr<PlaybackList>(nullptr));
     }
 
     return album_widgets;
 }
 
-void ArtistBrowsePage::on_albums_loaded(std::vector<ThumbnailWidget<music::Album> > *album_widgets) noexcept
+void ArtistBrowsePage::on_albums_loaded(
+    std::vector<ThumbnailWidget<music::Album>> *album_widgets) noexcept
 {
-    LOG_INFO("ArtistBrowsePage({}): Albums ready for artist {}", void_p(this), gtk_label_get_text(artist_name_));
+    LOG_INFO("ArtistBrowsePage({}): Albums ready for artist {}", void_p(this),
+             gtk_label_get_text(artist_name_));
 
     std::unique_ptr<std::vector<ThumbnailWidget<music::Album>>> album_widget_list{ album_widgets };
     album_thumbnails_ = std::move(*album_widget_list);

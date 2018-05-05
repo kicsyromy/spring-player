@@ -1,6 +1,6 @@
-#include <gtk/gtk.h>
 #include <glib/gi18n.h>
 #include <granite.h>
+#include <gtk/gtk.h>
 
 #include <libspring_logger.h>
 

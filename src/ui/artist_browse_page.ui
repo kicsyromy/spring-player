@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Generated with glade 3.22.0 -->
+<!-- Generated with glade 3.22.1 -->
 <interface>
   <requires lib="gtk+" version="3.18"/>
   <object class="GtkBox" id="root_container">
@@ -117,11 +117,13 @@
           <object class="GtkScrolledWindow" id="album_list">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
+            <property name="valign">baseline</property>
             <property name="margin_right">10</property>
             <child>
               <object class="GtkViewport" id="album_list_viewport">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
+                <property name="valign">start</property>
                 <property name="shadow_type">none</property>
                 <child>
                   <object class="GtkOverlay" id="album_list_overlay">

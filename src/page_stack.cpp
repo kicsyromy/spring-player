@@ -130,10 +130,10 @@ void PageStack::on_page_requested(PageStack::Page page, PageStack *self) noexcep
                 for (auto &artist : artists)
                 {
                     main_text = artist.name();
-//                    auto albums = artist.albums();
-//                    auto album_count = albums.size();
-//                    secondary_text =
-//                        fmt::format("{} {}", album_count, album_count > 1 ? "albums" : "album");
+                    //                    auto albums = artist.albums();
+                    //                    auto album_count = albums.size();
+                    //                    secondary_text =
+                    //                        fmt::format("{} {}", album_count, album_count > 1 ? "albums" : "album");
 
                     artist_widgets->push_back(
                         std::make_unique<ArtistWidget>(std::move(artist), main_text, secondary_text,

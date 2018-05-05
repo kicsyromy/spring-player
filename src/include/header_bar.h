@@ -34,7 +34,7 @@ namespace spring
             signal(back_requested);
 
         public:
-            GtkWidget *operator ()() noexcept;
+            GtkWidget *operator()() noexcept;
 
         private:
             static void on_search_button_toggled(GtkToggleButton *search_button,
