@@ -5,6 +5,7 @@
 #include "page_stack.h"
 #include "page_stack_swicher.h"
 
+#include "artist_browse_page.h"
 #include "utility/global.h"
 #include "utility/gtk_helpers.h"
 
@@ -17,6 +18,8 @@ PageStack::PageStack(PageStackSwitcher &stack_switcher,
   , albums_page_{ music_library_, playback_list }
   , artists_page_{ music_library_, playback_list }
   , playback_list_(playback_list)
+  , track_list_popover_{ playback_list_ }
+  , artist_browse_page_{ playback_list_ }
 {
     LOG_INFO("PageStack({}): Creating...", void_p(this));
 
@@ -31,6 +34,9 @@ PageStack::PageStack(PageStackSwitcher &stack_switcher,
     //    songs_page_ = std::make_unique<SongsPage>(builder, *music_library_);
 
     stack_switcher.on_page_requested(this, &on_page_requested);
+    albums_page_.on_thumbnail_activated(this, &on_album_activated);
+    artists_page_.on_thumbnail_activated(this, &on_artist_activated);
+    artists_page_.set_secondary_content_widget(artist_browse_page_());
 }
 
 PageStack::~PageStack() noexcept
@@ -54,6 +60,12 @@ void PageStack::filter_current_page(std::string &&text) noexcept
             albums_page_.filter(std::move(text));
             break;
     }
+}
+
+void PageStack::go_back() noexcept
+{
+    /* TODO: Check to see that Artists are curently in view */
+    artists_page_.switch_to_primary_page();
 }
 
 GtkWidget *PageStack::operator()() noexcept
@@ -119,10 +131,10 @@ void PageStack::on_page_requested(PageStack::Page page, PageStack *self) noexcep
                 for (auto &artist : artists)
                 {
                     main_text = artist.name();
-                    auto albums = artist.albums();
-                    auto album_count = albums.size();
-                    secondary_text =
-                        fmt::format("{} {}", album_count, album_count > 1 ? "albums" : "album");
+                    //                    auto albums = artist.albums();
+                    //                    auto album_count = albums.size();
+                    //                    secondary_text =
+                    //                        fmt::format("{} {}", album_count, album_count > 1 ? "albums" : "album");
 
                     artist_widgets->push_back(
                         std::make_unique<ArtistWidget>(std::move(artist), main_text, secondary_text,
@@ -139,4 +151,17 @@ void PageStack::on_page_requested(PageStack::Page page, PageStack *self) noexcep
         default:
             break;
     }
+}
+
+void PageStack::on_album_activated(ThumbnailWidget<music::Album> *thumbnail,
+                                   PageStack *self) noexcept
+{
+    self->track_list_popover_.show(thumbnail->content_provider(), (*thumbnail)());
+}
+
+void PageStack::on_artist_activated(ThumbnailWidget<music::Artist> *thumbnail,
+                                    PageStack *self) noexcept
+{
+    self->artist_browse_page_.set_artist(thumbnail->content_provider());
+    self->artists_page_.switch_to_secondary_page();
 }

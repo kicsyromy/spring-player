@@ -76,8 +76,8 @@ std::vector<MusicLibrary::Album> MusicLibrary::albums() const noexcept
     if (pms != nullptr)
     {
         /* TODO: Error handling */
-        auto r = pms->request(std::string{ LibrarySectionPrivate::REQUEST_PATH } + "/" +
-                              priv_->key_ + "/albums");
+        auto r =
+            pms->request(std::string{ LIBRARY_SECTION_REQUEST_PATH "/" } + priv_->key_ + "/albums");
         auto body = std::move(r.response.text);
 
         JsonFormat format{ body };
@@ -108,8 +108,8 @@ std::vector<MusicLibrary::Artist> MusicLibrary::artists() const noexcept
     if (pms != nullptr)
     {
         /* TODO: Error handling */
-        auto r = pms->request(std::string{ LibrarySectionPrivate::REQUEST_PATH } + "/" +
-                              priv_->key_ + "/all");
+        auto r =
+            pms->request(std::string{ LIBRARY_SECTION_REQUEST_PATH "/" } + priv_->key_ + "/all");
         auto body = std::move(r.response.text);
 
         JsonFormat format{ body };
@@ -118,7 +118,8 @@ std::vector<MusicLibrary::Artist> MusicLibrary::artists() const noexcept
         result.reserve(metadata.size());
         for (auto &m : metadata)
         {
-            result.push_back(new music::ArtistPrivate{ std::move(m), priv_->pms_ });
+            result.push_back(new music::ArtistPrivate{
+                std::move(m), container.get_MediaContainer().get_librarySectionID(), priv_->pms_ });
         }
     }
     else
@@ -140,8 +141,8 @@ std::vector<MusicLibrary::Genre> MusicLibrary::genres() const noexcept
     if (pms != nullptr)
     {
         /* TODO: Error handling */
-        auto r = pms->request(std::string{ LibrarySectionPrivate::REQUEST_PATH } + "/" +
-                              priv_->key_ + "/genre");
+        auto r =
+            pms->request(std::string{ LIBRARY_SECTION_REQUEST_PATH "/" } + priv_->key_ + "/genre");
         auto body = std::move(r.response.text);
 
         JsonFormat format{ body };
@@ -173,8 +174,8 @@ std::vector<MusicLibrary::Track> MusicLibrary::tracks() const noexcept
     if (pms != nullptr)
     {
         /* TODO: Error handling */
-        auto r = pms->request(std::string{ LibrarySectionPrivate::REQUEST_PATH } + "/" +
-                              priv_->key_ + "/all?type=10");
+        auto r = pms->request(std::string{ LIBRARY_SECTION_REQUEST_PATH "/" } + priv_->key_ +
+                              "/all?type=10");
         auto body = std::move(r.response.text);
 
         JsonFormat format{ body };

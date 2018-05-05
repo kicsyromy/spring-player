@@ -45,6 +45,7 @@ namespace spring
             static void on_server_added(PlexSession session,
                                         PlexMediaServer server,
                                         MainWindow *self) noexcept;
+            static void on_back_requested(MainWindow *self) noexcept;
 
         private:
             static void toggle_playlist(bool toggled, MainWindow *self) noexcept;

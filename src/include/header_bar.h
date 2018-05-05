@@ -31,6 +31,7 @@ namespace spring
         public:
             signal(search_toggled, bool);
             signal(playlist_toggled, bool);
+            signal(back_requested);
 
         public:
             GtkWidget *operator()() noexcept;
@@ -40,6 +41,8 @@ namespace spring
                                                  HeaderBar *self) noexcept;
             static void on_sidebar_toggled(GtkToggleButton *playlist_button,
                                            HeaderBar *self) noexcept;
+
+            static void on_back_button_clicked(GtkButton *button, HeaderBar *self) noexcept;
 
             static void on_play_pause_button_clicked(GtkButton *button, HeaderBar *self) noexcept;
             static void on_next_button_clicked(GtkButton *button, HeaderBar *self) noexcept;
@@ -60,6 +63,7 @@ namespace spring
             utility::GObjectGuard<GtkHeaderBar> header_bar_{ nullptr };
 
             GtkBox *tool_buttons_{ nullptr };
+            GtkButton *back_button_{ nullptr };
             GtkToggleButton *toggle_sidebar_button_{ nullptr };
 
             GtkBox *playback_progress_layout_{ nullptr };

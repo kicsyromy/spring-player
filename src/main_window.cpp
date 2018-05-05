@@ -87,6 +87,7 @@ MainWindow::MainWindow(SpringPlayer &application,
 
     header_.on_playlist_toggled(this, &toggle_playlist);
     header_.on_search_toggled(this, &on_search_toggled);
+    header_.on_back_requested(this, &on_back_requested);
     playback_list->on_track_queued(this, &on_track_queued);
     welcome_page_.on_new_connection_requested(this, &on_new_connection_requested);
     server_setup_dialog_.on_server_added(this, &on_server_added);
@@ -162,6 +163,11 @@ void MainWindow::on_server_added(PlexSession session,
 
     self->pms_ = std::move(server);
     self->show_server_content();
+}
+
+void MainWindow::on_back_requested(MainWindow *self) noexcept
+{
+    self->page_stack_.go_back();
 }
 
 void MainWindow::toggle_playlist(bool toggled, MainWindow *self) noexcept
