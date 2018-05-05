@@ -16,7 +16,9 @@ using namespace spring;
 using namespace spring::player;
 using namespace spring::player::utility;
 
-ArtistBrowsePage::ArtistBrowsePage() noexcept
+ArtistBrowsePage::ArtistBrowsePage(std::weak_ptr<PlaybackList> list) noexcept
+  : playback_list_{ list }
+  , track_list_popover_{ playback_list_ }
 {
     auto builder = gtk_builder_new_from_resource(APPLICATION_PREFIX "/artist_browse_page.ui");
     get_guarded_widget_from_builder(root_container);
@@ -28,6 +30,9 @@ ArtistBrowsePage::ArtistBrowsePage() noexcept
     get_widget_from_builder_simple(album_list_content);
     get_widget_from_builder_simple(album_list_loading_spinner);
     g_object_unref(builder);
+
+    connect_g_signal(album_list_content_, "child-activated", &on_album_activated, this);
+    connect_g_signal(popular_tracks_listbox_, "row-activated", &on_track_activated, this);
 }
 
 ArtistBrowsePage::~ArtistBrowsePage() noexcept
@@ -208,7 +213,7 @@ std::vector<ThumbnailWidget<music::Album>> *ArtistBrowsePage::load_albums(
     {
         main_text = album.title();
         album_widgets->emplace_back(std::move(album), main_text, "", "album_artwork",
-                                    std::shared_ptr<PlaybackList>(nullptr));
+                                    playback_list_);
     }
 
     return album_widgets;
@@ -229,4 +234,33 @@ void ArtistBrowsePage::on_albums_loaded(
     }
 
     gtk_spinner_stop(album_list_loading_spinner_);
+}
+
+void ArtistBrowsePage::on_track_activated(GtkListBox *,
+                                          GtkListBoxRow *element,
+                                          ArtistBrowsePage *self) noexcept
+{
+    auto index = static_cast<std::size_t>(gtk_list_box_row_get_index(element));
+
+    LOG_INFO("ArtistBrowsePage({}): Track {} activated", void_p(self),
+             self->popular_tracks_.at(index)->title());
+
+    auto playlist = self->playback_list_.lock();
+    if (playlist != nullptr)
+    {
+        playlist->enqueue(self->popular_tracks_.at(index));
+    }
+}
+
+void ArtistBrowsePage::on_album_activated(GtkFlowBox *,
+                                          GtkFlowBoxChild *element,
+                                          ArtistBrowsePage *self) noexcept
+{
+    auto index = static_cast<std::size_t>(gtk_flow_box_child_get_index(element));
+    auto &activated_album = self->album_thumbnails_.at(index);
+
+    LOG_INFO("ArtistBrowsePage({}): Album {} activated", void_p(self),
+             activated_album.content_provider().title());
+
+    self->track_list_popover_.show(activated_album.content_provider(), activated_album());
 }

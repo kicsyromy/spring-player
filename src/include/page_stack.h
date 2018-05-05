@@ -64,7 +64,7 @@ namespace spring
             std::weak_ptr<PlaybackList> playback_list_{};
 
             TrackListPopover track_list_popover_{ playback_list_ };
-            ArtistBrowsePage artist_browse_page_{};
+            ArtistBrowsePage artist_browse_page_{ playback_list_ };
 
         private:
             DISABLE_COPY(PageStack)

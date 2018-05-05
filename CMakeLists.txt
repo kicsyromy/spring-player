@@ -21,7 +21,7 @@ set (
     "${PROJECT_SOURCE_DIR}/3rdparty/sqlite_orm/"
 )
 
-add_executable (${APPLICATION_ID} "")
+add_executable (${APPLICATION_ID} "${APPLICATION_ID}.cpp")
 
 add_subdirectory (src)
 target_link_libraries (

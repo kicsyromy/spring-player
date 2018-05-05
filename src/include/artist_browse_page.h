@@ -7,7 +7,9 @@
 #include <libspring_global.h>
 #include <libspring_music_artist.h>
 
+#include "playback_list.h"
 #include "thumbnail_widget.h"
+#include "track_list_popover.h"
 
 #include "utility/compatibility.h"
 #include "utility/forward_declarations.h"
@@ -21,7 +23,7 @@ namespace spring
         class ArtistBrowsePage
         {
         public:
-            ArtistBrowsePage() noexcept;
+            ArtistBrowsePage(std::weak_ptr<PlaybackList> list) noexcept;
             ~ArtistBrowsePage() noexcept;
 
         public:
@@ -48,6 +50,14 @@ namespace spring
                 std::vector<ThumbnailWidget<music::Album>> *album_widgets) noexcept;
 
         private:
+            static void on_track_activated(GtkListBox *list_box,
+                                           GtkListBoxRow *element,
+                                           ArtistBrowsePage *self) noexcept;
+            static void on_album_activated(GtkFlowBox *list_box,
+                                           GtkFlowBoxChild *element,
+                                           ArtistBrowsePage *self) noexcept;
+
+        private:
             utility::GObjectGuard<GtkBox> root_container_{ nullptr };
             GtkImage *artist_thumbnail_{ nullptr };
             GtkBox *right_pane_container_{ nullptr };
@@ -56,6 +66,10 @@ namespace spring
             GtkListBox *popular_tracks_listbox_{ nullptr };
             GtkFlowBox *album_list_content_{ nullptr };
             GtkSpinner *album_list_loading_spinner_{ nullptr };
+
+            std::weak_ptr<PlaybackList> playback_list_{};
+
+            TrackListPopover track_list_popover_{ playback_list_ };
 
             std::vector<std::shared_ptr<music::Track>> popular_tracks_{};
             std::vector<ThumbnailWidget<music::Album>> album_thumbnails_{};

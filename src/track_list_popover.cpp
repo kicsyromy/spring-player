@@ -128,7 +128,7 @@ void TrackListPopover::on_track_activated(GtkListBox *,
                                           GtkListBoxRow *element,
                                           TrackListPopover *self) noexcept
 {
-    std::size_t element_index = static_cast<std::size_t>(gtk_list_box_row_get_index(element));
+    auto element_index = static_cast<std::size_t>(gtk_list_box_row_get_index(element));
 
     LOG_INFO("TrackListPopover({}): Track {} activated", void_p(self),
              self->tracks_.at(element_index)->title());

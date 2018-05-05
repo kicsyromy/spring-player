@@ -19,6 +19,7 @@ PageStack::PageStack(PageStackSwitcher &stack_switcher,
   , artists_page_{ music_library_, playback_list }
   , playback_list_(playback_list)
   , track_list_popover_{ playback_list_ }
+  , artist_browse_page_{ playback_list_ }
 {
     LOG_INFO("PageStack({}): Creating...", void_p(this));
 
