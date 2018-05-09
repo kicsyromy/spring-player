@@ -1,0 +1,4 @@
+option('static_lib', type : 'boolean', value : true, description : 'Build static library if set to ON otherwise build shared library')
+option('debug_logs', type : 'boolean', value : false, description : 'Build with additional debug logs. CAUTION: Do not use in production')
+option('enable_tests', type : 'boolean', value : false, description : 'Build tests')
+option('generate_documentation', type : 'boolean', value : false, description : 'Build documentation')

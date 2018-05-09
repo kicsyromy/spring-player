@@ -10,6 +10,10 @@ spring_config.set('LIBSPRING_VERSION_MINOR', 1)
 spring_config.set('LIBSPRING_VERSION_PATCH', 0)
 spring_config.set('LIBSPRING_USE_IMPORT_SEMANTICS', '0')
 
+# Backwards compatibility with CMake
+spring_config.set('PROJECT_NAME', meson.project_name())
+spring_config.set('PROJECT_BINARY_DIR', meson.current_build_dir())
+
 config_header = configure_file(
     input : 'include/libspring_config.h.in',
     output : '@BASENAME@',
@@ -46,6 +50,10 @@ spring_3rdparty_include_dirs = [
     include_directories('3rdparty/sequential'),
     include_directories('3rdparty/sequential/formats')
 ]
+
+if get_option('generate_documentation')
+    subdir('docs')
+endif
 
 spring_library = static_library(
     meson.project_name(),
