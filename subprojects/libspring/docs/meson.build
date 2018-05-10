@@ -47,11 +47,11 @@ else
     sphinx_binary_build_dir = '"@0@/_build"'.format(meson.current_build_dir())
     sphinx_cache_dir = '"@0@/_doctrees"'.format(meson.current_build_dir())
     sphinx_html_dir = '"@0@/html"'.format(meson.current_build_dir())
-    libspring_doc_files = '"@0@"'.format(meson.current_source_dir())
+    libspring_doc_files = meson.current_source_dir()
 
     target_sphinx = custom_target(
         'sphinx',
-        output: 'html',
+        output : 'html',
         command : [
             sphinx_executable,
             '-q', '-b', 'html',

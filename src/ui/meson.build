@@ -1,8 +1,7 @@
-spring_player_sources += gnome.compile_resources(
+sources += gnome.compile_resources(
     '@0@.ui.gresource'.format(application_id),
     '@0@.ui.gresource.xml'.format(application_id),
     c_name: '@0@_ui'.format(application_id.underscorify()),
-    #target: '@0@.ui.gresource.cpp'.format(application_id)
 )
 
 add_project_arguments(

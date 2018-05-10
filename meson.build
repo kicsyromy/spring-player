@@ -31,8 +31,12 @@ third_party_include_dirs = [
     include_directories('3rdparty/utfcpp')
 ]
 
+project_headers = []
+project_sources = []
+
 subdir('data')
 subdir('src')
 subdir('po')
+subdir('meson')
 
 meson.add_install_script('meson/postinstall.py')
