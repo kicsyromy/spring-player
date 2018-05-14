@@ -55,7 +55,13 @@ if get_option('generate_documentation')
     subdir('docs')
 endif
 
-spring_library = static_library(
+if get_option('static_lib')
+    library_type = 'static_library'
+else
+    library_type = 'shared_library'
+endif
+
+spring_library = build_target(
     meson.project_name(),
     spring_sources,
     include_directories : [
@@ -63,12 +69,14 @@ spring_library = static_library(
         spring_private_include_dirs,
         spring_3rdparty_include_dirs
     ],
+    target_type : library_type,
     install : true
 )
 
 libspring_dep = declare_dependency(
     link_with : spring_library,
     include_directories : [
+        include_directories('.'),
         spring_public_include_dirs,
         spring_3rdparty_include_dirs
     ],
