@@ -1,14 +1,16 @@
 #ifndef SPRING_PLAYER_THUMBNAIL_PAGE_H
-#include "thumbnail_page.h"
+#include "ui/thumbnail_page.h"
 #endif
 
 using namespace spring;
 using namespace spring::player;
+using namespace spring::player::ui;
+using namespace spring::player::playback;
 using namespace spring::player::utility;
 
 template <typename ContentProvider>
 ThumbnailPage<ContentProvider>::ThumbnailPage(std::weak_ptr<MusicLibrary> music_library,
-                                              std::weak_ptr<PlaybackList> playback_list) noexcept
+                                              std::weak_ptr<Playlist> playback_list) noexcept
   : music_library_(music_library)
   , playback_list_(playback_list)
 {
@@ -88,7 +90,7 @@ void ThumbnailPage<ContentProvider>::set_secondary_content_widget(GtkWidget *wid
 }
 
 template <typename ContentProvider>
-void spring::player::ThumbnailPage<ContentProvider>::switch_to_primary_page() noexcept
+void ThumbnailPage<ContentProvider>::switch_to_primary_page() noexcept
 {
     gtk_stack_set_visible_child(content_stack_, main_content_page_);
 }

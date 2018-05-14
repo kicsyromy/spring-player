@@ -2,13 +2,14 @@
 
 #include <libspring_logger.h>
 
-#include "page_stack_swicher.h"
+#include "ui/page_stack_swicher.h"
 
 #include "utility/global.h"
 #include "utility/gtk_helpers.h"
 
 using namespace spring;
 using namespace spring::player;
+using namespace spring::player::ui;
 using namespace spring::player::utility;
 
 namespace

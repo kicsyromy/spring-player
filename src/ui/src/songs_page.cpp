@@ -2,13 +2,14 @@
 
 #include <libspring_logger.h>
 
-#include "songs_page.h"
+#include "ui/songs_page.h"
 
 #include "utility/global.h"
 #include "utility/gtk_helpers.h"
 
 using namespace spring;
 using namespace spring::player;
+using namespace spring::player::ui;
 using namespace spring::player::utility;
 
 SongsPage::SongsPage(GtkBuilder *builder, const MusicLibrary &music_library) noexcept

@@ -5,14 +5,16 @@
 
 #include <libspring_logger.h>
 
-#include "header_bar.h"
-#include "playback_list.h"
+#include "playback/playlist.h"
+#include "ui/header_bar.h"
 
 #include "utility/global.h"
 #include "utility/gtk_helpers.h"
 
 using namespace spring;
 using namespace spring::player;
+using namespace spring::player::ui;
+using namespace spring::player::playback;
 using namespace spring::player::utility;
 
 namespace
@@ -51,7 +53,7 @@ namespace
     }
 } // namespace
 
-HeaderBar::HeaderBar(std::shared_ptr<PlaybackList> playback_list) noexcept
+HeaderBar::HeaderBar(std::shared_ptr<Playlist> playback_list) noexcept
   : header_bar_(gtk_cast<GtkHeaderBar>(gtk_header_bar_new()))
   , playback_list_(playback_list)
 {
@@ -236,8 +238,7 @@ bool HeaderBar::on_seek_requested(GtkScale *, GtkScrollType, double value, Heade
     auto playlist = self->playback_list_.lock();
     if (playlist != nullptr)
     {
-        playlist->seek_current_track(
-            PlaybackList::Milliseconds{ static_cast<std::int64_t>(value) });
+        playlist->seek_current_track(Playlist::Milliseconds{ static_cast<std::int64_t>(value) });
     }
 
     return false;
@@ -245,7 +246,7 @@ bool HeaderBar::on_seek_requested(GtkScale *, GtkScrollType, double value, Heade
 
 void HeaderBar::on_playback_state_changed(std::int32_t new_state, HeaderBar *self) noexcept
 {
-    using state_t = PlaybackList::PlaybackState;
+    using state_t = Playlist::PlaybackState;
 
     auto playlist = self->playback_list_.lock();
     if (playlist != nullptr)
@@ -253,7 +254,7 @@ void HeaderBar::on_playback_state_changed(std::int32_t new_state, HeaderBar *sel
         auto track = playlist->current_track().second;
         if (track != nullptr)
         {
-            auto state = static_cast<PlaybackList::PlaybackState>(new_state);
+            auto state = static_cast<Playlist::PlaybackState>(new_state);
             auto duration = track->duration().count();
 
             switch (state)

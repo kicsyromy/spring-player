@@ -5,7 +5,7 @@
 #include <libspring_global.h>
 #include <libspring_plex_media_server.h>
 
-#include "plex_session.h"
+#include "plex/session.h"
 
 #include "utility/forward_declarations.h"
 #include "utility/g_object_guard.h"
@@ -15,52 +15,57 @@ namespace spring
 {
     namespace player
     {
-        class ServerSetupDialog
+        namespace ui
         {
-        public:
-            ServerSetupDialog() noexcept;
-            ~ServerSetupDialog() noexcept;
+            class ServerSetupDialog
+            {
+            public:
+                ServerSetupDialog() noexcept;
+                ~ServerSetupDialog() noexcept;
 
-        public:
-            void set_parent_window(GtkWindow *window) noexcept;
-            void show() noexcept;
+            public:
+                void set_parent_window(GtkWindow *window) noexcept;
+                void show() noexcept;
 
-        public:
-            signal(server_added, PlexSession, PlexMediaServer);
+            public:
+                signal(server_added, plex::Session, PlexMediaServer);
 
-        public:
-            GtkWidget *operator()() noexcept;
+            public:
+                GtkWidget *operator()() noexcept;
 
-        private:
-            static void on_connection_requested(GtkButton *, ServerSetupDialog *self) noexcept;
-            static void on_connection_failed(Error error, ServerSetupDialog *self) noexcept;
-            static void on_connection_successful(ServerSetupDialog *self) noexcept;
-            static void on_setup_canceled(GtkButton *, ServerSetupDialog *self) noexcept;
-            static bool on_destroy_event(GtkButton *, GdkEvent *, ServerSetupDialog *self) noexcept;
+            private:
+                static void on_connection_requested(GtkButton *, ServerSetupDialog *self) noexcept;
+                static void on_connection_failed(Error error, ServerSetupDialog *self) noexcept;
+                static void on_connection_successful(ServerSetupDialog *self) noexcept;
+                static void on_setup_canceled(GtkButton *, ServerSetupDialog *self) noexcept;
+                static bool on_destroy_event(GtkButton *,
+                                             GdkEvent *,
+                                             ServerSetupDialog *self) noexcept;
 
-        private:
-            void set_connecting_state(bool connecting) noexcept;
-            void close() noexcept;
+            private:
+                void set_connecting_state(bool connecting) noexcept;
+                void close() noexcept;
 
-        private:
-            utility::GObjectGuard<GraniteMessageDialog> dialog_;
-            GtkWidget *content_{ nullptr };
-            GtkRevealer *status_revealer_{ nullptr };
-            GtkSpinner *connecting_spinner_{ nullptr };
-            GtkImage *status_error_icon_{ nullptr };
-            GtkLabel *status_text_{ nullptr };
-            GtkEntry *server_url_entry_{ nullptr };
-            GtkEntry *username_entry_{ nullptr };
-            GtkEntry *password_entry_{ nullptr };
-            GtkButton *connect_button_{ nullptr };
-            GtkButton *cancel_button_{ nullptr };
-            GtkCheckButton *ssl_validation_checkbutton_{ nullptr };
+            private:
+                utility::GObjectGuard<GraniteMessageDialog> dialog_;
+                GtkWidget *content_{ nullptr };
+                GtkRevealer *status_revealer_{ nullptr };
+                GtkSpinner *connecting_spinner_{ nullptr };
+                GtkImage *status_error_icon_{ nullptr };
+                GtkLabel *status_text_{ nullptr };
+                GtkEntry *server_url_entry_{ nullptr };
+                GtkEntry *username_entry_{ nullptr };
+                GtkEntry *password_entry_{ nullptr };
+                GtkButton *connect_button_{ nullptr };
+                GtkButton *cancel_button_{ nullptr };
+                GtkCheckButton *ssl_validation_checkbutton_{ nullptr };
 
-        private:
-            DISABLE_COPY(ServerSetupDialog)
-            DISABLE_MOVE(ServerSetupDialog)
-        };
-    } // namespace player
+            private:
+                DISABLE_COPY(ServerSetupDialog)
+                DISABLE_MOVE(ServerSetupDialog)
+            };
+        } // namespace ui
+    }     // namespace player
 } // namespace spring
 
 #endif // !SPRING_PLAYER_SERVER_SETUP_DIALOG_H

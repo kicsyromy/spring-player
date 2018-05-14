@@ -2,18 +2,21 @@
 
 #include <libspring_logger.h>
 
-#include "page_stack.h"
-#include "page_stack_swicher.h"
+#include "ui/artist_browse_page.h"
+#include "ui/page_stack.h"
+#include "ui/page_stack_swicher.h"
 
-#include "artist_browse_page.h"
 #include "utility/global.h"
 #include "utility/gtk_helpers.h"
 
 using namespace spring;
 using namespace spring::player;
+using namespace spring::player::ui;
+using namespace spring::player::playback;
+using namespace spring::player::utility;
 
 PageStack::PageStack(PageStackSwitcher &stack_switcher,
-                     std::weak_ptr<PlaybackList> playback_list) noexcept
+                     std::weak_ptr<Playlist> playback_list) noexcept
   : page_stack_{ gtk_cast<GtkStack>(gtk_stack_new()) }
   , albums_page_{ music_library_, playback_list }
   , artists_page_{ music_library_, playback_list }

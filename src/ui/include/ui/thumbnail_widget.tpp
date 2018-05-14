@@ -1,18 +1,19 @@
 #ifndef SPRING_PLAYER_THUMBNAIL_WIDGET_H
-#include "thumbnail_widget.h"
+#include "ui/thumbnail_widget.h"
 #endif
 
 using namespace spring;
 using namespace spring::player;
+using namespace spring::player::ui;
+using namespace spring::player::playback;
 using namespace spring::player::utility;
 
 template <typename ContentProvider>
-ThumbnailWidget<ContentProvider>::ThumbnailWidget(
-    ContentProvider &&content_provider,
-    string_view main_text,
-    string_view secondary_text,
-    string_view cache_prefix,
-    std::weak_ptr<PlaybackList> playback_list) noexcept
+ThumbnailWidget<ContentProvider>::ThumbnailWidget(ContentProvider &&content_provider,
+                                                  string_view main_text,
+                                                  string_view secondary_text,
+                                                  string_view cache_prefix,
+                                                  std::weak_ptr<Playlist> playback_list) noexcept
   : content_provider_{ std::move(content_provider) }
   , playback_list_{ playback_list }
 {

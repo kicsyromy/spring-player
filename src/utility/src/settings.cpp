@@ -6,10 +6,11 @@
 
 #include <libspring_logger.h>
 
-#include "application_settings.h"
+#include "utility/settings.h"
 
 using namespace spring;
 using namespace spring::player;
+using namespace spring::player::utility;
 
 namespace
 {

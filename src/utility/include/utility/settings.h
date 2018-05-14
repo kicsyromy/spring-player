@@ -7,24 +7,27 @@ namespace spring
 {
     namespace player
     {
-        namespace settings
+        namespace utility
         {
-            enum class Page
+            namespace settings
             {
-                Albums,
-                Artists,
-                Songs,
-                Count
-            };
+                enum class Page
+                {
+                    Albums,
+                    Artists,
+                    Songs,
+                    Count
+                };
 
-            void set_current_page(Page page) noexcept;
-            Page get_current_page() noexcept;
-            const std::string &home_directory() noexcept;
-            const std::string &data_directory() noexcept;
-            const std::string &config_directory() noexcept;
-            const std::string &cache_directory() noexcept;
-        } // namespace settings
-    }     // namespace player
+                void set_current_page(Page page) noexcept;
+                Page get_current_page() noexcept;
+                const std::string &home_directory() noexcept;
+                const std::string &data_directory() noexcept;
+                const std::string &config_directory() noexcept;
+                const std::string &cache_directory() noexcept;
+            } // namespace settings
+        }     // namespace utility
+    }         // namespace player
 } // namespace spring
 
 #endif // !SPRING_PLAYER_APPLICATION_SETTINGS_H

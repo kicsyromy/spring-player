@@ -7,7 +7,7 @@
 #include <libspring_global.h>
 #include <libspring_music_track.h>
 
-#include "playback_list.h"
+#include "playback/playlist.h"
 #include "thumbnail.h"
 
 #include "utility/forward_declarations.h"
@@ -17,76 +17,82 @@ namespace spring
 {
     namespace player
     {
-        class Thumbnail;
-
-        class PlaylistSidebar
+        namespace ui
         {
-        public:
-            PlaylistSidebar(std::shared_ptr<PlaybackList> playback_list) noexcept;
-            ~PlaylistSidebar() noexcept;
+            class Thumbnail;
 
-        public:
-            void show() noexcept;
-            void hide() noexcept;
-
-        public:
-            GtkWidget *operator()() noexcept;
-
-        private:
-            static void on_shuffle_toggled(GtkToggleButton *button, PlaylistSidebar *self) noexcept;
-            static void on_repeat_toggled(GtkToggleButton *button, PlaylistSidebar *self) noexcept;
-
-            static void on_track_activated(GtkListBox *,
-                                           GtkListBoxRow *element,
-                                           PlaylistSidebar *self) noexcept;
-            static void on_playback_state_changed(PlaybackList::PlaybackState new_state,
-                                                  PlaylistSidebar *self) noexcept;
-
-            static std::int32_t on_list_box_draw_requested(GtkWidget *,
-                                                           cairo_t *cairo_context,
-                                                           PlaylistSidebar *self) noexcept;
-
-        private:
-            class PlaylistItem
+            class PlaylistSidebar
             {
             public:
-                PlaylistItem(std::shared_ptr<music::Track> &track) noexcept;
+                PlaylistSidebar(std::shared_ptr<playback::Playlist> playback_list) noexcept;
+                ~PlaylistSidebar() noexcept;
 
             public:
-                void set_playing(bool value) noexcept;
-                void set_text_color(
-                    const std::tuple<std::uint16_t, std::uint16_t, std::uint16_t> &color) noexcept;
+                void show() noexcept;
+                void hide() noexcept;
 
             public:
                 GtkWidget *operator()() noexcept;
 
             private:
-                utility::GObjectGuard<GtkBox> playlist_item_{ nullptr };
-                GtkLabel *title_{ nullptr };
-                GtkLabel *duration_{ nullptr };
-                GtkImage *playing_icon_{ nullptr };
+                static void on_shuffle_toggled(GtkToggleButton *button,
+                                               PlaylistSidebar *self) noexcept;
+                static void on_repeat_toggled(GtkToggleButton *button,
+                                              PlaylistSidebar *self) noexcept;
 
-                std::shared_ptr<music::Track> track_;
+                static void on_track_activated(GtkListBox *,
+                                               GtkListBoxRow *element,
+                                               PlaylistSidebar *self) noexcept;
+                static void on_playback_state_changed(playback::Playlist::PlaybackState new_state,
+                                                      PlaylistSidebar *self) noexcept;
+
+                static std::int32_t on_list_box_draw_requested(GtkWidget *,
+                                                               cairo_t *cairo_context,
+                                                               PlaylistSidebar *self) noexcept;
+
+            private:
+                class PlaylistItem
+                {
+                public:
+                    PlaylistItem(std::shared_ptr<music::Track> &track) noexcept;
+
+                public:
+                    void set_playing(bool value) noexcept;
+                    void set_text_color(
+                        const std::tuple<std::uint16_t, std::uint16_t, std::uint16_t>
+                            &color) noexcept;
+
+                public:
+                    GtkWidget *operator()() noexcept;
+
+                private:
+                    utility::GObjectGuard<GtkBox> playlist_item_{ nullptr };
+                    GtkLabel *title_{ nullptr };
+                    GtkLabel *duration_{ nullptr };
+                    GtkImage *playing_icon_{ nullptr };
+
+                    std::shared_ptr<music::Track> track_;
+                };
+
+            private:
+                utility::GObjectGuard<GtkBox> playlist_sidebar_{ nullptr };
+                GtkContainer *artwork_container_{ nullptr };
+                GtkToggleButton *shuffle_button_{ nullptr };
+                GtkToggleButton *repeat_button_{ nullptr };
+                GtkListBox *track_list_container_{ nullptr };
+
+                Thumbnail artwork_{};
+
+                std::weak_ptr<playback::Playlist> playback_list_{};
+                std::unordered_map<GtkWidget *, std::unique_ptr<PlaylistItem>> playlist_{};
+                PlaylistItem *current_item_{ nullptr };
+
+            private:
+                DISABLE_COPY(PlaylistSidebar)
+                DISABLE_MOVE(PlaylistSidebar)
             };
-
-        private:
-            utility::GObjectGuard<GtkBox> playlist_sidebar_{ nullptr };
-            GtkContainer *artwork_container_{ nullptr };
-            GtkToggleButton *shuffle_button_{ nullptr };
-            GtkToggleButton *repeat_button_{ nullptr };
-            GtkListBox *track_list_container_{ nullptr };
-
-            Thumbnail artwork_{};
-
-            std::weak_ptr<PlaybackList> playback_list_{};
-            std::unordered_map<GtkWidget *, std::unique_ptr<PlaylistItem>> playlist_{};
-            PlaylistItem *current_item_{ nullptr };
-
-        private:
-            DISABLE_COPY(PlaylistSidebar)
-            DISABLE_MOVE(PlaylistSidebar)
-        };
-    } // namespace player
+        } // namespace ui
+    }     // namespace player
 } // namespace spring
 
 #endif // !SPRING_PLAYER_PLAYLIST_SIDEBAR_H

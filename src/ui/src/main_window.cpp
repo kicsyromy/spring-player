@@ -5,14 +5,17 @@
 
 #include <libspring_logger.h>
 
-#include "main_window.h"
 #include "spring_player.h"
+
+#include "ui/main_window.h"
 
 #include "utility/global.h"
 #include "utility/gtk_helpers.h"
 
 using namespace spring;
 using namespace spring::player;
+using namespace spring::player::ui;
+using namespace spring::player::playback;
 using namespace spring::player::utility;
 
 namespace
@@ -38,8 +41,7 @@ namespace
     }
 } // namespace
 
-MainWindow::MainWindow(SpringPlayer &application,
-                       std::shared_ptr<PlaybackList> playback_list) noexcept
+MainWindow::MainWindow(SpringPlayer &application, std::shared_ptr<Playlist> playback_list) noexcept
   : pms_{}
   , header_{ playback_list }
   , playlist_sidebar_{ playback_list }
@@ -69,7 +71,7 @@ MainWindow::MainWindow(SpringPlayer &application,
 
     server_setup_dialog_.set_parent_window((*this)());
 
-    auto sessions = PlexSession::sessions();
+    auto sessions = plex::Session::sessions();
     if (sessions.empty())
     {
         show_welcome_page();
@@ -154,7 +156,7 @@ void MainWindow::on_search_finished(GtkSearchEntry *, MainWindow *self) noexcept
     self->header_.toggle_search();
 }
 
-void MainWindow::on_server_added(PlexSession session,
+void MainWindow::on_server_added(plex::Session session,
                                  PlexMediaServer server,
                                  MainWindow *self) noexcept
 {
@@ -188,13 +190,14 @@ void MainWindow::on_new_connection_requested(MainWindow *self) noexcept
     self->server_setup_dialog_.show();
 }
 
-bool MainWindow::switch_server(const std::vector<PlexSession> &sessions,
+bool MainWindow::switch_server(const std::vector<plex::Session> &sessions,
                                const string_view server_name) noexcept
 {
     auto result{ false };
 
-    auto it = std::find_if(sessions.begin(), sessions.end(),
-                           [server_name](const PlexSession &s) { return s.name() == server_name; });
+    auto it = std::find_if(sessions.begin(), sessions.end(), [server_name](const plex::Session &s) {
+        return s.name() == server_name;
+    });
 
     if (it != sessions.end())
     {

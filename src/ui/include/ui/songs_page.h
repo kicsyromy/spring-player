@@ -9,31 +9,34 @@ namespace spring
 {
     namespace player
     {
-        class SongsPage
+        namespace ui
         {
-        public:
-            SongsPage(GtkBuilder *builder,
-                      /* weak_ptr instead of ref */
-                      const MusicLibrary &music_library) noexcept;
-            ~SongsPage() noexcept;
+            class SongsPage
+            {
+            public:
+                SongsPage(GtkBuilder *builder,
+                          /* weak_ptr instead of ref */
+                          const MusicLibrary &music_library) noexcept;
+                ~SongsPage() noexcept;
 
-        public:
-            void activated() noexcept;
+            public:
+                void activated() noexcept;
 
-        public:
-            operator GtkWidget *() noexcept;
+            public:
+                operator GtkWidget *() noexcept;
 
-        private:
-            GtkScrolledWindow *songs_page_{ nullptr };
-            GtkFlowBox *songs_content_{ nullptr };
+            private:
+                GtkScrolledWindow *songs_page_{ nullptr };
+                GtkFlowBox *songs_content_{ nullptr };
 
-            const MusicLibrary &music_library_;
+                const MusicLibrary &music_library_;
 
-        private:
-            DISABLE_COPY(SongsPage)
-            DISABLE_MOVE(SongsPage)
-        };
-    } // namespace player
+            private:
+                DISABLE_COPY(SongsPage)
+                DISABLE_MOVE(SongsPage)
+            };
+        } // namespace ui
+    }     // namespace player
 } // namespace spring
 
 #endif // !SPRING_PLAYER_SONGS_PAGE_H

@@ -6,17 +6,19 @@
 
 #include <libspring_logger.h>
 
-#include "artist_browse_page.h"
-#include "async_queue.h"
+#include "ui/artist_browse_page.h"
 
+#include "utility/async_queue.h"
 #include "utility/global.h"
 #include "utility/pixbuf_loader.h"
 
 using namespace spring;
 using namespace spring::player;
+using namespace spring::player::ui;
+using namespace spring::player::playback;
 using namespace spring::player::utility;
 
-ArtistBrowsePage::ArtistBrowsePage(std::weak_ptr<PlaybackList> list) noexcept
+ArtistBrowsePage::ArtistBrowsePage(std::weak_ptr<Playlist> list) noexcept
   : playback_list_{ list }
   , track_list_popover_{ playback_list_ }
 {

@@ -5,14 +5,17 @@
 #include <libspring_logger.h>
 #include <libspring_music_track.h>
 
-#include "playback_list.h"
-#include "playlist_sidebar.h"
+#include "ui/playlist_sidebar.h"
+
+#include "playback/playlist.h"
 
 #include "utility/global.h"
 #include "utility/gtk_helpers.h"
 
 using namespace spring;
 using namespace spring::player;
+using namespace spring::player::ui;
+using namespace spring::player::playback;
 using namespace spring::player::utility;
 
 namespace
@@ -35,7 +38,7 @@ namespace
     }
 } // namespace
 
-PlaylistSidebar::PlaylistSidebar(std::shared_ptr<PlaybackList> playback_list) noexcept
+PlaylistSidebar::PlaylistSidebar(std::shared_ptr<Playlist> playback_list) noexcept
   : playback_list_{ playback_list }
 {
     LOG_INFO("PlaylistSidebar({}): Creating...", void_p(this));
@@ -158,14 +161,14 @@ void PlaylistSidebar::on_track_activated(GtkListBox *,
     }
 }
 
-void PlaylistSidebar::on_playback_state_changed(PlaybackList::PlaybackState new_state,
+void PlaylistSidebar::on_playback_state_changed(Playlist::PlaybackState new_state,
                                                 PlaylistSidebar *self) noexcept
 {
     LOG_INFO("PlaylistSidebar({}): Playback state changed {}", void_p(self),
              GStreamerPipeline::playback_state_to_string(new_state));
 
-    if (new_state == PlaybackList::PlaybackState::Pending ||
-        new_state == PlaybackList::PlaybackState::Playing)
+    if (new_state == Playlist::PlaybackState::Pending ||
+        new_state == Playlist::PlaybackState::Playing)
     {
         auto playlist = self->playback_list_.lock();
         if (playlist != nullptr)
@@ -207,7 +210,7 @@ void PlaylistSidebar::on_playback_state_changed(PlaybackList::PlaybackState new_
         }
         else
         {
-            LOG_ERROR("PlaylistSidebar({}): PlaybackList object destroyed, the program will not "
+            LOG_ERROR("PlaylistSidebar({}): Playlist object destroyed, the program will not "
                       "function correctly.",
                       void_p(self));
         }

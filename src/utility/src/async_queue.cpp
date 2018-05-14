@@ -9,10 +9,11 @@
 
 #include <libspring_logger.h>
 
-#include "async_queue.h"
+#include "utility/async_queue.h"
 
 using namespace spring;
 using namespace spring::player;
+using namespace spring::player::utility;
 using namespace moodycamel;
 
 namespace

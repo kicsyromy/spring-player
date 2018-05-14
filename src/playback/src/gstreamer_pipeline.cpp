@@ -7,9 +7,9 @@
 
 #include <gtk/gtk.h>
 
-#include "async_queue.h"
-#include "gstreamer_pipeline.h"
-#include "playback_list.h"
+#include "playback/gstreamer_pipeline.h"
+#include "playback/playlist.h"
+#include "utility/async_queue.h"
 
 #include "utility/global.h"
 #include "utility/gtk_helpers.h"
@@ -17,6 +17,7 @@
 using namespace spring;
 using namespace spring::player;
 using namespace spring::player::utility;
+using namespace spring::player::playback;
 
 namespace
 {
@@ -47,7 +48,7 @@ namespace
         };
 } // namespace
 
-GStreamerPipeline::GStreamerPipeline(const PlaybackList &playback_list) noexcept
+GStreamerPipeline::GStreamerPipeline(const Playlist &playback_list) noexcept
   : playback_list_(playback_list)
 {
     LOG_INFO("GStreamerPipeline({}): Creating...", void_p(this));

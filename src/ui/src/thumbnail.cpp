@@ -8,7 +8,7 @@
 
 #include <libspring_logger.h>
 
-#include "thumbnail.h"
+#include "ui/thumbnail.h"
 
 #include "utility/exponential_blur.h"
 #include "utility/global.h"
@@ -17,6 +17,7 @@
 
 using namespace spring;
 using namespace spring::player;
+using namespace spring::player::ui;
 using namespace spring::player::utility;
 
 namespace

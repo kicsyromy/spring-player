@@ -6,71 +6,77 @@
 #include <libspring_global.h>
 #include <libspring_music_library.h>
 
-#include "application_settings.h"
-
-#include "artist_browse_page.h"
-#include "thumbnail_page.h"
-#include "track_list_popover.h"
+#include "ui/artist_browse_page.h"
+#include "ui/thumbnail_page.h"
+#include "ui/track_list_popover.h"
 /* TODO: Forward declare these */
-#include "songs_page.h"
+#include "ui/songs_page.h"
 
 #include "utility/forward_declarations.h"
 #include "utility/g_object_guard.h"
+#include "utility/settings.h"
 
 namespace spring
 {
     namespace player
     {
-        class PlaybackList;
-        class PageStackSwitcher;
-
-        class PageStack
+        namespace playback
         {
-        public:
-            using Page = settings::Page;
+            class Playlist;
+        }
 
-        public:
-            PageStack(PageStackSwitcher &stack_switcher,
-                      std::weak_ptr<PlaybackList> playback_list) noexcept;
-            ~PageStack() noexcept;
+        namespace ui
+        {
+            class PageStackSwitcher;
 
-        public:
-            void set_music_library(MusicLibrary &&library) noexcept;
+            class PageStack
+            {
+            public:
+                using Page = settings::Page;
 
-        public:
-            void filter_current_page(std::string &&text) noexcept;
-            void go_back() noexcept;
+            public:
+                PageStack(PageStackSwitcher &stack_switcher,
+                          std::weak_ptr<playback::Playlist> playback_list) noexcept;
+                ~PageStack() noexcept;
 
-        public:
-            GtkWidget *operator()() noexcept;
+            public:
+                void set_music_library(MusicLibrary &&library) noexcept;
 
-        private:
-            static void on_page_requested(Page page, PageStack *self) noexcept;
-            static void on_album_activated(ThumbnailWidget<music::Album> *thumbnail,
-                                           PageStack *self) noexcept;
-            static void on_artist_activated(ThumbnailWidget<music::Artist> *thumbnail,
-                                            PageStack *self) noexcept;
+            public:
+                void filter_current_page(std::string &&text) noexcept;
+                void go_back() noexcept;
 
-        private:
-            utility::GObjectGuard<GtkStack> page_stack_{ nullptr };
-            std::unique_ptr<PageStackSwitcher> page_stack_switcher_{ nullptr };
+            public:
+                GtkWidget *operator()() noexcept;
 
-            std::shared_ptr<MusicLibrary> music_library_{};
+            private:
+                static void on_page_requested(Page page, PageStack *self) noexcept;
+                static void on_album_activated(ThumbnailWidget<music::Album> *thumbnail,
+                                               PageStack *self) noexcept;
+                static void on_artist_activated(ThumbnailWidget<music::Artist> *thumbnail,
+                                                PageStack *self) noexcept;
 
-            ThumbnailPage<music::Album> albums_page_;
-            ThumbnailPage<music::Artist> artists_page_;
-            std::unique_ptr<SongsPage> songs_page_{ nullptr };
+            private:
+                utility::GObjectGuard<GtkStack> page_stack_{ nullptr };
+                std::unique_ptr<PageStackSwitcher> page_stack_switcher_{ nullptr };
 
-            std::weak_ptr<PlaybackList> playback_list_{};
+                std::shared_ptr<MusicLibrary> music_library_{};
 
-            TrackListPopover track_list_popover_{ playback_list_ };
-            ArtistBrowsePage artist_browse_page_{ playback_list_ };
+                ThumbnailPage<music::Album> albums_page_;
+                ThumbnailPage<music::Artist> artists_page_;
+                std::unique_ptr<SongsPage> songs_page_{ nullptr };
 
-        private:
-            DISABLE_COPY(PageStack)
-            DISABLE_MOVE(PageStack)
-        };
-    } // namespace player
+                std::weak_ptr<playback::Playlist> playback_list_{};
+
+                TrackListPopover track_list_popover_{ playback_list_ };
+                ArtistBrowsePage artist_browse_page_{ playback_list_ };
+
+            private:
+                DISABLE_COPY(PageStack)
+                DISABLE_MOVE(PageStack)
+            };
+        } // namespace ui
+    }     // namespace player
 } // namespace spring
 
 #endif // !SPRING_PLAYER_PAGE_STACK_H

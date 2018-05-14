@@ -4,19 +4,22 @@
 
 #include <fmt/format.h>
 
-#include "application_settings.h"
-#include "async_queue.h"
-#include "gstreamer_pipeline.h"
-#include "main_window.h"
-#include "playback_list.h"
 #include "spring_player.h"
+
+#include "ui/main_window.h"
+
+#include "playback/gstreamer_pipeline.h"
+#include "playback/playlist.h"
+
+#include "utility/async_queue.h"
+#include "utility/settings.h"
 
 struct _SpringPlayer
 {
     GtkApplication parent;
 
-    std::shared_ptr<spring::player::PlaybackList> playback_list;
-    std::unique_ptr<spring::player::MainWindow> main_window;
+    std::shared_ptr<spring::player::playback::Playlist> playback_list;
+    std::unique_ptr<spring::player::ui::MainWindow> main_window;
 };
 
 G_DEFINE_TYPE(SpringPlayer, spring_player, GTK_TYPE_APPLICATION)
@@ -55,19 +58,19 @@ static void spring_player_activate(GApplication *app)
     auto self = reinterpret_cast<SpringPlayer *>(app);
     if (self->main_window == nullptr)
     {
-        spring::player::async_queue::start_processing();
+        spring::player::utility::async_queue::start_processing();
 
-        self->playback_list = std::make_shared<spring::player::PlaybackList>();
+        self->playback_list = std::make_shared<spring::player::playback::Playlist>();
 
         self->main_window =
-            std::make_unique<spring::player::MainWindow>(*self, self->playback_list);
+            std::make_unique<spring::player::ui::MainWindow>(*self, self->playback_list);
         self->main_window->show();
     }
 }
 
 static void spring_player_shutdown(GApplication *app)
 {
-    spring::player::async_queue::stop_processing();
+    spring::player::utility::async_queue::stop_processing();
 
     auto self = reinterpret_cast<SpringPlayer *>(app);
     self->main_window.reset();

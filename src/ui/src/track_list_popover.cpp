@@ -2,19 +2,21 @@
 
 #include <libspring_logger.h>
 
-#include "track_list_popover.h"
+#include "ui/track_list_popover.h"
 
-#include "async_queue.h"
-#include "playback_list.h"
+#include "playback/playlist.h"
 
+#include "utility/async_queue.h"
 #include "utility/global.h"
 #include "utility/gtk_helpers.h"
 
 using namespace spring;
 using namespace spring::player;
+using namespace spring::player::ui;
+using namespace spring::player::playback;
 using namespace spring::player::utility;
 
-TrackListPopover::TrackListPopover(std::weak_ptr<PlaybackList> playback_list) noexcept
+TrackListPopover::TrackListPopover(std::weak_ptr<Playlist> playback_list) noexcept
   : playback_list_{ playback_list }
 {
     auto builder = gtk_builder_new_from_resource(APPLICATION_PREFIX "/track_list_popover.ui");

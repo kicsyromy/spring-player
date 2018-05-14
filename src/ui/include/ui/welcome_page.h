@@ -11,33 +11,36 @@ namespace spring
 {
     namespace player
     {
-        class MainWindow;
-
-        class WelcomePage
+        namespace ui
         {
-        public:
-            WelcomePage() noexcept;
-            ~WelcomePage() noexcept;
+            class MainWindow;
 
-        public:
-            signal(new_connection_requested);
+            class WelcomePage
+            {
+            public:
+                WelcomePage() noexcept;
+                ~WelcomePage() noexcept;
 
-        public:
-            GtkWidget *operator()() noexcept;
+            public:
+                signal(new_connection_requested);
 
-        private:
-            static void on_action_activated(GraniteWidgetsWelcome *,
-                                            std::int32_t index,
-                                            WelcomePage *self) noexcept;
+            public:
+                GtkWidget *operator()() noexcept;
 
-        private:
-            utility::GObjectGuard<GraniteWidgetsWelcome> welcome_;
+            private:
+                static void on_action_activated(GraniteWidgetsWelcome *,
+                                                std::int32_t index,
+                                                WelcomePage *self) noexcept;
 
-        private:
-            DISABLE_COPY(WelcomePage)
-            DISABLE_MOVE(WelcomePage)
-        };
-    } // namespace player
+            private:
+                utility::GObjectGuard<GraniteWidgetsWelcome> welcome_;
+
+            private:
+                DISABLE_COPY(WelcomePage)
+                DISABLE_MOVE(WelcomePage)
+            };
+        } // namespace ui
+    }     // namespace player
 } // namespace spring
 
 #endif // !SPRING_PLAYER_WELCOME_PAGE_H

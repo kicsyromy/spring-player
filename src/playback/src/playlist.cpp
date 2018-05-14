@@ -5,24 +5,25 @@
 
 #include <libspring_logger.h>
 
-#include "playback_list.h"
+#include "playback/playlist.h"
 
 #include "utility/global.h"
 
 using namespace spring;
 using namespace spring::player;
+using namespace spring::player::playback;
 
-PlaybackList::PlaybackList() noexcept
+Playlist::Playlist() noexcept
 {
-    LOG_INFO("PlaybackList({}): Creating...", void_p(this));
+    LOG_INFO("Playlist({}): Creating...", void_p(this));
 
-    void (*playback_state_changed_handler)(PlaybackState, PlaybackList *) noexcept =
+    void (*playback_state_changed_handler)(PlaybackState, Playlist *) noexcept =
         &on_playback_state_changed;
     pipeline_.on_playback_state_changed(this, playback_state_changed_handler);
 
     pipeline_.on_playback_position_changed(this,
                                            [](Milliseconds milliseconds, void *instance) {
-                                               auto self = static_cast<PlaybackList *>(instance);
+                                               auto self = static_cast<Playlist *>(instance);
                                                self->emit_playback_position_changed(
                                                    milliseconds.count());
                                            },
@@ -30,7 +31,7 @@ PlaybackList::PlaybackList() noexcept
 
     pipeline_.on_track_cache_updated(this,
                                      [](std::size_t new_size, void *instance) {
-                                         auto self = static_cast<PlaybackList *>(instance);
+                                         auto self = static_cast<Playlist *>(instance);
                                          self->emit_track_cache_updated(std::move(new_size));
                                      },
                                      this);
@@ -38,17 +39,17 @@ PlaybackList::PlaybackList() noexcept
     pipeline_.on_track_cached(
         this,
         [](void *instance) {
-            auto self = static_cast<PlaybackList *>(instance);
-            LOG_INFO("PlaybackList({}): Finished caching track {}", instance,
+            auto self = static_cast<Playlist *>(instance);
+            LOG_INFO("Playlist({}): Finished caching track {}", instance,
                      self->current_track().second ? self->current_track().second->title() : "");
             self->emit_track_cached();
         },
         this);
 };
 
-PlaybackList::~PlaybackList() noexcept
+Playlist::~Playlist() noexcept
 {
-    LOG_INFO("PlaybackList({}): Destroying...", void_p(this));
+    LOG_INFO("Playlist({}): Destroying...", void_p(this));
 
     pipeline_.disconnect_track_cached(this);
     pipeline_.disconnect_track_cache_updated(this);
@@ -56,7 +57,7 @@ PlaybackList::~PlaybackList() noexcept
     pipeline_.disconnect_playback_state_changed(this);
 }
 
-std::pair<int32_t, const music::Track *> PlaybackList::current_track() const noexcept
+std::pair<int32_t, const music::Track *> Playlist::current_track() const noexcept
 {
     music::Track *result{ nullptr };
     if (current_index_ >= 0)
@@ -67,46 +68,46 @@ std::pair<int32_t, const music::Track *> PlaybackList::current_track() const noe
     return { current_index_, result };
 }
 
-std::size_t PlaybackList::track_count() const noexcept
+std::size_t Playlist::track_count() const noexcept
 {
     return content_.size();
 }
 
-PlaybackList::PlaybackState PlaybackList::playback_state() const noexcept
+Playlist::PlaybackState Playlist::playback_state() const noexcept
 {
     return pipeline_.playback_state();
 }
 
-void PlaybackList::set_repeat_all_active(bool value) noexcept
+void Playlist::set_repeat_all_active(bool value) noexcept
 {
     if (repeat_all_active_ != value)
     {
-        LOG_INFO("PlaybackList({}): Repeat all {}", void_p(this), value ? "ON" : "OFF");
+        LOG_INFO("Playlist({}): Repeat all {}", void_p(this), value ? "ON" : "OFF");
         repeat_all_active_ = value;
     }
 }
 
-void PlaybackList::set_repeat_one_active(bool value) noexcept
+void Playlist::set_repeat_one_active(bool value) noexcept
 {
     if (repeat_one_active_ != value)
     {
-        LOG_INFO("PlaybackList({}): Repeat one {}", void_p(this), value ? "ON" : "OFF");
+        LOG_INFO("Playlist({}): Repeat one {}", void_p(this), value ? "ON" : "OFF");
         repeat_one_active_ = value;
     }
 }
 
-void PlaybackList::set_shuffle_active(bool value) noexcept
+void Playlist::set_shuffle_active(bool value) noexcept
 {
     if (shuffle_active_ != value)
     {
-        LOG_INFO("PlaybackList({}): Suffle {}", void_p(this), value ? "ON" : "OFF");
+        LOG_INFO("Playlist({}): Suffle {}", void_p(this), value ? "ON" : "OFF");
         shuffle_active_ = value;
     }
 }
 
-void PlaybackList::play(std::size_t index) noexcept
+void Playlist::play(std::size_t index) noexcept
 {
-    LOG_INFO("PlaybackList({}): Playing track at index {}", void_p(this), index);
+    LOG_INFO("Playlist({}): Playing track at index {}", void_p(this), index);
 
     if (index < content_.size())
     {
@@ -115,15 +116,15 @@ void PlaybackList::play(std::size_t index) noexcept
     }
     else
     {
-        LOG_WARN("PlaybackList({}): Index {} is out of playlist bounds. "
+        LOG_WARN("Playlist({}): Index {} is out of playlist bounds. "
                  "Current playlist size is {}",
                  void_p(this), index, content_.size());
     }
 }
 
-void PlaybackList::play_pause() noexcept
+void Playlist::play_pause() noexcept
 {
-    LOG_INFO("PlaybackList({}): Play/Pause", void_p(this));
+    LOG_INFO("Playlist({}): Play/Pause", void_p(this));
 
     if (current_index_ == -1)
     {
@@ -135,49 +136,49 @@ void PlaybackList::play_pause() noexcept
     }
 }
 
-void PlaybackList::seek_current_track(PlaybackList::Milliseconds value) noexcept
+void Playlist::seek_current_track(Playlist::Milliseconds value) noexcept
 {
-    LOG_INFO("PlaybackList({}): Seek to {}", void_p(this), value.count());
+    LOG_INFO("Playlist({}): Seek to {}", void_p(this), value.count());
     pipeline_.seek(value);
 }
 
-void PlaybackList::stop() noexcept
+void Playlist::stop() noexcept
 {
-    LOG_INFO("PlaybackList({}): Stop playback", void_p(this));
+    LOG_INFO("Playlist({}): Stop playback", void_p(this));
 
     pipeline_.stop();
     current_index_ = -1;
 }
 
-void PlaybackList::next() noexcept
+void Playlist::next() noexcept
 {
-    LOG_INFO("PlaybackList({}): Skip forward", void_p(this));
+    LOG_INFO("Playlist({}): Skip forward", void_p(this));
 
     std::size_t new_index = current_index_ > -1 ? static_cast<std::size_t>(current_index_ + 1) :
                                                   content_.size() > 0 ? content_.size() - 1 : 0;
     play(new_index);
 }
 
-void PlaybackList::previous() noexcept
+void Playlist::previous() noexcept
 {
-    LOG_INFO("PlaybackList({}): Skip backward", void_p(this));
+    LOG_INFO("Playlist({}): Skip backward", void_p(this));
 
     std::size_t new_index = current_index_ > 0 ? static_cast<std::size_t>(current_index_ - 1) : 0;
     play(new_index);
 }
 
-void PlaybackList::clear() noexcept
+void Playlist::clear() noexcept
 {
-    LOG_INFO("PlaybackList({}): Clear", void_p(this));
+    LOG_INFO("Playlist({}): Clear", void_p(this));
     pipeline_.stop();
     content_.clear();
 
     emit_list_cleared();
 }
 
-void PlaybackList::enqueue(std::shared_ptr<music::Track> track) noexcept
+void Playlist::enqueue(std::shared_ptr<music::Track> track) noexcept
 {
-    LOG_INFO("PlaybackList({}): Enqueue {}", void_p(this), track->title());
+    LOG_INFO("Playlist({}): Enqueue {}", void_p(this), track->title());
 
     content_.push_back(track);
     auto &t = content_.back();
@@ -185,9 +186,9 @@ void PlaybackList::enqueue(std::shared_ptr<music::Track> track) noexcept
     emit_track_queued(t);
 }
 
-void PlaybackList::on_playback_state_changed(PlaybackState new_state, PlaybackList *self) noexcept
+void Playlist::on_playback_state_changed(PlaybackState new_state, Playlist *self) noexcept
 {
-    LOG_INFO("PlaybackList({}): Playback state changed to {} for {}", void_p(self),
+    LOG_INFO("Playlist({}): Playback state changed to {} for {}", void_p(self),
              GStreamerPipeline::playback_state_to_string(new_state),
              self->current_track().second ? self->current_track().second->title() : "");
 

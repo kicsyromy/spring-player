@@ -4,14 +4,16 @@
 
 #include <libspring_logger.h>
 
-#include "async_queue.h"
-#include "server_setup_dialog.h"
+#include "ui/server_setup_dialog.h"
 
+#include "utility/async_queue.h"
 #include "utility/global.h"
 #include "utility/gtk_helpers.h"
 
 using namespace spring;
 using namespace spring::player;
+using namespace spring::player::ui;
+using namespace spring::player::plex;
 using namespace spring::player::utility;
 
 ServerSetupDialog::ServerSetupDialog() noexcept
@@ -136,9 +138,10 @@ void ServerSetupDialog::on_connection_requested(GtkButton *, ServerSetupDialog *
                 LOG_INFO("ServerSetupDialog({}): Connection successful", void_p(self));
                 async_queue::post_response(async_queue::Response{
                     "Connection successful", [self]() { on_connection_successful(self); } });
-                self->emit_queued_server_added(
-                    PlexSession{ server.name().c_str(), server_address.data(), port, result.value },
-                    std::move(server));
+                self->emit_queued_server_added(plex::Session{ server.name().c_str(),
+                                                              server_address.data(), port,
+                                                              result.value },
+                                               std::move(server));
             }
         } });
 }

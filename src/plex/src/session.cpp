@@ -1,11 +1,12 @@
 #include <libspring_logger.h>
 
-#include "application_settings.h"
-#include "plex_session.h"
+#include "plex/session.h"
+#include "utility/settings.h"
 
 using namespace spring;
 using namespace spring::player;
 using namespace spring::player::utility;
+using namespace spring::player::plex;
 
 namespace
 {
@@ -35,14 +36,14 @@ namespace
     }
 } // namespace
 
-PlexSession::PlexSession() noexcept
+Session::Session() noexcept
 {
 }
 
-PlexSession::PlexSession(std::string &&name,
-                         std::string &&hostname,
-                         int32_t port,
-                         std::string &&token) noexcept
+Session::Session(std::string &&name,
+                 std::string &&hostname,
+                 int32_t port,
+                 std::string &&token) noexcept
   : name_(std::move(name))
   , hostname_(std::move(hostname))
   , port_(port)
@@ -50,27 +51,27 @@ PlexSession::PlexSession(std::string &&name,
 {
 }
 
-const std::string &PlexSession::name() const noexcept
+const std::string &Session::name() const noexcept
 {
     return name_;
 }
 
-const std::string &PlexSession::hostname() const noexcept
+const std::string &Session::hostname() const noexcept
 {
     return hostname_;
 }
 
-int32_t PlexSession::port() const noexcept
+int32_t Session::port() const noexcept
 {
     return port_;
 }
 
-const std::string &PlexSession::token() const noexcept
+const std::string &Session::token() const noexcept
 {
     return token_;
 }
 
-void PlexSession::save() const noexcept
+void Session::save() const noexcept
 {
     auto storage = create_storage();
     storage.sync_schema();
@@ -78,7 +79,7 @@ void PlexSession::save() const noexcept
     storage.insert<session_table_t>({ -1, name_, hostname_, port_, token_ });
 }
 
-std::vector<PlexSession> PlexSession::sessions() noexcept
+std::vector<Session> Session::sessions() noexcept
 {
     using namespace sqlite_orm;
 
@@ -88,6 +89,6 @@ std::vector<PlexSession> PlexSession::sessions() noexcept
     auto sessions = storage.select(columns(&session_table_t::token, &session_table_t::port,
                                            &session_table_t::hostname, &session_table_t::name));
 
-    auto plex_sessions = reinterpret_cast<std::vector<PlexSession> *>(&sessions);
+    auto plex_sessions = reinterpret_cast<std::vector<Session> *>(&sessions);
     return std::move(*plex_sessions);
 }

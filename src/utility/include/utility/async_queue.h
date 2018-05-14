@@ -8,23 +8,26 @@ namespace spring
 {
     namespace player
     {
-        namespace async_queue
+        namespace utility
         {
-            struct Request
+            namespace async_queue
             {
-                const char *id;
-                std::function<void()> request;
-            };
+                struct Request
+                {
+                    const char *id;
+                    std::function<void()> request;
+                };
 
-            using Response = Request;
+                using Response = Request;
 
-            void start_processing() noexcept;
-            void stop_processing() noexcept;
-            void push_back_request(Request &&request) noexcept;
-            void push_front_request(Request &&request) noexcept;
-            void post_response(Response &&response) noexcept;
-        } // namespace async_queue
-    }     // namespace player
+                void start_processing() noexcept;
+                void stop_processing() noexcept;
+                void push_back_request(Request &&request) noexcept;
+                void push_front_request(Request &&request) noexcept;
+                void post_response(Response &&response) noexcept;
+            } // namespace async_queue
+        }     // namespace utility
+    }         // namespace player
 } // namespace spring
 
 #endif // !SPRING_PLAYER_ASYNC_QUEUE_H

@@ -4,15 +4,16 @@
 
 #include <libspring_logger.h>
 
-#include "main_window.h"
-#include "server_setup_dialog.h"
-#include "welcome_page.h"
+#include "ui/main_window.h"
+#include "ui/server_setup_dialog.h"
+#include "ui/welcome_page.h"
 
 #include "utility/global.h"
 #include "utility/gtk_helpers.h"
 
 using namespace spring;
 using namespace spring::player;
+using namespace spring::player::ui;
 using namespace spring::player::utility;
 
 namespace

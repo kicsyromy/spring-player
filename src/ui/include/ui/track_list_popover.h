@@ -16,54 +16,60 @@ namespace spring
 {
     namespace player
     {
-        class PlaybackList;
-
-        class TrackListPopover
+        namespace playback
         {
-        public:
-            TrackListPopover(std::weak_ptr<PlaybackList> playback_list) noexcept;
-            ~TrackListPopover() noexcept;
+            class Playlist;
+        }
 
-        public:
-            void show(const music::Album &album, GtkWidget *relative_to) noexcept;
+        namespace ui
+        {
+            class TrackListPopover
+            {
+            public:
+                TrackListPopover(std::weak_ptr<playback::Playlist> playback_list) noexcept;
+                ~TrackListPopover() noexcept;
 
-        public:
-            signal(closed, TrackListPopover *);
+            public:
+                void show(const music::Album &album, GtkWidget *relative_to) noexcept;
 
-        public:
-            GtkWidget *operator()() noexcept;
+            public:
+                signal(closed, TrackListPopover *);
 
-        private:
-            std::pair<std::vector<music::Track> *, std::vector<utility::GObjectGuard<GtkBox>> *>
-            load_tracks(const music::Album &album) const noexcept;
+            public:
+                GtkWidget *operator()() noexcept;
 
-            void on_tracks_loaded(
-                std::vector<music::Track> *tracks,
-                std::vector<utility::GObjectGuard<GtkBox>> *track_widgets) noexcept;
+            private:
+                std::pair<std::vector<music::Track> *, std::vector<utility::GObjectGuard<GtkBox>> *>
+                load_tracks(const music::Album &album) const noexcept;
 
-        private:
-            static void on_track_activated(GtkListBox *list_box,
-                                           GtkListBoxRow *element,
-                                           TrackListPopover *self) noexcept;
-            static void on_popover_closed(GtkPopover *popover, TrackListPopover *self) noexcept;
-            static void on_enqueue_requested(GtkButton *enqueue_button,
-                                             TrackListPopover *self) noexcept;
+                void on_tracks_loaded(
+                    std::vector<music::Track> *tracks,
+                    std::vector<utility::GObjectGuard<GtkBox>> *track_widgets) noexcept;
 
-        private:
-            utility::GObjectGuard<GtkPopover> listbox_popover_{ nullptr };
-            GtkButton *enqueue_button_{ nullptr };
-            GtkListBox *listbox_{ nullptr };
-            GtkSpinner *loading_spinner_{ nullptr };
+            private:
+                static void on_track_activated(GtkListBox *list_box,
+                                               GtkListBoxRow *element,
+                                               TrackListPopover *self) noexcept;
+                static void on_popover_closed(GtkPopover *popover, TrackListPopover *self) noexcept;
+                static void on_enqueue_requested(GtkButton *enqueue_button,
+                                                 TrackListPopover *self) noexcept;
 
-            std::vector<std::shared_ptr<music::Track>> tracks_{};
+            private:
+                utility::GObjectGuard<GtkPopover> listbox_popover_{ nullptr };
+                GtkButton *enqueue_button_{ nullptr };
+                GtkListBox *listbox_{ nullptr };
+                GtkSpinner *loading_spinner_{ nullptr };
 
-            std::weak_ptr<PlaybackList> playback_list_{};
+                std::vector<std::shared_ptr<music::Track>> tracks_{};
 
-        private:
-            DISABLE_COPY(TrackListPopover)
-            DISABLE_MOVE(TrackListPopover)
-        };
-    } // namespace player
+                std::weak_ptr<playback::Playlist> playback_list_{};
+
+            private:
+                DISABLE_COPY(TrackListPopover)
+                DISABLE_MOVE(TrackListPopover)
+            };
+        } // namespace ui
+    }     // namespace player
 } // namespace spring
 
 #endif // !SPRING_PLAYER_TRACK_LIST_POPOVER_H
