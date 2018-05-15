@@ -1,7 +1,6 @@
 project(
     'me.kicsyromy.spring-player', 'c', 'cpp', version: '0.1.0',
-    meson_version: '>= 0.46.0',
-    default_options : ['cpp_std=c++14']
+    meson_version: '>= 0.46.0'
 )
 
 i18n = import('i18n')

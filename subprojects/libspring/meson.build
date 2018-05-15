@@ -1,7 +1,6 @@
 project(
     'spring', 'cpp', version: '0.1.0',
     meson_version : '>= 0.46.0',
-    default_options : ['cpp_std=c++14']
 )
 
 spring_config = configuration_data()
@@ -70,6 +69,7 @@ spring_library = build_target(
         spring_3rdparty_include_dirs
     ],
     target_type : library_type,
+    override_options : [ 'cpp_std=c++14' ],
     install : true
 )
 
@@ -92,4 +92,3 @@ install_subdir(
     'include',
     install_dir : get_option('prefix')
 )
-

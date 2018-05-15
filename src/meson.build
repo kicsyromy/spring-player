@@ -31,6 +31,15 @@ project_headers += headers
 project_sources += sources
 project_sources += inline_sources 
 
+override_options = []
+
+cc_version = meson.get_compiler('cpp').version()
+if cc_version.version_compare('>=7.1')
+    override_options += 'cpp_std=c++17'
+else
+    override_options += 'cpp_std=c++14'
+endif
+
 libspring = dependency('libspring', fallback : ['libspring', 'libspring_dep'])
 executable(
     meson.project_name(),
@@ -40,6 +49,6 @@ executable(
         include_dirs,
         third_party_include_dirs
     ],
+    override_options : override_options,
     install: true
 )
-
