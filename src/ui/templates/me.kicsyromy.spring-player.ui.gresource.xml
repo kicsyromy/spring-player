@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gresources>
+  <gresource prefix="/me/kicsyromy/spring-player/">
+    <file preprocess="xml-stripblanks" alias="artist_browse_page.ui">artist_browse_page.ui</file>
+    <file preprocess="xml-stripblanks" alias="header_bar.ui">header_bar.ui</file>
+    <file preprocess="xml-stripblanks" alias="main_window.ui">main_window.ui</file>
+    <file preprocess="xml-stripblanks" alias="page_stack_switcher.ui">page_stack_switcher.ui</file>
+    <file preprocess="xml-stripblanks" alias="playlist_item.ui">playlist_item.ui</file>
+    <file preprocess="xml-stripblanks" alias="playlist_sidebar.ui">playlist_sidebar.ui</file>
+    <file preprocess="xml-stripblanks" alias="server_setup_dialog.ui">server_setup_dialog.ui</file>
+    <file preprocess="xml-stripblanks" alias="thumbnail_page.ui">thumbnail_page.ui</file>
+    <file preprocess="xml-stripblanks" alias="thumbnail_widget.ui">thumbnail_widget.ui</file>
+    <file preprocess="xml-stripblanks" alias="track_list_popover.ui">track_list_popover.ui</file>
+    <file preprocess="xml-stripblanks" alias="track_widget.ui">track_widget.ui</file>
+    <file alias="application_style.css">css/application_style.css</file>
+    <file alias="artwork.css">css/artwork.css</file>
+    <file alias="page_stack_switcher.css">css/page_stack_switcher.css</file>
+  </gresource>
+</gresources>

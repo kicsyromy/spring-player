@@ -1,0 +1,6 @@
+[Desktop Entry]
+Type=Application
+Name=Spring Player
+Icon=@PROJECT_NAME@
+StartupNotify=true
+Exec=@PROJECT_NAME@ %U
