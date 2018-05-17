@@ -33,17 +33,15 @@
 
 # Qt Creator
 *.pro.user
+*.creator.user
 CMakeLists.txt.user
 
-build-*
-*.config
-*.creator
-*.files
-*.includes
+build/
 
 # Visual Studio
 .vs/
 CMakeSettings.json
+.vscode/
 
 # macOS Finder files
 .DS_Store

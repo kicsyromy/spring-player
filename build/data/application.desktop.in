@@ -1,0 +1,6 @@
+[Desktop Entry]
+Type=Application
+Name=Spring Player
+Icon=me.kicsyromy.spring-player
+StartupNotify=true
+Exec=me.kicsyromy.spring-player %U

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist>
+  <enum id="me.kicsyromy.spring-player.current-page">
+    <value nick="albums_page" value="0"/>
+    <value nick="artists_page" value="1"/>
+    <value nick="songs_page" value="2"/>
+  </enum>
+
+  <schema path="/me/kicsyromy/spring-player/" id="me.kicsyromy.spring-player">
+    <key name='current-page' enum='me.kicsyromy.spring-player.current-page'>
+      <default>'albums_page'</default>
+    </key>
+  </schema>
+</schemalist>

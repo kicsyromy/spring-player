@@ -7,14 +7,13 @@ install_data(
 
 # Configure and install GSchema file
 gschema_file = configure_file (
-    input: 'gschema.xml.in',
-    output: '@BASENAME@',
+    input: 'application.gschema.xml.in',
+    output: '@0@.gschema.xml'.format(application_id),
     configuration: configuration
 )
 
 install_data (
     gschema_file,
-    rename: '@0@.gschema.xml'.format(application_id),
     install_dir: join_paths(get_option('prefix'), get_option('datadir'), 'glib-2.0', 'schemas')
 )
 
@@ -27,7 +26,7 @@ endif
 
 # Install configure, translate and install .desktop file
 desktop_in_file = configure_file(
-    input: 'desktop.in.in',
+    input: 'application.desktop.in.in',
     output: '@BASENAME@',
     configuration: configuration
 )
@@ -50,7 +49,7 @@ endif
 
 # Configure, translate, and install AppStream metadata file
 appstream_in_file = configure_file(
-    input: 'appdata.xml.in.in',
+    input: 'application.appdata.xml.in.in',
     output: '@BASENAME@',
     configuration: configuration
 )
